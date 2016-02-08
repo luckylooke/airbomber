@@ -54,7 +54,7 @@
             // this.load.image('background', 'assets/background.png');
             this.load.image('flame', 'assets/flame.png');
             this.load.image('target', 'assets/target.png');
-            this.load.image('land', 'assets/land.png');
+            // this.load.image('land', 'assets/land.png');
 
             //  Note: Graphics from Amiga Tanx Copyright 1991 Gary Roberts
 

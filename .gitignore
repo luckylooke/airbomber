@@ -3,3 +3,5 @@
 .DS_Store
 googleapi.p12
 googleapi.pem
+notes
+/node_modules
