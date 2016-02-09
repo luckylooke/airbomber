@@ -1,53 +1,15 @@
-var path = require('path')
-var webpack = require('webpack')
-var BrowserSyncPlugin = require('browser-sync-webpack-plugin')
-var definePlugin = new webpack.DefinePlugin({
-  __DEV__: JSON.stringify(JSON.parse(process.env.BUILD_DEV || 'true')),
-})
+var webpack = require("webpack");
+var path = require("path");
 
 module.exports = {
-  entry: {
-    app: [
-      'babel-polyfill',
-      path.resolve(__dirname, 'src/main.js')
-    ]
-  },
-  devtool: 'cheap-source-map',
-  output: {
-    pathinfo: true,
-    path: path.resolve(__dirname, 'dist'),
-    publicPath: './dist/',
-    filename: 'bundle.js'
-  },
-  watch: true,
-  plugins: [
-    definePlugin,
-    new BrowserSyncPlugin({
-      host: process.env.IP || 'localhost',
-      port: process.env.PORT || 3000,
-      ui: {
-          port: 8081
-      },
-      open: false,
-      server: {
-        baseDir: ['./', './build']
-      }
-    }),
-
-  ],
-  module: {
-    loaders: [
-      {
-        test: /\.js$/,
-        loaders: ['babel'],
-        include: path.join(__dirname, 'src')
-      }
-    ]
-  },
-  node: {
-    fs: 'empty'
-  },
-  externals: {
-    'phaser': 'Phaser'
-  }
-}
+    entry: "./public/src/main.js",
+    resolve: {
+        modulesDirectories: [
+            "./public/src/"
+        ]
+    },
+    output: {
+        path: path.join(__dirname, "public"),
+        filename: "bundle.js"
+    }
+};
