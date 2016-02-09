@@ -1,8 +1,7 @@
 var path = require('path')
 var webpack = require('webpack')
-var BrowserSyncPlugin = require('browser-sync-webpack-plugin')
 var definePlugin = new webpack.DefinePlugin({
-  __DEV__: JSON.stringify(JSON.parse(process.env.BUILD_DEV || 'true')),
+  __DEV__: JSON.stringify(JSON.parse(process.env.BUILD_DEV || 'false')),
 })
 
 module.exports = {
@@ -12,36 +11,35 @@ module.exports = {
       path.resolve(__dirname, 'src/main.js')
     ]
   },
-  devtool: 'cheap-source-map',
   output: {
-    pathinfo: true,
     path: path.resolve(__dirname, 'dist'),
     publicPath: './dist/',
     filename: 'bundle.js'
   },
-  watch: true,
   plugins: [
     definePlugin,
-    new BrowserSyncPlugin({
-      host: process.env.IP || 'localhost',
-      port: process.env.PORT || 3000,
-      ui: {
-          port: 8081
-      },
-      open: false,
-      server: {
-        baseDir: ['./', './build']
+    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+    new webpack.optimize.UglifyJsPlugin({
+      drop_console: true,
+      compress: {
+        warnings: false
       }
     }),
-
+    new webpack.optimize.OccurenceOrderPlugin(),
+    new webpack.optimize.DedupePlugin()
   ],
   module: {
     loaders: [
+
+      {
+        test: /\.json$/,
+        loader: 'json'
+      },
       {
         test: /\.js$/,
         loaders: ['babel'],
         include: path.join(__dirname, 'src')
-      }
+      },
     ]
   },
   node: {
