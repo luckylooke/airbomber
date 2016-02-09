@@ -6,7 +6,7 @@ module.exports = {
 	initialize: function() {
 		bombSound = game.add.audio("explosion");
 		powerupSound = game.add.audio("powerup");
-        musicSound = game.add.audio("music", 0.5);
+        // musicSound = game.add.audio("music", 0.5);
 	},
 
 	playBombSound: function() {
@@ -18,9 +18,9 @@ module.exports = {
     },
 
     playMusicSound: function () {
-        musicSound.play();
+        // musicSound.play();
     },
     stopMusicSound: function () {
-        musicSound.stop();
+        // musicSound.stop();
     }
 };

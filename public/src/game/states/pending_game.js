@@ -72,11 +72,11 @@ PendingGame.prototype = {
 				this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + color);
 			this.numPlayersInGame++;
 		}
-		if(this.numPlayersInGame > 1) {
+		// if(this.numPlayersInGame > 1) {
 			this.activateStartGameButton();
-		} else {
-			this.minPlayerMessage.visible = true;
-		}
+		// } else {
+		// 	this.minPlayerMessage.visible = true;
+		// }
 	},
 
 	playerJoined: function(data) {

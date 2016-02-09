@@ -1,11 +1,9 @@
+// TODO: Remove Window polution (move it to bomberman global)
 window.game = new Phaser.Game(875, 525, Phaser.AUTO, 'bomber');
 window.player = null;
 window.socket = null;
 window.level = null;
 
-startGame();
-
-function startGame() {
     socket = io();
 
 	game.state.add("Boot", require("./game/states/boot"));
@@ -17,4 +15,3 @@ function startGame() {
 	game.state.add("GameOver", require("./game/states/game_over"));
 
 	game.state.start('Boot');
-};
