@@ -14,6 +14,30 @@ var PowerupNotificationPlayer = require("../util/powerup_notification_player");
 var Level = function () {
 };
 
+var airconsole = new AirConsole();
+
+airconsole.onConnect = function(device_id) {
+//   checkTwoPlayers();
+console.log('connected', arguments);
+};
+
+airconsole.onDisconnect = function(device_id) {
+  var player = airconsole.convertDeviceIdToPlayerNumber(device_id);
+  if (player != undefined) {
+    // Player that was in game left the game.
+    // Setting active players to length 0.
+    airconsole.setActivePlayers(0);
+  }
+//   checkTwoPlayers();
+};
+
+airconsole.onMessage = function(device_id, data) {
+  var player = airconsole.convertDeviceIdToPlayerNumber(device_id);
+  if (player != undefined && data.move !== undefined) {
+    // paddles[player].move.y = data.move;
+  }
+};
+
 module.exports = Level;
 
 Level.prototype = {
