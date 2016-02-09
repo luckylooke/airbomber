@@ -177,9 +177,10 @@ function handlePlayerDeath(deadPlayerIds, gameId) {
         games.numPlayersAlive--;
     }, this);
 
-    if (games.numPlayersAlive <= 1) {
-        endRound(gameId, tiedWinnerIds);
-    }
+// temporary for developement
+    // if (games.numPlayersAlive <= 1) {
+        // endRound(gameId, tiedWinnerIds);
+    // }
 };
 
 function endRound(gameId, tiedWinnerIds) {
