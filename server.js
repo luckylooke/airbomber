@@ -69,13 +69,15 @@ function onClientDisconnect() {
             delete games.players[this.id];
             socket.sockets.in(this.gameId).emit("remove player", {id: this.id});
         }
-        if (games.numPlayers < 2) {
-            if (games.numPlayers == 1) {
-                socket.sockets.in(this.gameId).emit("no opponents left");
-            }
+        // temporarely disabled for developement
+        // if (games && games.numPlayers < 2) {
+        if (games && games.numPlayers < 1) {
+            // if (games.numPlayers == 1) {
+            //     socket.sockets.in(this.gameId).emit("no opponents left");
+            // }
             terminateExistingGame(this.gameId);
         }
-        if (games.awaiting && games.numEndOfRoundAcknowledgements >= games.numPlayers) {
+        if (games && games.awaiting && games.numEndOfRoundAcknowledgements >= games.numPlayers) {
             games.awaiting = false;
         }
     }

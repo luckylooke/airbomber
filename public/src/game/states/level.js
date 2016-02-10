@@ -17,7 +17,7 @@ var Level = function () {
 var airconsole = new AirConsole();
 
 airconsole.onConnect = function(device_id) {
-//   checkTwoPlayers();
+  checkTwoPlayers();
 console.log('connected', arguments);
 };
 
@@ -26,17 +26,41 @@ airconsole.onDisconnect = function(device_id) {
   if (player != undefined) {
     // Player that was in game left the game.
     // Setting active players to length 0.
-    airconsole.setActivePlayers(0);
+    // airconsole.setActivePlayers(0);
   }
-//   checkTwoPlayers();
+  checkTwoPlayers();
 };
 
 airconsole.onMessage = function(device_id, data) {
   var player = airconsole.convertDeviceIdToPlayerNumber(device_id);
   if (player != undefined && data.move !== undefined) {
+      console.log(data);
     // paddles[player].move.y = data.move;
   }
 };
+
+function checkTwoPlayers() {
+    var active_players = airconsole.getActivePlayerDeviceIds();
+    var connected_controllers = airconsole.getControllerDeviceIds();
+    // Only update if the game didn't have active players.
+    if (active_players.length == 0) {
+      if (connected_controllers.length >= 2) {
+        // Enough controller devices connected to start the game.
+        // Setting the first 2 controllers to active players.
+        airconsole.setActivePlayers(2);
+    //     resetBall(50, 0);
+    //     score = [0, 0];
+    //     score_el.innerHTML = score.join(":");
+    //     document.getElementById("wait").innerHTML = "";
+    //   } else if (connected_controllers.length == 1) {
+    //     document.getElementById("wait").innerHTML = "Need 1 more player!";
+    //     resetBall(0, 0);
+    //   } else if (connected_controllers.length == 0) {
+    //     document.getElementById("wait").innerHTML = "Need 2 more players!";
+    //     resetBall(0, 0);
+      }
+    }
+  }
 
 module.exports = Level;
 

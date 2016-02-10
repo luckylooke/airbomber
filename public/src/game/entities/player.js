@@ -33,7 +33,7 @@ Player.prototype.handleInput = function () {
 };
 
 Player.prototype.handleMotionInput = function () {
-    var moving = true;
+    var moving = false;
 
     game.physics.arcade.collide(this, level.blockLayer);
     game.physics.arcade.collide(this, level.bombs);
@@ -42,26 +42,31 @@ Player.prototype.handleMotionInput = function () {
         this.body.velocity.y = 0;
         this.body.velocity.x = -this.speed;
         this.facing = "left";
+        moving = true;
     } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
         this.body.velocity.y = 0;
         this.body.velocity.x = this.speed;
         this.facing = "right";
-    } else if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+        moving = true;
+    }
+    
+    if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
         this.body.velocity.x = 0;
         this.body.velocity.y = -this.speed;
         this.facing = "up";
+        moving = true;
     } else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
         this.body.velocity.x = 0;
         this.body.velocity.y = this.speed;
         this.facing = "down";
-    } else {
-        moving = false;
-        this.freeze();
+        moving = true;
     }
 
     if (moving) {
         this.animations.play(this.facing);
         socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing});
+    }else{
+        this.freeze();
     }
 };
 
