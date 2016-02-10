@@ -75,7 +75,7 @@ function onClientDisconnect() {
             }
             terminateExistingGame(this.gameId);
         }
-        if (games.awaiting && games.numEndOfRoundAcknowledgements >= games.numPlayers) {
+        if (games && games.awaiting && games.numEndOfRoundAcknowledgements >= games.numPlayers) {
             games.awaiting = false;
         }
     }
