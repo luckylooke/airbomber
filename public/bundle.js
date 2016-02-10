@@ -514,7 +514,8 @@
 	var Level = function () {
 	};
 
-	var airconsole = new AirConsole();
+	var airconsole = new AirConsole(),
+	      controller = {};
 
 	airconsole.onConnect = function(device_id) {
 	  checkTwoPlayers();
@@ -535,6 +536,7 @@
 	  var player = airconsole.convertDeviceIdToPlayerNumber(device_id);
 	  if (player != undefined && data.move !== undefined) {
 	      console.log(data);
+	      controller.y = data.move;
 	    // paddles[player].move.y = data.move;
 	  }
 	};
@@ -696,7 +698,7 @@
 	            if (this.gameFrozen) {
 	                player.freeze();
 	            } else {
-	                player.handleInput();
+	                player.handleInput(controller);
 	                for (var itemKey in this.items) {
 	                    var item = this.items[itemKey];
 	                    game.physics.arcade.overlap(player, item, function (p, i) {
@@ -951,45 +953,86 @@
 
 	Player.prototype = Object.create(Phaser.Sprite.prototype);
 
-	Player.prototype.handleInput = function () {
-	    this.handleMotionInput();
+	Player.prototype.handleInput = function (controller) {
 	    this.handleBombInput();
+	    if(controller){
+	        this.handleCtrlInput(controller);
+	    }else{
+	        this.handleKeysInput();
+	    }
 	};
 
-	Player.prototype.handleMotionInput = function () {
+	Player.prototype.handleCtrlInput = function (data) {
+	    var moving = false;
+
+	    game.physics.arcade.collide(this, level.blockLayer);
+	    game.physics.arcade.collide(this, level.bombs);
+	    
+	    data.x = data.x > 1 ? 1 : data.x;
+	    data.x = data.x < -1 ? -1 : data.x;
+	    data.y = data.y > 1 ? 1 : data.y;
+	    data.y = data.y < -1 ? -1 : data.y;
+
+	    if (data.x < 0) {
+	        this.facing = "left";
+	        moving = true;
+	    } else if (data.x > 0) {
+	        this.facing = "right";
+	        moving = true;
+	    }
+	    this.body.velocity.x = data.x * this.speed;
+
+	    if (data.y < 0) {
+	        this.facing = "down";
+	        moving = true;
+	    } else if (data.y > 0) {
+	        this.facing = "up";
+	        moving = true;
+	    }
+	    this.body.velocity.y = data.y * this.speed;
+
+	    if (moving) {
+	        this.animations.play(this.facing);
+	        socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing});
+	    }else{
+	        this.freeze();
+	    }
+	};
+
+	Player.prototype.handleKeysInput = function () {
 	    var moving = false;
 
 	    game.physics.arcade.collide(this, level.blockLayer);
 	    game.physics.arcade.collide(this, level.bombs);
 
 	    if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-	        this.body.velocity.y = 0;
 	        this.body.velocity.x = -this.speed;
 	        this.facing = "left";
 	        moving = true;
 	    } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-	        this.body.velocity.y = 0;
 	        this.body.velocity.x = this.speed;
 	        this.facing = "right";
 	        moving = true;
+	    } else {
+	        this.body.velocity.x = 0;
 	    }
 	    
 	    if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
-	        this.body.velocity.x = 0;
 	        this.body.velocity.y = -this.speed;
 	        this.facing = "up";
 	        moving = true;
 	    } else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
-	        this.body.velocity.x = 0;
 	        this.body.velocity.y = this.speed;
 	        this.facing = "down";
 	        moving = true;
+	    } else {
+	        this.body.velocity.y = 0;
 	    }
 
 	    if (moving) {
 	        this.animations.play(this.facing);
 	        socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing});
-	    }else{
+	    } else {
 	        this.freeze();
 	    }
 	};

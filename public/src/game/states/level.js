@@ -14,7 +14,8 @@ var PowerupNotificationPlayer = require("../util/powerup_notification_player");
 var Level = function () {
 };
 
-var airconsole = new AirConsole();
+var airconsole = new AirConsole(),
+      controller = {};
 
 airconsole.onConnect = function(device_id) {
   checkTwoPlayers();
@@ -35,6 +36,7 @@ airconsole.onMessage = function(device_id, data) {
   var player = airconsole.convertDeviceIdToPlayerNumber(device_id);
   if (player != undefined && data.move !== undefined) {
       console.log(data);
+      controller.y = data.move;
     // paddles[player].move.y = data.move;
   }
 };
@@ -196,7 +198,7 @@ Level.prototype = {
             if (this.gameFrozen) {
                 player.freeze();
             } else {
-                player.handleInput();
+                player.handleInput(controller);
                 for (var itemKey in this.items) {
                     var item = this.items[itemKey];
                     game.physics.arcade.overlap(player, item, function (p, i) {
