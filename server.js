@@ -64,7 +64,7 @@ function onClientDisconnect() {
     } else if (lobbySlots.state == "settingup") {
         lobbySlots.state = "empty";
         Lobby.broadcastSlotStateUpdate(this.gameId, "empty");
-    } else if (lobbySlots.state == "inprogress") {
+    } else if (games && lobbySlots.state == "inprogress") {
         if (this.id in games.players) {
             delete games.players[this.id];
             socket.sockets.in(this.gameId).emit("remove player", {id: this.id});
@@ -75,7 +75,7 @@ function onClientDisconnect() {
             }
             terminateExistingGame(this.gameId);
         }
-        if (games && games.awaiting && games.numEndOfRoundAcknowledgements >= games.numPlayers) {
+        if (games.awaiting && games.numEndOfRoundAcknowledgements >= games.numPlayers) {
             games.awaiting = false;
         }
     }
