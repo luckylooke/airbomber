@@ -57,7 +57,7 @@ Bomb.prototype = {
 				continue;
 			}
             if (Math.floor((player.x + 3) / TILE_SIZE) == Math.floor(x / TILE_SIZE) && Math.floor((player.y + 10) / TILE_SIZE) == Math.floor(y / TILE_SIZE)) {
-				explosionData.killedPlayers.push(player.id);
+				explosionData.killedPlayers.push(player.nick);
 			}
 		}
 		return hitData.hitBlock != 1 && hitData.hitBlock != 2;

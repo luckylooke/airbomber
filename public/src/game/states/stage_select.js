@@ -1,3 +1,6 @@
+/* global bomberman */
+var game = bomberman.game;
+var socket = bomberman.socket;
 var StageSelect = function() {};
 
 module.exports = StageSelect;
@@ -11,9 +14,9 @@ var stageNameYOffset = 320;
 var stages = {name: "Comeback", thumbnailKey: "first_", tilemapName: "First", maxPlayers: 4, size: "medium"};
 
 StageSelect.prototype = {
-    init: function (gameId) {
-		this.gameId = gameId;
-	},
+ //   init: function (slotId) {
+	// 	this.slotId = slotId;
+	// },
 
 	create: function() {
         game.add.sprite(0, 0, 'background_s');
@@ -39,7 +42,7 @@ StageSelect.prototype = {
 	},
 
 	confirmStageSelection: function() {
-        socket.emit("select stage", {mapName: stages.tilemapName});
-        game.state.start("PendingGame", true, false, stages.tilemapName, this.gameId);
+        socket.emit("select stage", {slotId: socket.id, mapName: stages.tilemapName});
+        game.state.start("PendingGame", true, false, stages.tilemapName, socket.id);
 	}
 };

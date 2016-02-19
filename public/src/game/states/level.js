@@ -1,3 +1,4 @@
+/* global Phaser, bomberman */
 var BLACK_HEX_CODE = "#000000";
 var TILE_SIZE = 35;
 
@@ -10,59 +11,24 @@ var Bomb = require("../entities/bomb");
 var RoundEndAnimation = require("../entities/round_end_animation");
 var PowerupImageKeys = require("../util/powerup_image_keys");
 var PowerupNotificationPlayer = require("../util/powerup_notification_player");
+var game = bomberman.game;
+var socket = bomberman.socket;
+var level = bomberman.level;
+var screen = bomberman.screen;
 
-var Level = function () {
-};
+var Level = function () {};
+var controllers = {},
+    airconsole = bomberman.airconsole,
+    acTools = bomberman.acTools;
 
-var airconsole = new AirConsole(),
-      controller = {};
-
-airconsole.onConnect = function(device_id) {
-  checkTwoPlayers();
-console.log('connected', arguments);
-};
-
-airconsole.onDisconnect = function(device_id) {
-  var player = airconsole.convertDeviceIdToPlayerNumber(device_id);
-  if (player != undefined) {
-    // Player that was in game left the game.
-    // Setting active players to length 0.
-    // airconsole.setActivePlayers(0);
+function movePlayer(device_id, data) {
+  var consignee = airconsole.convertDeviceIdToPlayerNumber(device_id);
+  if (consignee != undefined && data.move !== undefined) {
+      controllers[data.nick].y = data.move;
+    // paddles[consignee].move.y = data.move;
   }
-  checkTwoPlayers();
-};
-
-airconsole.onMessage = function(device_id, data) {
-  var player = airconsole.convertDeviceIdToPlayerNumber(device_id);
-  if (player != undefined && data.move !== undefined) {
-      console.log(data);
-      controller.y = data.move;
-    // paddles[player].move.y = data.move;
-  }
-};
-
-function checkTwoPlayers() {
-    var active_players = airconsole.getActivePlayerDeviceIds();
-    var connected_controllers = airconsole.getControllerDeviceIds();
-    // Only update if the game didn't have active players.
-    if (active_players.length == 0) {
-      if (connected_controllers.length >= 2) {
-        // Enough controller devices connected to start the game.
-        // Setting the first 2 controllers to active players.
-        airconsole.setActivePlayers(2);
-    //     resetBall(50, 0);
-    //     score = [0, 0];
-    //     score_el.innerHTML = score.join(":");
-    //     document.getElementById("wait").innerHTML = "";
-    //   } else if (connected_controllers.length == 1) {
-    //     document.getElementById("wait").innerHTML = "Need 1 more player!";
-    //     resetBall(0, 0);
-    //   } else if (connected_controllers.length == 0) {
-    //     document.getElementById("wait").innerHTML = "Need 2 more players!";
-    //     resetBall(0, 0);
-      }
-    }
-  }
+}
+acTools.addListener('movePlayer', movePlayer);
 
 module.exports = Level;
 
@@ -71,11 +37,10 @@ Level.prototype = {
 
     gameFrozen: true,
 
-    init: function (tilemapName, players, id) {
+    init: function (data) {
         this.tilemapName = 'First';
         //console.log(this.tilemapName + '||' + players + "||" + id);
-        this.players = players;
-        this.playerId = id;
+        this.players = data.players;
     },
 
     setEventHandlers: function () {
@@ -92,7 +57,7 @@ Level.prototype = {
     },
 
     create: function () {
-        level = this;
+        bomberman.level = level = this;
         this.lastFrameTime;
         this.deadGroup = [];
 
@@ -122,7 +87,9 @@ Level.prototype = {
     restartGame: function () {
         this.dimGraphic.destroy();
 
-        player.reset();
+        for (var i in screen.players) {
+            screen.players[i].reset();
+        }
         for (var i in this.remotePlayers) {
             this.remotePlayers[i].reset();
         }
@@ -168,12 +135,14 @@ Level.prototype = {
         this.gameFrozen = true;
         var animation = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
         animation.beginAnimation(function () {
+            acTools.rmListener('movePlayer');
             game.state.start("GameOver", true, false, data.gameWinnerColor, false);
         });
         AudioPlayer.stopMusicSound();
     },
 
     onNoOpponentsLeft: function (data) {
+        acTools.rmListener('movePlayer');
         game.state.start("GameOver", true, false, null, true);
     },
 
@@ -194,16 +163,19 @@ Level.prototype = {
     },
 
     update: function () {
-        if (player != null && player.alive == true) {
-            if (this.gameFrozen) {
-                player.freeze();
-            } else {
-                player.handleInput(controller);
-                for (var itemKey in this.items) {
-                    var item = this.items[itemKey];
-                    game.physics.arcade.overlap(player, item, function (p, i) {
-                        socket.emit("powerup overlap", {x: item.x, y: item.y});
-                    });
+        for (var i in screen.players) {
+            var player = screen.players[i];
+            if (player != null && player.alive == true) {
+                if (this.gameFrozen) {
+                    player.freeze();
+                } else {
+                    player.handleInput(controllers[player.nick]);
+                    for (var itemKey in this.items) {
+                        var item = this.items[itemKey];
+                        game.physics.arcade.overlap(player, item, function (p, i) {
+                            socket.emit("powerup overlap", {x: item.x, y: item.y});
+                        });
+                    }
                 }
             }
         }
@@ -228,20 +200,23 @@ Level.prototype = {
 
     render: function () {
         if (window.debugging == true) {
-            game.debug.body(player);
+            for (var i in screen.players) {
+                var player = screen.players[i];
+                game.debug.body(player);
+            }
         }
     },
 
     storePreviousPositions: function () {
         for (var id in this.remotePlayers) {
-            remotePlayer = this.remotePlayers[id];
+            var remotePlayer = this.remotePlayers[id];
             remotePlayer.previousPosition = {x: remotePlayer.position.x, y: remotePlayer.position.y};
         }
     },
 
     stopAnimationForMotionlessPlayers: function () {
         for (var id in this.remotePlayers) {
-            remotePlayer = this.remotePlayers[id];
+            var remotePlayer = this.remotePlayers[id];
             if (remotePlayer.lastMoveTime < game.time.now - 200) {
                 remotePlayer.animations.stop();
             }
@@ -254,12 +229,17 @@ Level.prototype = {
     },
 
     initializePlayers: function () {
+            console.log('screen.playersNicks',screen.playersNicks);
+            console.log('this.players',this.players);
         for (var i in this.players) {
-            var data = this.players[i];
-            if (data.id == this.playerId) {
-                player = new Player(data.x, data.y, data.id, data.color);
+            var player = this.players[i];
+            if (player.nick in screen.playersNicks) {
+                if(player.controller){
+                    controllers[player.nick] = {};
+                }
+                screen.players[player.nick] = new Player(player.x, player.y, player.nick, player.color);
             } else {
-                this.remotePlayers[data.id] = new RemotePlayer(data.x, data.y, data.id, data.color);
+                this.remotePlayers[player.nick] = new RemotePlayer(player.x, player.y, player.nick, player.color);
             }
         }
     },
@@ -291,46 +271,43 @@ Level.prototype = {
         });
     },
 
-    onMovePlayer: function (data) {
-        if (player && data.id == player.id || this.gameFrozen) {
+    onMovePlayer: function (remotePlayer) {
+        if (!this.remotePlayers[remotePlayer.nick] || this.gameFrozen) {
             return;
         }
-        var movingPlayer = this.remotePlayers[data.id];
+        var movingPlayer = this.remotePlayers[remotePlayer.nick];
         if (movingPlayer.targetPosition) {
-            if (data.x == movingPlayer.targetPosition.x && data.y == movingPlayer.targetPosition.y) {
+            if (remotePlayer.x == movingPlayer.targetPosition.x && remotePlayer.y == movingPlayer.targetPosition.y) {
                 return;
             }
-            movingPlayer.animations.play(data.facing);
+            movingPlayer.animations.play(remotePlayer.facing);
             movingPlayer.position.x = movingPlayer.targetPosition.x;
             movingPlayer.position.y = movingPlayer.targetPosition.y;
             movingPlayer.distanceToCover = {
-                x: data.x - movingPlayer.targetPosition.x,
-                y: data.y - movingPlayer.targetPosition.y
+                x: remotePlayer.x - movingPlayer.targetPosition.x,
+                y: remotePlayer.y - movingPlayer.targetPosition.y
             };
             movingPlayer.distanceCovered = {x: 0, y: 0};
         }
-        movingPlayer.targetPosition = {x: data.x, y: data.y};
+        movingPlayer.targetPosition = {x: remotePlayer.x, y: remotePlayer.y};
         movingPlayer.lastMoveTime = game.time.now;
     },
 
-    onRemovePlayer: function (data) {
-        var playerToRemove = this.remotePlayers[data.id];
+    onRemovePlayer: function (player) {
+        var playerToRemove = this.remotePlayers[player.nick];
         if (playerToRemove.alive) {
             playerToRemove.destroy();
         }
 
-        delete this.remotePlayers[data.id];
-        delete this.players[data.id];
+        delete this.remotePlayers[player.nick];
+        delete this.players[player.nick];
     },
 
-    onKillPlayer: function (data) {
-        if (data.id == player.id) {
-
-            player.kill();
-        } else {
-            var playerToRemove = this.remotePlayers[data.id];
-
-            playerToRemove.kill();
+    onKillPlayer: function (player) {
+        if (this.remotePlayers[player.nick]) {
+            this.remotePlayers[player.nick].kill();
+        } else if(screen.players[player.nick]){
+            screen.players[player.nick].kill();
         }
     },
 
@@ -357,7 +334,8 @@ Level.prototype = {
         this.items[data.powerupId].destroy();
         delete this.items[data.powerupId];
 
-        if (data.acquiringPlayerId === player.id) {
+        if (screen.players[data.acquiringPlayerId]) {
+            var player = screen.players[data.acquiringPlayerId];
             AudioPlayer.playPowerupSound();
             PowerupNotificationPlayer.showPowerupNotification(data.powerupType, player.x, player.y);
             if (data.powerupType == PowerupIDs.SPEED) {

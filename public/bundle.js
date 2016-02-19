@@ -44,30 +44,33 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	// TODO: Remove Window polution (move it to bomberman global)
-	window.game = new Phaser.Game(875, 525, Phaser.AUTO, 'bomber');
-	window.player = null;
-	window.socket = null;
-	window.level = null;
+	/* global Phaser, bomberman, io */
+	if(!bomberman) {
+	    bomberman = {};
+	}
+	var game = bomberman.game = new Phaser.Game(875, 525, Phaser.AUTO, 'bomber');
+	bomberman.screen = {};
+	bomberman.socket = io();
+	bomberman.level = null;
 
-	    socket = io();
+	game.state.add("Boot", __webpack_require__(1));
+	game.state.add("Preloader", __webpack_require__(4));
+	game.state.add("Lobby", __webpack_require__(5));
+	game.state.add("StageSelect", __webpack_require__(6));
+	game.state.add("PendingGame", __webpack_require__(7));
+	game.state.add("Level", __webpack_require__(8));
+	game.state.add("GameOver", __webpack_require__(17));
 
-		game.state.add("Boot", __webpack_require__(1));
-		game.state.add("Preloader", __webpack_require__(4));
-		game.state.add("Lobby", __webpack_require__(5));
-		game.state.add("StageSelect", __webpack_require__(6));
-		game.state.add("PendingGame", __webpack_require__(7));
-		game.state.add("Level", __webpack_require__(8));
-		game.state.add("GameOver", __webpack_require__(17));
-
-		game.state.start('Boot');
+	game.state.start('Boot');
 
 /***/ },
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* global bomberman */
 	var AudioPlayer = __webpack_require__(2);
 	var TextConfigurer = __webpack_require__(3);
+	var game = bomberman.game;
 
 	var textXOffset = 420;
 	var textYOffset = 200;
@@ -83,17 +86,20 @@
 	    },
 
 	    create: function () {
+	        /* disableVisibilityChange : boolean
+	            By default if the browser tab loses focus the game will pause. You can stop that behaviour by setting this property to true.
+	        */
 	        game.stage.disableVisibilityChange = true;
-	        game.input.maxPointers = 1;
+	        // game.input.maxPointers = 1;
 	        AudioPlayer.initialize();
-	        if (game.device.desktop) {
-	            game.stage.scale.pageAlignHorizontally = true;
-	            game.state.start('Preloader');
-	        } else {
-	            var text = game.add.text(textXOffset, textYOffset, 'Please run the game on your computer');
-	            TextConfigurer.configureText(text, "white", 45);
-	            text.anchor.setTo(.5, .5);
-	        }
+	        // if (game.device.desktop) {
+	        game.stage.scale.pageAlignHorizontally = true;
+	        game.state.start('Preloader');
+	        // } else {
+	        //     var text = game.add.text(textXOffset, textYOffset, 'Please run the game on your computer');
+	        //     TextConfigurer.configureText(text, "white", 45);
+	        //     text.anchor.setTo(.5, .5);
+	        // }
 	    }
 	};
 
@@ -102,6 +108,8 @@
 /* 2 */
 /***/ function(module, exports) {
 
+	/* global bomberman */
+	var game = bomberman.game;
 	var bombSound;
 	var powerupSound;
 	var musicSound;
@@ -143,6 +151,8 @@
 /* 4 */
 /***/ function(module, exports) {
 
+	/* global Phaser, bomberman*/
+	var game = bomberman.game;
 	var Preloader = function () {
 	};
 
@@ -213,6 +223,9 @@
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* global bomberman */
+	var game = bomberman.game;
+	var socket = bomberman.socket;
 	var Lobby = function() {};
 	var TextConfigurer = __webpack_require__(3);
 
@@ -265,49 +278,44 @@
 	        this.backdrop = game.add.image(130, 300, "background_b");
 			this.slots = [];
 			this.labels = [];
-			var gameData = [{state: "empty"}, {state: "empty"}, {state: "joinable"}, {state: "insession"}];
 			socket.emit("enter lobby");
-	        socket.on("add slots", this.addSlots.bind(this));
-	        socket.on("update slot", this.updateSlot.bind(this));
+	        socket.on("update slots", this.updateSlots.bind(this));
 		},
 
 		update: function() {
 		},
 
-		addSlots: function(gameData) {
-	        var state = gameData.state;
-	        var settings = this.stateSettings[state];
-	        callback = function () {
-	            if (settings.callback != null)
-	                settings.callback(1);
-	        };
-	        var slotYOffset = initialSlotYOffset + lobbySlotDistance;
-	        this.slots = game.add.button(slotXOffset, slotYOffset, "game_slot", callback, null, settings.overFrame, settings.outFrame);
-	        var text = game.add.text(slotXOffset + textXOffset, slotYOffset + textYOffset, settings.text);
-	        TextConfigurer.configureText(text, "white", 18);
-	        text.anchor.setTo(.5, .5);
+		updateSlots: function(slots) {
+			console.log('slots',slots);
+			this.slots.length = 0;
+			var names = Object.keys(slots);
+	        for (var i = 0; i < names.length; i++) {
+	        	var state = slots[names[i]].state;
+		        var settings = this.stateSettings[state];
+		        var callback = (function (slotId) {
+		            return function(){
+		            	if (settings.callback != null)
+		                settings.callback(slotId);
+		            };
+		        })(names[i]);
+		        var slotYOffset = initialSlotYOffset + lobbySlotDistance + lobbySlotDistance*i;
+		        this.slots.push(game.add.button(slotXOffset, slotYOffset, "game_slot", callback, null, settings.overFrame, settings.outFrame));
+		        var text = game.add.text(slotXOffset + textXOffset, slotYOffset + textYOffset, settings.text);
+		        TextConfigurer.configureText(text, "white", 18);
+		        text.anchor.setTo(.5, .5);
+	        }
 	        this.labels = text;
 		},
 
-		hostGameAction: function(gameId) {
-			socket.emit("host game", {gameId: gameId});
+		hostGameAction: function() {
+			socket.emit("host game", {slotId: socket.id});
 			socket.removeAllListeners();
-	        game.state.start("StageSelect", true, false, gameId);
+	        game.state.start("StageSelect", true, false);
 		},
 
-		joinGameAction: function(gameId) {
+		joinGameAction: function(slotId) {
 			socket.removeAllListeners();
-	        game.state.start("PendingGame", true, false, null, gameId);
-		},
-
-		updateSlot: function(updateInfo) {
-			var settings = this.stateSettings[updateInfo.newState];
-			var id = updateInfo.gameId;
-	        var button = this.slots;
-	        this.labels.setText(settings.text);
-			button.setFrames(settings.overFrame, settings.outFrame);
-			button.onInputUp.removeAll();
-			button.onInputUp.add(function() { return settings.callback(id)}, this);
+	        game.state.start("PendingGame", true, false, null, slotId);
 		}
 	};
 
@@ -315,6 +323,9 @@
 /* 6 */
 /***/ function(module, exports) {
 
+	/* global bomberman */
+	var game = bomberman.game;
+	var socket = bomberman.socket;
 	var StageSelect = function() {};
 
 	module.exports = StageSelect;
@@ -328,9 +339,9 @@
 	var stages = {name: "Comeback", thumbnailKey: "first_", tilemapName: "First", maxPlayers: 4, size: "medium"};
 
 	StageSelect.prototype = {
-	    init: function (gameId) {
-			this.gameId = gameId;
-		},
+	 //   init: function (slotId) {
+		// 	this.slotId = slotId;
+		// },
 
 		create: function() {
 	        game.add.sprite(0, 0, 'background_s');
@@ -356,8 +367,8 @@
 		},
 
 		confirmStageSelection: function() {
-	        socket.emit("select stage", {mapName: stages.tilemapName});
-	        game.state.start("PendingGame", true, false, stages.tilemapName, this.gameId);
+	        socket.emit("select stage", {slotId: socket.id, mapName: stages.tilemapName});
+	        game.state.start("PendingGame", true, false, stages.tilemapName, socket.id);
 		}
 	};
 
@@ -365,7 +376,15 @@
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* global bomberman, AirConsole */
 	var TextConfigurer = __webpack_require__(3);
+	var game = bomberman.game;
+	var socket = bomberman.socket;
+	var screen = bomberman.screen;
+
+	screen.isReady = false;
+	screen.players = {};
+	screen.playersNicks = {};
 
 	var PendingGame = function() {};
 
@@ -386,15 +405,116 @@
 	var minPlayerMessageOffsetY = 425;
 	var numCharacterSquares = 4;
 
+
+
+	var airconsole = bomberman.airconsole = new AirConsole();
+	var acTools = bomberman.acTools = {};
+
+	acTools.listeners = {};
+	acTools.uniListeners = [];
+	acTools.addListener = function(name, fn){
+		if(!fn){
+			return;
+		}else if(typeof name !== 'string'){
+			if(typeof name === 'undefined'){
+				acTools.uniListeners.push(fn);
+			}
+			return;
+		}
+		acTools.listeners[name] = fn;	
+	};
+	acTools.rmListener = function(name, fn){
+		if(fn && typeof name === 'undefined'){
+			var index = acTools.uniListeners.indexOf(fn);
+			acTools.uniListeners.splice(index, 1);
+		}else{
+			delete acTools.listeners[name];
+		}
+	};
+	acTools.onMessage = function(device_id, data) {
+		if(data.listener){
+			acTools.listeners[data.listener](device_id, data);
+		}
+		for (var i = 0; i < acTools.uniListeners.length; i++) {
+			acTools.uniListeners[i](device_id, data);
+		}
+	};
+
+	airconsole.onConnect = function(device_id) {
+	  	// deviceConnectionChange();
+	  	airconsole.setActivePlayers(20);
+		console.log('connected: ', arguments);
+	};
+
+	airconsole.onDisconnect = function(device_id) {
+	  //var player = airconsole.convertDeviceIdToPlayerNumber(device_id);
+	  //if (player != undefined) {
+	  //  // Player that was in game left the game.
+	  //  // Setting active players to length 0.
+	  //  // airconsole.setActivePlayers(0);
+	  //}
+	  //deviceConnectionChange();
+	};
+
+	airconsole.onMessage = acTools.onMessage;
+
+	// debug info
+	acTools.addListener(undefined, function(from, data){
+		console.log('on screen: ', from, data);
+	});
+
+	acTools.addListener('ready', function(from, data){
+		if(screen.isReady){
+		  airconsole.message(from, {listener: 'ready'});
+		}
+	});
+
+	function newPlayer(device_id, player){
+		console.log('newPlayer game.slotId', game.slotId);
+	  	if(player.nick){
+	  		player.slotId = game.slotId;
+	  		player.screenId = game.screenId;
+	  		player.device_id = game.device_id;
+			socket.emit('player enter pending game', player);
+			screen.playersNicks[player.nick] = {};
+	  	}
+	}
+	acTools.addListener('newPlayer', newPlayer);
+
+	function deviceConnectionChange() {
+	    var active_players = airconsole.getActivePlayerDeviceIds();
+	    var connected_controllers = airconsole.getControllerDeviceIds();
+	    // Only update if the game didn't have active players.
+	    if (active_players.length == 0) {
+	      if (connected_controllers.length >= 2) {
+	        // Enough controller devices connected to start the game.
+	        // Setting the first 2 controllers to active players.
+	        airconsole.setActivePlayers(20);
+	    //     resetBall(50, 0);
+	    //     score = [0, 0];
+	    //     score_el.innerHTML = score.join(":");
+	    //     document.getElementById("wait").innerHTML = "";
+	    //   } else if (connected_controllers.length == 1) {
+	    //     document.getElementById("wait").innerHTML = "Need 1 more player!";
+	    //     resetBall(0, 0);
+	    //   } else if (connected_controllers.length == 0) {
+	    //     document.getElementById("wait").innerHTML = "Need 2 more players!";
+	    //     resetBall(0, 0);
+	      }
+	    }
+	  }
+
 	PendingGame.prototype = {
-	    init: function (tilemapName, gameId) {
+	    init: function (tilemapName, slotId) {
+	    	console.log(slotId);
 			this.tilemapName = tilemapName;
-			this.gameId = gameId;
+			game.slotId = slotId || socket.id;
+			game.screenId = socket.id;
 		},
 
 		create: function() {
 	        game.add.sprite(0, 0, 'background_s');
-			socket.emit("enter pending game", {gameId: this.gameId});
+			socket.emit("enter pending game", {slotId: game.slotId});
 			var backdrop = game.add.image(xOffset, yOffset, "pending_game_backdrop");
 			this.startGameButton = game.add.button(buttonXOffset, startGameButtonYOffset, "start_game_button", null, this,
 				2, 2);
@@ -432,6 +552,7 @@
 		},
 
 		populateCharacterSquares: function(data) {
+			screen.isReady = true;
 			this.numPlayersInGame = 0;
 			for(var playerId in data.players) {
 				var color = data.players[playerId].color;
@@ -439,6 +560,7 @@
 					this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + color);
 				this.numPlayersInGame++;
 			}
+			// TODO: uncomment
 			// if(this.numPlayersInGame > 1) {
 				this.activateStartGameButton();
 			// } else {
@@ -453,6 +575,7 @@
 			if(this.numPlayersInGame == 2) {
 				this.activateStartGameButton();
 			}
+			screen.players[data.nick] = {};
 		},
 
 		activateStartGameButton: function() {
@@ -479,18 +602,18 @@
 			this.populateCharacterSquares(data);
 		},
 		startGameAction: function() {
-			socket.emit("start game on server");
+			socket.emit("start game on server", game.slotId);
 		},
 
 		leaveGameAction: function() {
-			socket.emit("leave pending game");
+			socket.emit("leave pending game", game.slotId);
 			socket.removeAllListeners();
 	        game.state.start("Lobby");
 		},
 
 		startGame: function(data) {
 			socket.removeAllListeners();
-			game.state.start("Level", true, false, data.mapName, data.players, this.id);
+			game.state.start("Level", true, false, data);
 		}
 	};
 
@@ -498,6 +621,7 @@
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* global Phaser, bomberman */
 	var BLACK_HEX_CODE = "#000000";
 	var TILE_SIZE = 35;
 
@@ -510,59 +634,24 @@
 	var RoundEndAnimation = __webpack_require__(14);
 	var PowerupImageKeys = __webpack_require__(15);
 	var PowerupNotificationPlayer = __webpack_require__(16);
+	var game = bomberman.game;
+	var socket = bomberman.socket;
+	var level = bomberman.level;
+	var screen = bomberman.screen;
 
-	var Level = function () {
-	};
+	var Level = function () {};
+	var controllers = {},
+	    airconsole = bomberman.airconsole,
+	    acTools = bomberman.acTools;
 
-	var airconsole = new AirConsole(),
-	      controller = {};
-
-	airconsole.onConnect = function(device_id) {
-	  checkTwoPlayers();
-	console.log('connected', arguments);
-	};
-
-	airconsole.onDisconnect = function(device_id) {
-	  var player = airconsole.convertDeviceIdToPlayerNumber(device_id);
-	  if (player != undefined) {
-	    // Player that was in game left the game.
-	    // Setting active players to length 0.
-	    // airconsole.setActivePlayers(0);
+	function movePlayer(device_id, data) {
+	  var consignee = airconsole.convertDeviceIdToPlayerNumber(device_id);
+	  if (consignee != undefined && data.move !== undefined) {
+	      controllers[data.nick].y = data.move;
+	    // paddles[consignee].move.y = data.move;
 	  }
-	  checkTwoPlayers();
-	};
-
-	airconsole.onMessage = function(device_id, data) {
-	  var player = airconsole.convertDeviceIdToPlayerNumber(device_id);
-	  if (player != undefined && data.move !== undefined) {
-	      console.log(data);
-	      controller.y = data.move;
-	    // paddles[player].move.y = data.move;
-	  }
-	};
-
-	function checkTwoPlayers() {
-	    var active_players = airconsole.getActivePlayerDeviceIds();
-	    var connected_controllers = airconsole.getControllerDeviceIds();
-	    // Only update if the game didn't have active players.
-	    if (active_players.length == 0) {
-	      if (connected_controllers.length >= 2) {
-	        // Enough controller devices connected to start the game.
-	        // Setting the first 2 controllers to active players.
-	        airconsole.setActivePlayers(2);
-	    //     resetBall(50, 0);
-	    //     score = [0, 0];
-	    //     score_el.innerHTML = score.join(":");
-	    //     document.getElementById("wait").innerHTML = "";
-	    //   } else if (connected_controllers.length == 1) {
-	    //     document.getElementById("wait").innerHTML = "Need 1 more player!";
-	    //     resetBall(0, 0);
-	    //   } else if (connected_controllers.length == 0) {
-	    //     document.getElementById("wait").innerHTML = "Need 2 more players!";
-	    //     resetBall(0, 0);
-	      }
-	    }
-	  }
+	}
+	acTools.addListener('movePlayer', movePlayer);
 
 	module.exports = Level;
 
@@ -571,11 +660,10 @@
 
 	    gameFrozen: true,
 
-	    init: function (tilemapName, players, id) {
+	    init: function (data) {
 	        this.tilemapName = 'First';
 	        //console.log(this.tilemapName + '||' + players + "||" + id);
-	        this.players = players;
-	        this.playerId = id;
+	        this.players = data.players;
 	    },
 
 	    setEventHandlers: function () {
@@ -592,7 +680,7 @@
 	    },
 
 	    create: function () {
-	        level = this;
+	        bomberman.level = level = this;
 	        this.lastFrameTime;
 	        this.deadGroup = [];
 
@@ -622,7 +710,9 @@
 	    restartGame: function () {
 	        this.dimGraphic.destroy();
 
-	        player.reset();
+	        for (var i in screen.players) {
+	            screen.players[i].reset();
+	        }
 	        for (var i in this.remotePlayers) {
 	            this.remotePlayers[i].reset();
 	        }
@@ -668,12 +758,14 @@
 	        this.gameFrozen = true;
 	        var animation = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
 	        animation.beginAnimation(function () {
+	            acTools.rmListener('movePlayer');
 	            game.state.start("GameOver", true, false, data.gameWinnerColor, false);
 	        });
 	        AudioPlayer.stopMusicSound();
 	    },
 
 	    onNoOpponentsLeft: function (data) {
+	        acTools.rmListener('movePlayer');
 	        game.state.start("GameOver", true, false, null, true);
 	    },
 
@@ -694,16 +786,19 @@
 	    },
 
 	    update: function () {
-	        if (player != null && player.alive == true) {
-	            if (this.gameFrozen) {
-	                player.freeze();
-	            } else {
-	                player.handleInput(controller);
-	                for (var itemKey in this.items) {
-	                    var item = this.items[itemKey];
-	                    game.physics.arcade.overlap(player, item, function (p, i) {
-	                        socket.emit("powerup overlap", {x: item.x, y: item.y});
-	                    });
+	        for (var i in screen.players) {
+	            var player = screen.players[i];
+	            if (player != null && player.alive == true) {
+	                if (this.gameFrozen) {
+	                    player.freeze();
+	                } else {
+	                    player.handleInput(controllers[player.nick]);
+	                    for (var itemKey in this.items) {
+	                        var item = this.items[itemKey];
+	                        game.physics.arcade.overlap(player, item, function (p, i) {
+	                            socket.emit("powerup overlap", {x: item.x, y: item.y});
+	                        });
+	                    }
 	                }
 	            }
 	        }
@@ -728,20 +823,23 @@
 
 	    render: function () {
 	        if (window.debugging == true) {
-	            game.debug.body(player);
+	            for (var i in screen.players) {
+	                var player = screen.players[i];
+	                game.debug.body(player);
+	            }
 	        }
 	    },
 
 	    storePreviousPositions: function () {
 	        for (var id in this.remotePlayers) {
-	            remotePlayer = this.remotePlayers[id];
+	            var remotePlayer = this.remotePlayers[id];
 	            remotePlayer.previousPosition = {x: remotePlayer.position.x, y: remotePlayer.position.y};
 	        }
 	    },
 
 	    stopAnimationForMotionlessPlayers: function () {
 	        for (var id in this.remotePlayers) {
-	            remotePlayer = this.remotePlayers[id];
+	            var remotePlayer = this.remotePlayers[id];
 	            if (remotePlayer.lastMoveTime < game.time.now - 200) {
 	                remotePlayer.animations.stop();
 	            }
@@ -754,12 +852,17 @@
 	    },
 
 	    initializePlayers: function () {
+	            console.log('screen.playersNicks',screen.playersNicks);
+	            console.log('this.players',this.players);
 	        for (var i in this.players) {
-	            var data = this.players[i];
-	            if (data.id == this.playerId) {
-	                player = new Player(data.x, data.y, data.id, data.color);
+	            var player = this.players[i];
+	            if (player.nick in screen.playersNicks) {
+	                if(player.controller){
+	                    controllers[player.nick] = {};
+	                }
+	                screen.players[player.nick] = new Player(player.x, player.y, player.nick, player.color);
 	            } else {
-	                this.remotePlayers[data.id] = new RemotePlayer(data.x, data.y, data.id, data.color);
+	                this.remotePlayers[player.nick] = new RemotePlayer(player.x, player.y, player.nick, player.color);
 	            }
 	        }
 	    },
@@ -791,46 +894,43 @@
 	        });
 	    },
 
-	    onMovePlayer: function (data) {
-	        if (player && data.id == player.id || this.gameFrozen) {
+	    onMovePlayer: function (remotePlayer) {
+	        if (!this.remotePlayers[remotePlayer.nick] || this.gameFrozen) {
 	            return;
 	        }
-	        var movingPlayer = this.remotePlayers[data.id];
+	        var movingPlayer = this.remotePlayers[remotePlayer.nick];
 	        if (movingPlayer.targetPosition) {
-	            if (data.x == movingPlayer.targetPosition.x && data.y == movingPlayer.targetPosition.y) {
+	            if (remotePlayer.x == movingPlayer.targetPosition.x && remotePlayer.y == movingPlayer.targetPosition.y) {
 	                return;
 	            }
-	            movingPlayer.animations.play(data.facing);
+	            movingPlayer.animations.play(remotePlayer.facing);
 	            movingPlayer.position.x = movingPlayer.targetPosition.x;
 	            movingPlayer.position.y = movingPlayer.targetPosition.y;
 	            movingPlayer.distanceToCover = {
-	                x: data.x - movingPlayer.targetPosition.x,
-	                y: data.y - movingPlayer.targetPosition.y
+	                x: remotePlayer.x - movingPlayer.targetPosition.x,
+	                y: remotePlayer.y - movingPlayer.targetPosition.y
 	            };
 	            movingPlayer.distanceCovered = {x: 0, y: 0};
 	        }
-	        movingPlayer.targetPosition = {x: data.x, y: data.y};
+	        movingPlayer.targetPosition = {x: remotePlayer.x, y: remotePlayer.y};
 	        movingPlayer.lastMoveTime = game.time.now;
 	    },
 
-	    onRemovePlayer: function (data) {
-	        var playerToRemove = this.remotePlayers[data.id];
+	    onRemovePlayer: function (player) {
+	        var playerToRemove = this.remotePlayers[player.nick];
 	        if (playerToRemove.alive) {
 	            playerToRemove.destroy();
 	        }
 
-	        delete this.remotePlayers[data.id];
-	        delete this.players[data.id];
+	        delete this.remotePlayers[player.nick];
+	        delete this.players[player.nick];
 	    },
 
-	    onKillPlayer: function (data) {
-	        if (data.id == player.id) {
-
-	            player.kill();
-	        } else {
-	            var playerToRemove = this.remotePlayers[data.id];
-
-	            playerToRemove.kill();
+	    onKillPlayer: function (player) {
+	        if (this.remotePlayers[player.nick]) {
+	            this.remotePlayers[player.nick].kill();
+	        } else if(screen.players[player.nick]){
+	            screen.players[player.nick].kill();
 	        }
 	    },
 
@@ -857,7 +957,8 @@
 	        this.items[data.powerupId].destroy();
 	        delete this.items[data.powerupId];
 
-	        if (data.acquiringPlayerId === player.id) {
+	        if (screen.players[data.acquiringPlayerId]) {
+	            var player = screen.players[data.acquiringPlayerId];
 	            AudioPlayer.playPowerupSound();
 	            PowerupNotificationPlayer.showPowerupNotification(data.powerupType, player.x, player.y);
 	            if (data.powerupType == PowerupIDs.SPEED) {
@@ -924,16 +1025,26 @@
 /* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* global Phaser, bomberman */
+
 	var Bomb = __webpack_require__(12);
+	var game = bomberman.game;
+	var socket = bomberman.socket;
+	var level; // cannot be assigned now because level isnt initialized yet
 
 	var DEFAULT_PLAYER_SPEED = 250;
 	var PLAYER_SPEED_POWERUP_INCREMENT = 25;
 
-	var Player = function (x, y, id, color) {
+	var Player = function (x, y, nick, color) {
+	    if(!level){
+	        level = bomberman.level;
+	    }
+	    
 	    Phaser.Sprite.call(this, game, x, y, "bomberman_" + color);
 
 	    this.spawnPoint = {x: x, y: y};
-	    this.id = id;
+	    this.nick = nick;
+	    this.nicks.push(nick);
 	    this.facing = "down";
 	    this.bombButtonJustPressed = false;
 	    this.speed = DEFAULT_PLAYER_SPEED;
@@ -953,6 +1064,8 @@
 
 	Player.prototype = Object.create(Phaser.Sprite.prototype);
 
+	Player.prototype.nicks = [];
+
 	Player.prototype.handleInput = function (controller) {
 	    this.handleBombInput();
 	    if(controller){
@@ -963,6 +1076,7 @@
 	};
 
 	Player.prototype.handleCtrlInput = function (data) {
+	    console.log('handleCtrlInput',data);
 	    var moving = false;
 
 	    game.physics.arcade.collide(this, level.blockLayer);
@@ -993,7 +1107,7 @@
 
 	    if (moving) {
 	        this.animations.play(this.facing);
-	        socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing});
+	        socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing, nick: this.nick});
 	    }else{
 	        this.freeze();
 	    }
@@ -1040,7 +1154,7 @@
 	Player.prototype.handleBombInput = function () {
 	    if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && !game.physics.arcade.overlap(this, level.bombs) && !this.bombButtonJustPressed) {
 	        this.bombButtonJustPressed = true;
-	        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now});
+	        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick});
 	    } else if (!game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && this.bombButtonJustPressed) {
 	        this.bombButtonJustPressed = false;
 	    }
@@ -1121,6 +1235,10 @@
 /* 13 */
 /***/ function(module, exports) {
 
+	/* global Phaser, bomberman */
+
+	var game = bomberman.game;
+
 	var remotePlayerUpdateInterval = 100;
 
 	var RemotePlayer = function (x, y, id, color) {
@@ -1167,7 +1285,7 @@
 	    this.previousPosition = {x: this.x, y: this.y};
 	    this.distanceToCover = null;
 	    this.distanceCovered = null;
-	    this.targetPosition = null
+	    this.targetPosition = null;
 	    this.lastMoveTime = null;
 
 	    if (!this.alive) {
@@ -1181,7 +1299,9 @@
 /* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* global Phaser, bomberman */
 	var TextConfigurer = __webpack_require__(3);
+	var game = bomberman.game;
 
 	var screenWidth = game.width;
 	var xOffset = 230 - screenWidth;
@@ -1199,7 +1319,7 @@
 	function RoundEndAnimation(game, roundNumber, winningColors) {
 		Phaser.Group.call(this, game);
 		var roundEndWindow = game.add.image(xOffset, yOffset, "round_end_display");
-		var header = game.add.text(headerXOffset, headerYOffset, "Round " + roundNumber + " Complete!")
+		var header = game.add.text(headerXOffset, headerYOffset, "Round " + roundNumber + " Complete!");
 		TextConfigurer.configureText(header, "white", 32);
 		var actualTextXOffset = winningColors.length > 1 ? defaultTextXOffset - 55 : defaultTextXOffset;
 		var actualTextToDisplay = winningColors.length > 1 ? roundEndTieText : singleWinnerText;
@@ -1211,7 +1331,7 @@
 		this.add(textObject);
 		
 		this.createAndAddWinnerImages(winningColors);
-	};
+	}
 
 	RoundEndAnimation.prototype = Object.create(Phaser.Group.prototype);
 

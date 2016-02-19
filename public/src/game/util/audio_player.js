@@ -1,3 +1,5 @@
+/* global bomberman */
+var game = bomberman.game;
 var bombSound;
 var powerupSound;
 var musicSound;

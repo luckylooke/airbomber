@@ -1,13 +1,23 @@
+/* global Phaser, bomberman */
+
 var Bomb = require("./bomb");
+var game = bomberman.game;
+var socket = bomberman.socket;
+var level; // cannot be assigned now because level isnt initialized yet
 
 var DEFAULT_PLAYER_SPEED = 250;
 var PLAYER_SPEED_POWERUP_INCREMENT = 25;
 
-var Player = function (x, y, id, color) {
+var Player = function (x, y, nick, color) {
+    if(!level){
+        level = bomberman.level;
+    }
+    
     Phaser.Sprite.call(this, game, x, y, "bomberman_" + color);
 
     this.spawnPoint = {x: x, y: y};
-    this.id = id;
+    this.nick = nick;
+    this.nicks.push(nick);
     this.facing = "down";
     this.bombButtonJustPressed = false;
     this.speed = DEFAULT_PLAYER_SPEED;
@@ -27,6 +37,8 @@ var Player = function (x, y, id, color) {
 
 Player.prototype = Object.create(Phaser.Sprite.prototype);
 
+Player.prototype.nicks = [];
+
 Player.prototype.handleInput = function (controller) {
     this.handleBombInput();
     if(controller){
@@ -37,6 +49,7 @@ Player.prototype.handleInput = function (controller) {
 };
 
 Player.prototype.handleCtrlInput = function (data) {
+    console.log('handleCtrlInput',data);
     var moving = false;
 
     game.physics.arcade.collide(this, level.blockLayer);
@@ -67,7 +80,7 @@ Player.prototype.handleCtrlInput = function (data) {
 
     if (moving) {
         this.animations.play(this.facing);
-        socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing});
+        socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing, nick: this.nick});
     }else{
         this.freeze();
     }
@@ -114,7 +127,7 @@ Player.prototype.handleKeysInput = function () {
 Player.prototype.handleBombInput = function () {
     if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && !game.physics.arcade.overlap(this, level.bombs) && !this.bombButtonJustPressed) {
         this.bombButtonJustPressed = true;
-        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now});
+        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick});
     } else if (!game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && this.bombButtonJustPressed) {
         this.bombButtonJustPressed = false;
     }

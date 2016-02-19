@@ -1,4 +1,6 @@
+/* global Phaser, bomberman */
 var TextConfigurer = require('../util/text_configurer');
+var game = bomberman.game;
 
 var screenWidth = game.width;
 var xOffset = 230 - screenWidth;
@@ -16,7 +18,7 @@ var roundEndTieText = "Draw! Winners are...";
 function RoundEndAnimation(game, roundNumber, winningColors) {
 	Phaser.Group.call(this, game);
 	var roundEndWindow = game.add.image(xOffset, yOffset, "round_end_display");
-	var header = game.add.text(headerXOffset, headerYOffset, "Round " + roundNumber + " Complete!")
+	var header = game.add.text(headerXOffset, headerYOffset, "Round " + roundNumber + " Complete!");
 	TextConfigurer.configureText(header, "white", 32);
 	var actualTextXOffset = winningColors.length > 1 ? defaultTextXOffset - 55 : defaultTextXOffset;
 	var actualTextToDisplay = winningColors.length > 1 ? roundEndTieText : singleWinnerText;
@@ -28,7 +30,7 @@ function RoundEndAnimation(game, roundNumber, winningColors) {
 	this.add(textObject);
 	
 	this.createAndAddWinnerImages(winningColors);
-};
+}
 
 RoundEndAnimation.prototype = Object.create(Phaser.Group.prototype);
 

@@ -1,10 +1,10 @@
-var Player = function(xSpawn, ySpawn, facing, id, color) {
+var Player = function(xSpawn, ySpawn, facing, nick, color) {
 	this.xSpawn = xSpawn;
 	this.ySpawn = ySpawn;
 	this.x = xSpawn;
 	this.y = ySpawn;
 	this.facing = facing;
-	this.id = id;
+	this.nick = nick;
 	this.color = color;
 	this.wins = 0;
 	this.alive = true;

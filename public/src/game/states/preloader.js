@@ -1,3 +1,5 @@
+/* global Phaser, bomberman*/
+var game = bomberman.game;
 var Preloader = function () {
 };
 

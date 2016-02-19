@@ -1,3 +1,6 @@
+/* global bomberman */
+var game = bomberman.game;
+var socket = bomberman.socket;
 var Lobby = function() {};
 var TextConfigurer = require('../util/text_configurer');
 
@@ -50,48 +53,43 @@ Lobby.prototype = {
         this.backdrop = game.add.image(130, 300, "background_b");
 		this.slots = [];
 		this.labels = [];
-		var gameData = [{state: "empty"}, {state: "empty"}, {state: "joinable"}, {state: "insession"}];
 		socket.emit("enter lobby");
-        socket.on("add slots", this.addSlots.bind(this));
-        socket.on("update slot", this.updateSlot.bind(this));
+        socket.on("update slots", this.updateSlots.bind(this));
 	},
 
 	update: function() {
 	},
 
-	addSlots: function(gameData) {
-        var state = gameData.state;
-        var settings = this.stateSettings[state];
-        callback = function () {
-            if (settings.callback != null)
-                settings.callback(1);
-        };
-        var slotYOffset = initialSlotYOffset + lobbySlotDistance;
-        this.slots = game.add.button(slotXOffset, slotYOffset, "game_slot", callback, null, settings.overFrame, settings.outFrame);
-        var text = game.add.text(slotXOffset + textXOffset, slotYOffset + textYOffset, settings.text);
-        TextConfigurer.configureText(text, "white", 18);
-        text.anchor.setTo(.5, .5);
+	updateSlots: function(slots) {
+		console.log('slots',slots);
+		this.slots.length = 0;
+		var names = Object.keys(slots);
+        for (var i = 0; i < names.length; i++) {
+        	var state = slots[names[i]].state;
+	        var settings = this.stateSettings[state];
+	        var callback = (function (slotId) {
+	            return function(){
+	            	if (settings.callback != null)
+	                settings.callback(slotId);
+	            };
+	        })(names[i]);
+	        var slotYOffset = initialSlotYOffset + lobbySlotDistance + lobbySlotDistance*i;
+	        this.slots.push(game.add.button(slotXOffset, slotYOffset, "game_slot", callback, null, settings.overFrame, settings.outFrame));
+	        var text = game.add.text(slotXOffset + textXOffset, slotYOffset + textYOffset, settings.text);
+	        TextConfigurer.configureText(text, "white", 18);
+	        text.anchor.setTo(.5, .5);
+        }
         this.labels = text;
 	},
 
-	hostGameAction: function(gameId) {
-		socket.emit("host game", {gameId: gameId});
+	hostGameAction: function() {
+		socket.emit("host game", {slotId: socket.id});
 		socket.removeAllListeners();
-        game.state.start("StageSelect", true, false, gameId);
+        game.state.start("StageSelect", true, false);
 	},
 
-	joinGameAction: function(gameId) {
+	joinGameAction: function(slotId) {
 		socket.removeAllListeners();
-        game.state.start("PendingGame", true, false, null, gameId);
-	},
-
-	updateSlot: function(updateInfo) {
-		var settings = this.stateSettings[updateInfo.newState];
-		var id = updateInfo.gameId;
-        var button = this.slots;
-        this.labels.setText(settings.text);
-		button.setFrames(settings.overFrame, settings.outFrame);
-		button.onInputUp.removeAll();
-		button.onInputUp.add(function() { return settings.callback(id)}, this);
+        game.state.start("PendingGame", true, false, null, slotId);
 	}
 };

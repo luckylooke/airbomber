@@ -1,5 +1,5 @@
 TODO:
-- clean Window scope
+- https://github.com/Ezelia/EZGUI/blob/master/examples/Phaser/index.html
 - multiple bombs during one input down
 - smooth corner movement
 - only playerhosting a game can start a game
@@ -8,5 +8,6 @@ Useful links:
 https://gitlab.com/luckylooke/airconsole
 http://developers.airconsole.com/#/getting_started
 https://github.com/AirConsole/airconsole-controls
+https://github.com/AirConsole/airconsole-view-manager
 https://github.com/lean/phaser-es6-webpack
 https://github.com/definder/bomberman-webpack-phaser-socket.io

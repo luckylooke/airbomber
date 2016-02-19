@@ -1,3 +1,7 @@
+/* global Phaser, bomberman */
+
+var game = bomberman.game;
+
 var remotePlayerUpdateInterval = 100;
 
 var RemotePlayer = function (x, y, id, color) {
@@ -44,7 +48,7 @@ RemotePlayer.prototype.reset = function () {
     this.previousPosition = {x: this.x, y: this.y};
     this.distanceToCover = null;
     this.distanceCovered = null;
-    this.targetPosition = null
+    this.targetPosition = null;
     this.lastMoveTime = null;
 
     if (!this.alive) {
