@@ -1,15 +1,55 @@
-<html>
+  <html>
 <head>
-  <script type="text/javascript"
-          src="https://www.airconsole.com/api/airconsole-1.3.0.js"></script>
-  <script type="text/javascript">
-  /* global AirConsole */
+<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<link rel="stylesheet" href="airconsole-controls/button/button.css">
+<link rel="stylesheet" href="airconsole-controls/dpad/dpad.css">
+<style type="text/css">
+  #my-DPad {
+    position: absolute;
+    width: 40%;
+    height: 100%;
+    top: 0px;
+    left: 5%;
+  }
+  #button-bomb {
+    position: absolute;
+    width: 40%;
+    height: 100%;
+    right: 5%;
+    top: 0px;
+  }
+</style>
+</head>
+<body onload='init()'>
+
+    <div class="gamepad_container">
+      <div id="left" class="left">
+        <div id="my-DPad">
+          <div>
+            <div class="dpad-arrow dpad-arrow-up"></div>
+            <div class="dpad-arrow dpad-arrow-down"></div>
+            <div class="dpad-arrow dpad-arrow-left"></div>
+            <div class="dpad-arrow dpad-arrow-right"></div>
+          </div>
+        </div>
+      </div>
+      <div id="middle" class="middle"></div>
+      <div id="right" class="right">
+        <div id="button-bomb" class="button-300-300"><div class="button-text">BOMB</div></div>
+      </div>
+    </div>
+  
+<script type="text/javascript" src="https://www.airconsole.com/api/airconsole-1.3.0.js"></script>
+<script type="text/javascript" src="airconsole-controls/rate-limiter/rate-limiter.js"></script>
+<script type="text/javascript" src="airconsole-controls/dpad/dpad.js"></script>
+<script type="text/javascript" src="airconsole-controls/button/button.js"></script>
+<script type="text/javascript">
+  /* global AirConsole, DPad, Button */
     navigator.vibrate = (navigator.vibrate ||
                          navigator.webkitVibrate ||
                          navigator.mozVibrate ||
                          navigator.msVibrate);
 
-    var airconsole;
     var rndInt = Math.floor(Math.random() * (100 - 1)) + 1;
     var nickname = 'plNick' + rndInt;
     
@@ -45,10 +85,10 @@
     	}
     };
     
+    var airconsole = new AirConsole({orientation: AirConsole.ORIENTATION_LANDSCAPE});
+    
     
     function init() {
-      airconsole = new AirConsole({"orientation": "portrait"});
-      console.log(airconsole);
       
       airconsole.onMessage = acTools.onMessage;
       
@@ -96,61 +136,63 @@
      * @param amount
      */
     function move(amount) {
-      airconsole.message(AirConsole.SCREEN, {listener: 'movePlayer', move: amount, nick: nickname})
+      airconsole.message(AirConsole.SCREEN, {listener: 'movePlayer', nick: nickname, x: amount.x, y: amount.y})
     }
+    function bomb(setting) {
+      airconsole.message(AirConsole.SCREEN, {listener: 'setBomb', nick: nickname, setting: setting});
+    }
+      
+    new DPad("my-DPad", {
+      // Set to true if you want to have a relative swipe dpad
+      "relative": false,
+      // Gets called when the dpad direction changes.
+      // Key is one of: DPad.UP, DPad.DOWN, DPad.LEFT, DPad.RIGHT.
+      // Pressed is a boolean, true if the direction is active.
+      "directionchange": function(key, pressed) {
+        console.log('directionchange', key, pressed);
+        switch(key) {
+            case 'right':
+                pressed ? move({x:100}) : move({x: 0});
+                break;
+            case 'left':
+                pressed ? move({x:-100}) : move({x: 0});
+                break;
+            case 'up':
+                pressed ? move({y:-100}) : move({y: 0});
+                break;
+            case 'down':
+                pressed ? move({y:100}) : move({y: 0});
+                break;
+        }
+      },
 
-  </script>
-  <style type="text/css">
-    @font-face {
-      font-family: 'PressStart2P';
-      src: url('PressStart2P.ttf') format('truetype');
-      text-align: center;
-    }
+      // // Gets called when the DPad is touched.
+      // "touchstart": function() {
+      //   console.log('touch start');
+      // },
 
-    html, body {
-      height: 100%;
-      margin: 0px;
-      font-family: 'PressStart2P', sans-serif;
-      color: white;
-      text-align: center;
-      background-color: black;
-    }
+      // // Gets called when the DPad is released.
+      // // had_direction is a boolean that tells you if at lease one direction was active.
+      // //               can be used to determine if it was just a "tap" on the DPad.
+      // "touchend": function(had_direction) {
+      //   console.log('touch end', had_direction);
+      // },
 
-    .button {
-      display: inline-block;
-      height: 45%;
-      width: 98%;
-      background-color: #222;
-      position: relative;
-    }
+      // (Optional) distance which the user needs to move before triggering a direction.
+      "distance": {x: 10, y:10},
 
-    .button_label {
-      position: absolute;
-      left: 0px;
-      width: 100%;
-      top: 50%;
-      margin-top: -6px;
-    }
-
-    #player_id {
-      position: absolute;
-      top: 50%;
-      left: 0%;
-      width: 100%;
-      margin-top: -8px;
-      color: #777;
-    }
-  </style>
-</head>
-<body onload="init()">
-<div style="height: 1%"></div>
-<div class=button ontouchstart="move(-50)" ontouchend="move(0)" onmousedown="move(-50)" onmouseup="move(0)">
-  <div class="button_label">UP</div>
-</div>
-<div style="height: 8%"></div>
-<div class=button ontouchstart="move(50)" ontouchend="move(0)" onmousedown="move(50)" onmouseup="move(0)">
-  <div class="button_label">DOWN</div>
-</div>
-<div id="player_id">It's a 2 player game</div>
-</body>
-</html>
+      // (Optional) diagonal: If true, diagonal movement are possible and it becomes a 8-way DPad:
+      //                      For exmaple UP and RIGHT at the same time.
+      "diagonal": true
+    });
+    
+    new Button("button-bomb", {
+        "down": function() {
+          bomb('setting');
+        },
+        "up": function() {
+          bomb(!'setting');
+        }
+      });
+    
+</script></body></html>

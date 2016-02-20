@@ -49,7 +49,6 @@ Player.prototype.handleInput = function (controller) {
 };
 
 Player.prototype.handleCtrlInput = function (data) {
-    console.log('handleCtrlInput',data);
     var moving = false;
 
     game.physics.arcade.collide(this, level.blockLayer);

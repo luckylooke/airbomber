@@ -646,8 +646,9 @@
 
 	function movePlayer(device_id, data) {
 	  var consignee = airconsole.convertDeviceIdToPlayerNumber(device_id);
-	  if (consignee != undefined && data.move !== undefined) {
-	      controllers[data.nick].y = data.move;
+	  if (consignee != undefined) {
+	      controllers[data.nick].x = data.x;
+	      controllers[data.nick].y = data.y;
 	    // paddles[consignee].move.y = data.move;
 	  }
 	}
@@ -1076,7 +1077,6 @@
 	};
 
 	Player.prototype.handleCtrlInput = function (data) {
-	    console.log('handleCtrlInput',data);
 	    var moving = false;
 
 	    game.physics.arcade.collide(this, level.blockLayer);
