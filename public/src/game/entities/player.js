@@ -49,8 +49,6 @@ Player.prototype.handleInput = function (controller) {
 };
 
 Player.prototype.handleCtrlInput = function (data) {
-    var moving = false;
-
     game.physics.arcade.collide(this, level.blockLayer);
     game.physics.arcade.collide(this, level.bombs);
     
@@ -61,23 +59,19 @@ Player.prototype.handleCtrlInput = function (data) {
 
     if (data.x < 0) {
         this.facing = "left";
-        moving = true;
     } else if (data.x > 0) {
         this.facing = "right";
-        moving = true;
     }
     this.body.velocity.x = data.x * this.speed;
 
     if (data.y < 0) {
         this.facing = "down";
-        moving = true;
     } else if (data.y > 0) {
         this.facing = "up";
-        moving = true;
     }
     this.body.velocity.y = data.y * this.speed;
 
-    if (moving) {
+    if (data.x || data.y) {
         this.animations.play(this.facing);
         socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing, nick: this.nick});
     }else{

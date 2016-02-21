@@ -24,8 +24,12 @@ var controllers = {},
 function movePlayer(device_id, data) {
   var consignee = airconsole.convertDeviceIdToPlayerNumber(device_id);
   if (consignee != undefined) {
-      controllers[data.nick].x = data.x;
-      controllers[data.nick].y = data.y;
+      if(data.x != undefined){
+          controllers[data.nick].x = data.x;
+      }
+      if(data.y != undefined){
+          controllers[data.nick].y = data.y;
+      }
     // paddles[consignee].move.y = data.move;
   }
 }
