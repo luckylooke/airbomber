@@ -113,7 +113,7 @@ function onStartGame(slotId) {
 };
 
 function onRegisterMap(data) {
-    games.map = new Map(data, TILE_SIZE);
+    games[data.slotId].map = new Map(data, TILE_SIZE);
 };
 
 function onMovePlayer(clientPlayer) {

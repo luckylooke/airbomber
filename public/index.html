@@ -4,6 +4,10 @@
 	<meta charset="UTF-8" />
     <title>Bomb Arena</title>
     <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+    <div id="bomber"></div>
+    
     <script type="text/javascript">
         WebFontConfig = {
           google: { families: [ 'Carter+One::latin' ] }
@@ -20,15 +24,10 @@
     </script>
     <script type="text/javascript">
         this.bomberman = {}; // namespace
-        this.bomberman.device = 'screen';
+        this.bomberman.device = 'index';
     </script>
     <script src="src/lib/phaser.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="bundle.js"></script>
-</head>
-<body>
-<div id="bomber">
-
-</div>
 </body>
 </html>

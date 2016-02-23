@@ -48,7 +48,11 @@
 	if(!bomberman) {
 	    bomberman = {};
 	}
-	var game = bomberman.game = new Phaser.Game(875, 525, Phaser.AUTO, 'bomber');
+
+	bomberman.width = bomberman.bomberElm.clientWidth;
+	bomberman.height = bomberman.bomberElm.clientHeight;
+
+	var game = bomberman.game = new Phaser.Game(bomberman.width, bomberman.height, Phaser.AUTO, 'bomber');
 	bomberman.screen = {};
 	bomberman.socket = io();
 	bomberman.level = null;
@@ -161,6 +165,22 @@
 	Preloader.prototype = {
 
 	    preload: function () {
+	        
+	        game.scale.setGameSize(25*35, 15*35);
+	        game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+	        game.scale.setMinMax(480, 260, 10240, 7680);
+	        game.scale.pageAlignHorizontally = true;
+	        // game.scale.pageAlignVertically = true;
+	        
+	        // var gameRatio = 800/600,
+	        //     scaleRatio = 1;
+	        // if(bomberman.height/bomberman.width > gameRatio){
+	        //     scaleRatio = bomberman.height/600;
+	        // }else{
+	        //     scaleRatio = bomberman.width/800;
+	        // }
+	        // game.world.scale = {x:scaleRatio,y:scaleRatio};
+
 	        this.load.spritesheet("bomberman_white", "resource/bomberman.png", 32, 64);
 	        this.load.spritesheet("bomberman_black", "resource/bomberman_black.png", 32, 64);
 	        this.load.spritesheet("bomberman_blue", "resource/bomberman_blue.png", 32, 64);
@@ -286,7 +306,6 @@
 		},
 
 		updateSlots: function(slots) {
-			console.log('slots',slots);
 			this.slots.length = 0;
 			var names = Object.keys(slots);
 	        for (var i = 0; i < names.length; i++) {
@@ -298,7 +317,7 @@
 		                settings.callback(slotId);
 		            };
 		        })(names[i]);
-		        var slotYOffset = initialSlotYOffset + lobbySlotDistance + lobbySlotDistance*i;
+		        var slotYOffset = initialSlotYOffset + lobbySlotDistance + lobbySlotDistance+5*i;
 		        this.slots.push(game.add.button(slotXOffset, slotYOffset, "game_slot", callback, null, settings.overFrame, settings.outFrame));
 		        var text = game.add.text(slotXOffset + textXOffset, slotYOffset + textYOffset, settings.text);
 		        TextConfigurer.configureText(text, "white", 18);
@@ -895,7 +914,8 @@
 	            tiles: blockLayerData.data,
 	            height: blockLayerData.height,
 	            width: blockLayerData.width,
-	            destructibleTileId: mapInfo.destructibleTileId
+	            destructibleTileId: mapInfo.destructibleTileId,
+	            slotId: game.slotId
 	        });
 	    },
 

@@ -1,11 +1,8 @@
-*{
-    margin: 0;
-    padding: 0;
-    background: linear-gradient(to top, #ededed, #000001);
+html, body, #bomber {
+    width: 100%;
+    height: 100%;
 }
-
-#bomber {
-    margin-right: auto;
-    margin-left: auto;
-    display: table;
+body {
+    margin: 0px;
+    background: black;
 }

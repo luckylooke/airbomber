@@ -1,7 +1,6 @@
 TODO:
 - https://github.com/Ezelia/EZGUI/blob/master/examples/Phaser/index.html
 - multiple bombs during one input down
-- smooth corner movement
 - only playerhosting a game can start a game
 - add nickname on controller
 

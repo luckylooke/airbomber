@@ -8,6 +8,22 @@ module.exports = Preloader;
 Preloader.prototype = {
 
     preload: function () {
+        
+        game.scale.setGameSize(25*35, 15*35);
+        game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+        game.scale.setMinMax(480, 260, 10240, 7680);
+        game.scale.pageAlignHorizontally = true;
+        // game.scale.pageAlignVertically = true;
+        
+        // var gameRatio = 800/600,
+        //     scaleRatio = 1;
+        // if(bomberman.height/bomberman.width > gameRatio){
+        //     scaleRatio = bomberman.height/600;
+        // }else{
+        //     scaleRatio = bomberman.width/800;
+        // }
+        // game.world.scale = {x:scaleRatio,y:scaleRatio};
+
         this.load.spritesheet("bomberman_white", "resource/bomberman.png", 32, 64);
         this.load.spritesheet("bomberman_black", "resource/bomberman_black.png", 32, 64);
         this.load.spritesheet("bomberman_blue", "resource/bomberman_blue.png", 32, 64);

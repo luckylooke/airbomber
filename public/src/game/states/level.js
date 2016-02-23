@@ -272,7 +272,8 @@ Level.prototype = {
             tiles: blockLayerData.data,
             height: blockLayerData.height,
             width: blockLayerData.width,
-            destructibleTileId: mapInfo.destructibleTileId
+            destructibleTileId: mapInfo.destructibleTileId,
+            slotId: game.slotId
         });
     },
 

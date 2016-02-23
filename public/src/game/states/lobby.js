@@ -61,7 +61,6 @@ Lobby.prototype = {
 	},
 
 	updateSlots: function(slots) {
-		console.log('slots',slots);
 		this.slots.length = 0;
 		var names = Object.keys(slots);
         for (var i = 0; i < names.length; i++) {
@@ -73,7 +72,7 @@ Lobby.prototype = {
 	                settings.callback(slotId);
 	            };
 	        })(names[i]);
-	        var slotYOffset = initialSlotYOffset + lobbySlotDistance + lobbySlotDistance*i;
+	        var slotYOffset = initialSlotYOffset + lobbySlotDistance + lobbySlotDistance+5*i;
 	        this.slots.push(game.add.button(slotXOffset, slotYOffset, "game_slot", callback, null, settings.overFrame, settings.outFrame));
 	        var text = game.add.text(slotXOffset + textXOffset, slotYOffset + textYOffset, settings.text);
 	        TextConfigurer.configureText(text, "white", 18);

@@ -2,7 +2,11 @@
 if(!bomberman) {
     bomberman = {};
 }
-var game = bomberman.game = new Phaser.Game(875, 525, Phaser.AUTO, 'bomber');
+
+bomberman.width = bomberman.bomberElm.clientWidth;
+bomberman.height = bomberman.bomberElm.clientHeight;
+
+var game = bomberman.game = new Phaser.Game(bomberman.width, bomberman.height, Phaser.AUTO, 'bomber');
 bomberman.screen = {};
 bomberman.socket = io();
 bomberman.level = null;
