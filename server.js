@@ -158,20 +158,20 @@ function onPlaceBomb(data) {
     socket.sockets.to(slotId).emit("place bomb", {x: normalizedBombLocation.x, y: normalizedBombLocation.y, id: data.id});
 }
 
-function onPowerupOverlap(player) {
-    var game = games[this.id];
-    var powerup = game.map.claimPowerup(player.x, player.y);
+function onPowerupOverlap(data) {
+    var game = games[data.slotId];
+    var powerup = game.map.claimPowerup(data.x, data.y);
 
     if(!powerup) {
         return;
     }
-    var player = game.players[player.nick];
+    var player = game.players[data.nick];
     if(powerup.powerupType === PowerupIDs.BOMB_STRENGTH) {
         player.bombStrength++;
     } else if(powerup.powerupType === PowerupIDs.BOMB_CAPACITY) {
         player.bombCapacity++;
     }
-    socket.sockets.in(this.gameId).emit("powerup acquired", {acquiringPlayerId: player.nick, powerupId: powerup.id, powerupType: powerup.powerupType});
+    socket.sockets.in(data.slotId).emit("powerup acquired", {acquiringPlayerId: player.nick, powerupId: powerup.id, powerupType: powerup.powerupType});
 }
 
 function handlePlayerDeath(deadPlayerNicks, slotId) {

@@ -765,7 +765,6 @@
 	        for (var itemKey in this.items) {
 	            this.items[itemKey].destroy();
 	        }
-
 	        this.items = {};
 	    },
 
@@ -827,7 +826,7 @@
 	                    for (var itemKey in this.items) {
 	                        var item = this.items[itemKey];
 	                        game.physics.arcade.overlap(player, item, function (p, i) {
-	                            socket.emit("powerup overlap", {x: item.x, y: item.y});
+	                            socket.emit("powerup overlap", {x: item.x, y: item.y, nick: player.nick, slotId: game.slotId});
 	                        });
 	                    }
 	                }
@@ -986,6 +985,7 @@
 	    },
 
 	    onPowerupAcquired: function (data) {
+	        console.log('BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',this.items, data, this.items[data.powerupId]);
 	        this.items[data.powerupId].destroy();
 	        delete this.items[data.powerupId];
 

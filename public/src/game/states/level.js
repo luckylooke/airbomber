@@ -123,7 +123,6 @@ Level.prototype = {
         for (var itemKey in this.items) {
             this.items[itemKey].destroy();
         }
-
         this.items = {};
     },
 
@@ -185,7 +184,7 @@ Level.prototype = {
                     for (var itemKey in this.items) {
                         var item = this.items[itemKey];
                         game.physics.arcade.overlap(player, item, function (p, i) {
-                            socket.emit("powerup overlap", {x: item.x, y: item.y});
+                            socket.emit("powerup overlap", {x: item.x, y: item.y, nick: player.nick, slotId: game.slotId});
                         });
                     }
                 }
