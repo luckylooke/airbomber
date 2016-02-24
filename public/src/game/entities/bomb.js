@@ -1,6 +1,13 @@
+/* global Phaser, bomberman */
+
 var AudioPlayer = require("../util/audio_player");
+var game = bomberman.game;
+var level;
 
 var Bomb = function (x, y, id) {
+    if(!level){
+        level = bomberman.level;
+    }
     Phaser.Sprite.call(this, game, x, y, "bomb");
     this.id = id;
 

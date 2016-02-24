@@ -131,12 +131,12 @@ function onMovePlayer(clientPlayer) {
 };
 
 function onPlaceBomb(data) {
-    var game = games[this.id];
+    var slotId = data.slotId;
+    var game = games[slotId];
     var player = game.players[data.nick];
     if (game === undefined || game.awaiting || player.numBombsAlive >= player.bombCapacity) {
         return;
     }
-    var gameId = this.gameId;
     var bombId = data.id;
     var normalizedBombLocation = game.map.placeBombOnGrid(data.x, data.y);
     if(normalizedBombLocation == -1) {
@@ -146,16 +146,16 @@ function onPlaceBomb(data) {
     var bombTimeoutId = setTimeout(function() {
         var explosionData = bomb.detonate(game.map, player.bombStrength, game.players);
         player.numBombsAlive--;
-        socket.sockets.in(gameId).emit("detonate", {explosions: explosionData.explosions, id: bombId,
+        socket.sockets.in(slotId).emit("detonate", {explosions: explosionData.explosions, id: bombId,
             destroyedTiles: explosionData.destroyedBlocks});
         delete game.bombs[bombId];
         game.map.removeBombFromGrid(data.x, data.y);
 
-        handlePlayerDeath(explosionData.killedPlayers, gameId);
+        handlePlayerDeath(explosionData.killedPlayers, slotId);
     }, 2000);
     var bomb = new Bomb(normalizedBombLocation.x, normalizedBombLocation.y, bombTimeoutId);
     game.bombs[bombId] = bomb;
-    socket.sockets.to(this.gameId).emit("place bomb", {x: normalizedBombLocation.x, y: normalizedBombLocation.y, id: data.id});
+    socket.sockets.to(slotId).emit("place bomb", {x: normalizedBombLocation.x, y: normalizedBombLocation.y, id: data.id});
 }
 
 function onPowerupOverlap(player) {
@@ -174,15 +174,15 @@ function onPowerupOverlap(player) {
     socket.sockets.in(this.gameId).emit("powerup acquired", {acquiringPlayerId: player.nick, powerupId: powerup.id, powerupType: powerup.powerupType});
 }
 
-function handlePlayerDeath(deadPlayerNicks, gameId) {
-    var game = games[gameId];
+function handlePlayerDeath(deadPlayerNicks, slotId) {
+    var game = games[slotId];
     var tiedWinnerNicks;
     if (deadPlayerNicks.length > 1 && game.numPlayersAlive - deadPlayerNicks.length == 0) {
         tiedWinnerNicks = deadPlayerNicks;
     }
     deadPlayerNicks.forEach(function(deadPlayerId) {
         game.players[deadPlayerId].alive = false;
-        socket.sockets.in(gameId).emit("kill player", {nick: deadPlayerId});
+        socket.sockets.in(slotId).emit("kill player", {nick: deadPlayerId});
         game.numPlayersAlive--;
     }, this);
 

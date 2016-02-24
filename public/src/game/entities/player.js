@@ -40,18 +40,20 @@ Player.prototype = Object.create(Phaser.Sprite.prototype);
 Player.prototype.nicks = [];
 
 Player.prototype.handleInput = function (controller) {
-    this.handleBombInput();
     if(controller){
         this.handleCtrlInput(controller);
     }else{
         this.handleKeysInput();
+        this.handleBombInput();
     }
 };
 
 Player.prototype.handleCtrlInput = function (data) {
+    // COLLISINONS
     game.physics.arcade.collide(this, level.blockLayer);
     game.physics.arcade.collide(this, level.bombs);
     
+    // MOVEMENT
     data.x = data.x > 1 ? 1 : data.x;
     data.x = data.x < -1 ? -1 : data.x;
     data.y = data.y > 1 ? 1 : data.y;
@@ -76,6 +78,11 @@ Player.prototype.handleCtrlInput = function (data) {
         socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing, nick: this.nick});
     }else{
         this.freeze();
+    }
+    
+    // BOMBS
+    if (!game.physics.arcade.overlap(this, level.bombs) && data.bomb) {
+        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, slotId: game.slotId});
     }
 };
 
@@ -120,7 +127,7 @@ Player.prototype.handleKeysInput = function () {
 Player.prototype.handleBombInput = function () {
     if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && !game.physics.arcade.overlap(this, level.bombs) && !this.bombButtonJustPressed) {
         this.bombButtonJustPressed = true;
-        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick});
+        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, slotId: game.slotId});
     } else if (!game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && this.bombButtonJustPressed) {
         this.bombButtonJustPressed = false;
     }

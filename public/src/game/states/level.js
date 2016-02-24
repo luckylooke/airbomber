@@ -17,7 +17,7 @@ var level = bomberman.level;
 var screen = bomberman.screen;
 
 var Level = function () {};
-var controllers = {},
+var controllers = {}, // keeps state of connected controllers
     airconsole = bomberman.airconsole,
     acTools = bomberman.acTools;
 
@@ -34,6 +34,13 @@ function movePlayer(device_id, data) {
   }
 }
 acTools.addListener('movePlayer', movePlayer);
+
+function setBomb(device_id, data) {
+  if (data.nick) {
+    controllers[data.nick].bomb = data.setting;
+  }
+}
+acTools.addListener('setBomb', setBomb);
 
 module.exports = Level;
 

@@ -659,7 +659,7 @@
 	var screen = bomberman.screen;
 
 	var Level = function () {};
-	var controllers = {},
+	var controllers = {}, // keeps state of connected controllers
 	    airconsole = bomberman.airconsole,
 	    acTools = bomberman.acTools;
 
@@ -676,6 +676,13 @@
 	  }
 	}
 	acTools.addListener('movePlayer', movePlayer);
+
+	function setBomb(device_id, data) {
+	  if (data.nick) {
+	    controllers[data.nick].bomb = data.setting;
+	  }
+	}
+	acTools.addListener('setBomb', setBomb);
 
 	module.exports = Level;
 
@@ -1092,18 +1099,20 @@
 	Player.prototype.nicks = [];
 
 	Player.prototype.handleInput = function (controller) {
-	    this.handleBombInput();
 	    if(controller){
 	        this.handleCtrlInput(controller);
 	    }else{
 	        this.handleKeysInput();
+	        this.handleBombInput();
 	    }
 	};
 
 	Player.prototype.handleCtrlInput = function (data) {
+	    // COLLISINONS
 	    game.physics.arcade.collide(this, level.blockLayer);
 	    game.physics.arcade.collide(this, level.bombs);
 	    
+	    // MOVEMENT
 	    data.x = data.x > 1 ? 1 : data.x;
 	    data.x = data.x < -1 ? -1 : data.x;
 	    data.y = data.y > 1 ? 1 : data.y;
@@ -1128,6 +1137,11 @@
 	        socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing, nick: this.nick});
 	    }else{
 	        this.freeze();
+	    }
+	    
+	    // BOMBS
+	    if (!game.physics.arcade.overlap(this, level.bombs) && data.bomb) {
+	        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, slotId: game.slotId});
 	    }
 	};
 
@@ -1172,7 +1186,7 @@
 	Player.prototype.handleBombInput = function () {
 	    if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && !game.physics.arcade.overlap(this, level.bombs) && !this.bombButtonJustPressed) {
 	        this.bombButtonJustPressed = true;
-	        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick});
+	        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, slotId: game.slotId});
 	    } else if (!game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && this.bombButtonJustPressed) {
 	        this.bombButtonJustPressed = false;
 	    }
@@ -1207,9 +1221,16 @@
 /* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* global Phaser, bomberman */
+
 	var AudioPlayer = __webpack_require__(2);
+	var game = bomberman.game;
+	var level;
 
 	var Bomb = function (x, y, id) {
+	    if(!level){
+	        level = bomberman.level;
+	    }
 	    Phaser.Sprite.call(this, game, x, y, "bomb");
 	    this.id = id;
 
