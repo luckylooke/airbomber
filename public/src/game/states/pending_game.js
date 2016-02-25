@@ -152,7 +152,7 @@ PendingGame.prototype = {
 		this.minPlayerMessage.visible = false;
 		socket.on("show current players", this.populateCharacterSquares.bind(this));
 		socket.on("player joined", this.playerJoined.bind(this));
-		socket.on("player left", this.playerLeft.bind(this));
+		socket.on("players left", this.playersLeft.bind(this));
 		socket.on("start game on client", this.startGame);
 	},
 
@@ -215,8 +215,8 @@ PendingGame.prototype = {
 		this.startGameButton.onInputUp.removeAll();
 	},
 
-	playerLeft: function(data) {
-		this.numPlayersInGame--;
+	playersLeft: function(data) {
+		this.numPlayersInGame -= data.numPlayersLeft;
 		if(this.numPlayersInGame == 1) {
 			this.deactivateStartGameButton();
 		}

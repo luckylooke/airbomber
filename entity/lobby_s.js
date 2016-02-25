@@ -1,6 +1,6 @@
 /* global socket */
-var PendingGame = require("./entity/pending_game_s");
-var MapInfo = require("./common/map_info");
+var PendingGame = require("./pending_game_s");
+var MapInfo = require("./../common/map_info");
 
 var lobbySlots = {};
 
@@ -70,29 +70,30 @@ var lobby = {
     },
 
     onLeavePendingGame: function (data) {
-        leavePendingGame.call(this, data);
+        if(!data){
+            return;
+        }
+        var lobbySlot = lobbySlots[data.slotId];
+        var numPlayersLeft = lobbySlot.screens[data.screenId].players.length;
+        lobbySlot.removeScreen(data.screenId);
+        socket.emit("players left", {players: lobbySlot.players, numPlayersLeft: numPlayersLeft});
+        if(data.slotId === data.screenId){
+           delete lobbySlots[data.slotId]; 
+        }else{
+            if (lobbySlot.getNumPlayers() == 0) {
+                lobbySlot.state = "empty";
+                socket.emit("update slot", {slotId: data.slotId, newState: "empty"});
+            }
+            if (lobbySlot.state == "full") {
+                lobbySlot.state = "joinable";
+                socket.emit("update slot", {slotId: data.slotId, newState: "joinable"});
+            }
+        }
     }
 };
 
 function broadcastSlotStateUpdate(slotId, newState) {
     socket.emit("update slot", {slotId: slotId, newState: newState});
-}
-
-function leavePendingGame(data) {
-    if(!data){
-        return;
-    }
-    var lobbySlot = lobbySlots[data.slotId];
-    lobbySlot.removeScreen(data.screenId);
-    socket.emit("player left", {players: lobbySlot.players});
-    if (lobbySlot.getNumPlayers() == 0) {
-        lobbySlot.state = "empty";
-        socket.emit("update slot", {slotId: data.slotId, newState: "empty"});
-    }
-    if (lobbySlot.state == "full") {
-        lobbySlot.state = "joinable";
-        socket.emit("update slot", {slotId: data.slotId, newState: "joinable"});
-    }
 }
 
 function slotsInfo() {

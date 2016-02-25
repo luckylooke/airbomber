@@ -251,7 +251,7 @@
 
 	var initialSlotYOffset = 350;
 	var slotXOffset = 155;
-	var lobbySlotDistance = 60;
+	var lobbySlotDistance = 65;
 	var textXOffset = 260;
 	var textYOffset = 25;
 
@@ -317,7 +317,7 @@
 		                settings.callback(slotId);
 		            };
 		        })(names[i]);
-		        var slotYOffset = initialSlotYOffset + lobbySlotDistance + lobbySlotDistance+5*i;
+		        var slotYOffset = initialSlotYOffset + lobbySlotDistance*i;
 		        this.slots.push(game.add.button(slotXOffset, slotYOffset, "game_slot", callback, null, settings.overFrame, settings.outFrame));
 		        var text = game.add.text(slotXOffset + textXOffset, slotYOffset + textYOffset, settings.text);
 		        TextConfigurer.configureText(text, "white", 18);
@@ -549,7 +549,7 @@
 			this.minPlayerMessage.visible = false;
 			socket.on("show current players", this.populateCharacterSquares.bind(this));
 			socket.on("player joined", this.playerJoined.bind(this));
-			socket.on("player left", this.playerLeft.bind(this));
+			socket.on("players left", this.playersLeft.bind(this));
 			socket.on("start game on client", this.startGame);
 		},
 
@@ -612,8 +612,8 @@
 			this.startGameButton.onInputUp.removeAll();
 		},
 
-		playerLeft: function(data) {
-			this.numPlayersInGame--;
+		playersLeft: function(data) {
+			this.numPlayersInGame -= data.numPlayersLeft;
 			if(this.numPlayersInGame == 1) {
 				this.deactivateStartGameButton();
 			}

@@ -1,6 +1,5 @@
 TODO:
 - check all socket calls
-- refactor disconnection logics
 - https://github.com/Ezelia/EZGUI/blob/master/examples/Phaser/index.html
 - multiple bombs during one input down
 - only playerhosting a game can start a game
