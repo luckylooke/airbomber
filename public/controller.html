@@ -149,7 +149,6 @@
       // Key is one of: DPad.UP, DPad.DOWN, DPad.LEFT, DPad.RIGHT.
       // Pressed is a boolean, true if the direction is active.
       "directionchange": function(key, pressed) {
-        console.log('dir: ', key, pressed);
         switch(key) {
             case 'right':
                 pressed ? move({x:1}) : move({x: 0});

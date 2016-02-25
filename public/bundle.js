@@ -769,6 +769,7 @@
 	    },
 
 	    onNewRound: function (data) {
+	        console.log('newRound', data);
 	        this.createDimGraphic();
 	        var datAnimationDoe = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
 	        this.gameFrozen = true;
@@ -836,8 +837,8 @@
 	        this.stopAnimationForMotionlessPlayers();
 	        this.storePreviousPositions();
 
-	        for (var id in this.remotePlayers) {
-	            this.remotePlayers[id].interpolate(this.lastFrameTime);
+	        for (var nick in this.remotePlayers) {
+	            this.remotePlayers[nick].interpolate(this.lastFrameTime);
 	        }
 
 	        this.lastFrameTime = game.time.now;
@@ -861,15 +862,15 @@
 	    },
 
 	    storePreviousPositions: function () {
-	        for (var id in this.remotePlayers) {
-	            var remotePlayer = this.remotePlayers[id];
+	        for (var nick in this.remotePlayers) {
+	            var remotePlayer = this.remotePlayers[nick];
 	            remotePlayer.previousPosition = {x: remotePlayer.position.x, y: remotePlayer.position.y};
 	        }
 	    },
 
 	    stopAnimationForMotionlessPlayers: function () {
-	        for (var id in this.remotePlayers) {
-	            var remotePlayer = this.remotePlayers[id];
+	        for (var nick in this.remotePlayers) {
+	            var remotePlayer = this.remotePlayers[nick];
 	            if (remotePlayer.lastMoveTime < game.time.now - 200) {
 	                remotePlayer.animations.stop();
 	            }
@@ -878,7 +879,6 @@
 
 	    onSocketDisconnect: function () {
 	        console.log("Disconnected from socket server.");
-	        socket.broadcast.emit("remove player", {id: this.id});
 	    },
 
 	    initializePlayers: function () {
@@ -985,7 +985,6 @@
 	    },
 
 	    onPowerupAcquired: function (data) {
-	        console.log('BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',this.items, data, this.items[data.powerupId]);
 	        this.items[data.powerupId].destroy();
 	        delete this.items[data.powerupId];
 
@@ -1460,7 +1459,10 @@
 /* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* global Phaser, bomberman */
+
 	var PowerupIds = __webpack_require__(9);
+	var game = bomberman.game;
 
 	var notificationImageMap = {};
 	notificationImageMap[PowerupIds.BOMB_STRENGTH] = "bomb_strength_notification";

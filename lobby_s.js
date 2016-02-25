@@ -45,6 +45,7 @@ var lobby = {
     onEnterPendingGame: function (data) {
         var pendingGame = lobbySlots[data.slotId];
         pendingGame.addScreen(this.id);
+        this.slotId = data.slotId;
         this.join(data.slotId); // join socket room
         this.emit("show current players", {players: pendingGame.players});
         this.broadcast.to(data.slotId).emit("screen joined", {id: this.id, color: pendingGame.screens[this.id].color});
@@ -82,15 +83,15 @@ function leavePendingGame(data) {
         return;
     }
     var lobbySlot = lobbySlots[data.slotId];
-    lobbySlot.removePlayer(this.id);
+    lobbySlot.removeScreen(data.screenId);
     socket.emit("player left", {players: lobbySlot.players});
     if (lobbySlot.getNumPlayers() == 0) {
         lobbySlot.state = "empty";
-        socket.emit("update slot", {gameId: this.gameId, newState: "empty"});
+        socket.emit("update slot", {slotId: data.slotId, newState: "empty"});
     }
     if (lobbySlot.state == "full") {
         lobbySlot.state = "joinable";
-        socket.emit("update slot", {gameId: this.gameId, newState: "joinable"});
+        socket.emit("update slot", {slotId: data.slotId, newState: "joinable"});
     }
 }
 

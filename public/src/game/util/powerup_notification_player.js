@@ -1,4 +1,7 @@
+/* global Phaser, bomberman */
+
 var PowerupIds = require("../../../../common/powerup_ids");
+var game = bomberman.game;
 
 var notificationImageMap = {};
 notificationImageMap[PowerupIds.BOMB_STRENGTH] = "bomb_strength_notification";

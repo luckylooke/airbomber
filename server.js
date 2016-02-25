@@ -25,6 +25,7 @@ var PendingGame = require("./entity/pending_game_s");
 var PowerupIDs = require("./common/powerup_ids");
 
 var games = {};
+var screens = {};
 
 var updateInterval = 100;
 app.use(express.static("client"));
@@ -61,7 +62,7 @@ function onClientDisconnect() {
         return;
     }
     if (lobbySlot.state == "joinable" || lobbySlot.state == "full") {
-        lobby.onLeavePendingGame.call(this);
+        lobby.onLeavePendingGame.call(this, {screenId:this.id, slotId:this.slotId});
     } else if (lobbySlot.state == "settingup") {
         lobbySlot.state = "empty";
         lobby.broadcastSlotStateUpdate(this.id, "empty");
@@ -71,14 +72,15 @@ function onClientDisconnect() {
             delete game.players[this.id];
             socket.sockets.in(this.id).emit("remove player", {id: this.id});
         }
-        // temporarely disabled for developement
-        // if (game && game.numPlayers < 2) {
-        if (game && game.numPlayers < 1) {
-            // if (games.numPlayers == 1) {
-            //     socket.sockets.in(this.gameId).emit("no opponents left");
-            // }
+        
+        // MAY BE DISSABLED FOR DEVELOPEMENT
+        if (game && game.numPlayers < 2) {
+            if (games.numPlayers == 1) {
+                socket.sockets.in(this.id).emit("no opponents left");
+            }
             terminateExistingGame(this.id);
         }
+        
         if (game && game.awaiting && game.numEndOfRoundAcknowledgements >= game.numPlayers) {
             game.awaiting = false;
         }
@@ -186,14 +188,14 @@ function handlePlayerDeath(deadPlayerNicks, slotId) {
         game.numPlayersAlive--;
     }, this);
 
-// temporary for developement
-    // if (games.numPlayersAlive <= 1) {
-        // endRound(gameId, tiedWinnerNicks);
-    // }
+    // MAY BE DISSABLED FOR DEVELOPEMENT
+    if (game.numPlayersAlive <= 1) {
+        endRound(slotId, tiedWinnerNicks);
+    }
 }
 
-function endRound(gameId, tiedWinnerIds) {
-    var game = games[gameId];
+function endRound(slotId, tiedWinnerIds) {
+    var game = games[slotId];
     var roundWinnerColors = [];
     if(tiedWinnerIds) {
         tiedWinnerIds.forEach(function(tiedWinnerId) {
@@ -209,16 +211,16 @@ function endRound(gameId, tiedWinnerIds) {
         var gameWinners = game.calculateGameWinners();
 
         if (gameWinners.length == 1 && (game.currentRound > 3 || gameWinners[0].wins == 2)) {
-            socket.sockets.in(gameId).emit("end game", {
+            socket.sockets.in(slotId).emit("end game", {
                 completedRoundNumber: game.currentRound - 1, roundWinnerColors: roundWinnerColors,
                 gameWinnerColor: gameWinners[0].color});
-            terminateExistingGame(gameId);
+            terminateExistingGame(slotId);
             return;
         }
     }
     game.awaiting = true;
     game.resetForNewRound();
-    socket.sockets.in(gameId).emit("new round", {
+    socket.sockets.in(slotId).emit("new round", {
         completedRoundNumber: game.currentRound - 1,
         roundWinnerColors: roundWinnerColors
     });

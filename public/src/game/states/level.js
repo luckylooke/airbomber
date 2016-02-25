@@ -127,6 +127,7 @@ Level.prototype = {
     },
 
     onNewRound: function (data) {
+        console.log('newRound', data);
         this.createDimGraphic();
         var datAnimationDoe = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
         this.gameFrozen = true;
@@ -194,8 +195,8 @@ Level.prototype = {
         this.stopAnimationForMotionlessPlayers();
         this.storePreviousPositions();
 
-        for (var id in this.remotePlayers) {
-            this.remotePlayers[id].interpolate(this.lastFrameTime);
+        for (var nick in this.remotePlayers) {
+            this.remotePlayers[nick].interpolate(this.lastFrameTime);
         }
 
         this.lastFrameTime = game.time.now;
@@ -219,15 +220,15 @@ Level.prototype = {
     },
 
     storePreviousPositions: function () {
-        for (var id in this.remotePlayers) {
-            var remotePlayer = this.remotePlayers[id];
+        for (var nick in this.remotePlayers) {
+            var remotePlayer = this.remotePlayers[nick];
             remotePlayer.previousPosition = {x: remotePlayer.position.x, y: remotePlayer.position.y};
         }
     },
 
     stopAnimationForMotionlessPlayers: function () {
-        for (var id in this.remotePlayers) {
-            var remotePlayer = this.remotePlayers[id];
+        for (var nick in this.remotePlayers) {
+            var remotePlayer = this.remotePlayers[nick];
             if (remotePlayer.lastMoveTime < game.time.now - 200) {
                 remotePlayer.animations.stop();
             }
@@ -236,7 +237,6 @@ Level.prototype = {
 
     onSocketDisconnect: function () {
         console.log("Disconnected from socket server.");
-        socket.broadcast.emit("remove player", {id: this.id});
     },
 
     initializePlayers: function () {
