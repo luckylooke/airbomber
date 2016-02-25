@@ -21,10 +21,12 @@ Game.prototype = {
         return this.readyRound.length;
 	},
 
-    addPlayerReadyRound: function (playerId) {
-        if (this.readyRound.indexOf(playerId) == -1) {
-            this.readyRound.push(playerId);
-		}
+    addPlayerReadyRound: function (playersReady) {
+    	for(var playerId in playersReady){
+	        if (this.readyRound.indexOf(playerId) == -1) {
+	            this.readyRound.push(playerId);
+			}
+    	}
 	},
 
 	calculateRoundWinner: function() {

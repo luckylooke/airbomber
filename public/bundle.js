@@ -579,12 +579,11 @@
 					this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + color);
 				this.numPlayersInGame++;
 			}
-			// TODO: uncomment
-			// if(this.numPlayersInGame > 1) {
+			if(this.numPlayersInGame > 1) {
 				this.activateStartGameButton();
-			// } else {
-			// 	this.minPlayerMessage.visible = true;
-			// }
+			} else {
+				this.minPlayerMessage.visible = true;
+			}
 		},
 
 		playerJoined: function(data) {
@@ -769,7 +768,6 @@
 	    },
 
 	    onNewRound: function (data) {
-	        console.log('newRound', data);
 	        this.createDimGraphic();
 	        var datAnimationDoe = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
 	        this.gameFrozen = true;
@@ -789,7 +787,6 @@
 	        this.gameFrozen = true;
 	        var animation = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
 	        animation.beginAnimation(function () {
-	            acTools.rmListener('movePlayer');
 	            game.state.start("GameOver", true, false, data.gameWinnerColor, false);
 	        });
 	        AudioPlayer.stopMusicSound();
@@ -1490,7 +1487,9 @@
 /* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* global Phaser, bomberman */
 	var TextConfigurer = __webpack_require__(3);
+	var game = bomberman.game;
 
 	function GameOver() {
 	}

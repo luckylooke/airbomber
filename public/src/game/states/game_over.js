@@ -1,4 +1,6 @@
+/* global Phaser, bomberman */
 var TextConfigurer = require('../util/text_configurer');
+var game = bomberman.game;
 
 function GameOver() {
 }

@@ -127,7 +127,6 @@ Level.prototype = {
     },
 
     onNewRound: function (data) {
-        console.log('newRound', data);
         this.createDimGraphic();
         var datAnimationDoe = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
         this.gameFrozen = true;
@@ -147,7 +146,6 @@ Level.prototype = {
         this.gameFrozen = true;
         var animation = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
         animation.beginAnimation(function () {
-            acTools.rmListener('movePlayer');
             game.state.start("GameOver", true, false, data.gameWinnerColor, false);
         });
         AudioPlayer.stopMusicSound();

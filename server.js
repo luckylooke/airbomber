@@ -56,45 +56,47 @@ function setEventHandlers () {
 };
 
 function onClientDisconnect() {
+        // TODO: Refactor to screens/players enviroment
     console.log('Screen has disconected: ' + this.id);
-    var lobbySlot = lobby.getlobbySlots()[this.id];
-    if(!lobbySlot){
-        return;
-    }
-    if (lobbySlot.state == "joinable" || lobbySlot.state == "full") {
-        lobby.onLeavePendingGame.call(this, {screenId:this.id, slotId:this.slotId});
-    } else if (lobbySlot.state == "settingup") {
-        lobbySlot.state = "empty";
-        lobby.broadcastSlotStateUpdate(this.id, "empty");
-    } else if (games[this.id] && lobbySlot.state == "inprogress") {
-        var game = games[this.id];
-        if (this.id in game.players) {
-            delete game.players[this.id];
-            socket.sockets.in(this.id).emit("remove player", {id: this.id});
-        }
+    // var lobbySlot = lobby.getlobbySlots()[this.slotId];
+    // if(!lobbySlot){
+    //     return;
+    // }
+    // if (lobbySlot.state == "joinable" || lobbySlot.state == "full") {
+    //     lobby.onLeavePendingGame.call(this, {screenId:this.id, slotId:this.slotId});
+    // } else if (lobbySlot.state == "settingup") {
+    //     lobbySlot.state = "empty";
+    //     lobby.broadcastSlotStateUpdate(this.id, "empty");
+    // } else if (games[this.slotId] && lobbySlot.state == "inprogress") {
+    //     var game = games[this.slotId];
+    //     if (this.id in game.players) {
+    //         delete game.players[this.id];
+    //         socket.sockets.in(this.id).emit("remove player", {id: this.id});
+    //     }
         
-        // MAY BE DISSABLED FOR DEVELOPEMENT
-        if (game && game.numPlayers < 2) {
-            if (games.numPlayers == 1) {
-                socket.sockets.in(this.id).emit("no opponents left");
-            }
-            terminateExistingGame(this.id);
-        }
+    //     // MAY BE DISSABLED FOR DEVELOPEMENT
+    //     if (game && game.numPlayers < 2) {
+    //         if (games[this.slotId].numPlayers == 1) {
+    //             socket.sockets.in(this.id).emit("no opponents left");
+    //         }
+    //         terminateExistingGame(this.id);
+    //     }
         
-        if (game && game.awaiting && game.numEndOfRoundAcknowledgements >= game.numPlayers) {
-            game.awaiting = false;
-        }
-    }
+    //     if (game && game.awaiting && game.numEndOfRoundAcknowledgements >= game.numPlayers) {
+    //         game.awaiting = false;
+    //     }
+    // }
 };
 
 function terminateExistingGame(slotId) {
     games[slotId].clearBombs();
-    games[slotId] = undefined;
+    // games[slotId] = undefined;
     lobby.restartlobby(slotId);
     lobby.broadcastSlotStateUpdate(slotId, "empty");
 };
 
 function onStartGame(slotId) {
+    this.slotId = slotId;
     var lobbySlots = lobby.getlobbySlots();
     var game = new Game(slotId);
     games[slotId] = game;
@@ -115,11 +117,11 @@ function onStartGame(slotId) {
 };
 
 function onRegisterMap(data) {
-    games[data.slotId].map = new Map(data, TILE_SIZE);
+    games[this.slotId].map = new Map(data, TILE_SIZE);
 };
 
 function onMovePlayer(clientPlayer) {
-    var game = games[this.id];
+    var game = games[this.slotId];
     if (game === undefined || game.awaiting) {
         return;
     }
@@ -133,9 +135,10 @@ function onMovePlayer(clientPlayer) {
 };
 
 function onPlaceBomb(data) {
-    var slotId = data.slotId;
+    var slotId = this.slotId;
     var game = games[slotId];
     var player = game.players[data.nick];
+    console.log('game.awaiting', game.awaiting);
     if (game === undefined || game.awaiting || player.numBombsAlive >= player.bombCapacity) {
         return;
     }
@@ -161,7 +164,7 @@ function onPlaceBomb(data) {
 }
 
 function onPowerupOverlap(data) {
-    var game = games[data.slotId];
+    var game = games[this.slotId];
     var powerup = game.map.claimPowerup(data.x, data.y);
 
     if(!powerup) {
@@ -173,7 +176,7 @@ function onPowerupOverlap(data) {
     } else if(powerup.powerupType === PowerupIDs.BOMB_CAPACITY) {
         player.bombCapacity++;
     }
-    socket.sockets.in(data.slotId).emit("powerup acquired", {acquiringPlayerId: player.nick, powerupId: powerup.id, powerupType: powerup.powerupType});
+    socket.sockets.in(this.slotId).emit("powerup acquired", {acquiringPlayerId: player.nick, powerupId: powerup.id, powerupType: powerup.powerupType});
 }
 
 function handlePlayerDeath(deadPlayerNicks, slotId) {
@@ -190,11 +193,11 @@ function handlePlayerDeath(deadPlayerNicks, slotId) {
 
     // MAY BE DISSABLED FOR DEVELOPEMENT
     if (game.numPlayersAlive <= 1) {
-        endRound(slotId, tiedWinnerNicks);
+        endRound(tiedWinnerNicks, slotId);
     }
 }
 
-function endRound(slotId, tiedWinnerIds) {
+function endRound(tiedWinnerIds, slotId) {
     var game = games[slotId];
     var roundWinnerColors = [];
     if(tiedWinnerIds) {
@@ -227,11 +230,12 @@ function endRound(slotId, tiedWinnerIds) {
 }
 
 function onReadyForRound() {
-    var game = games[this.id];
+    var game = games[this.slotId];
+    var screen = lobby.getlobbySlots()[this.slotId].screens[this.id];
     if (!game.awaiting) {
         return;
     }
-    game.addPlayerReadyRound(this.id);
+    game.addPlayerReadyRound(screen.players);
     if (game.numPlayersReadyRound >= game.numPlayers) {
         game.awaiting = false;
     }
