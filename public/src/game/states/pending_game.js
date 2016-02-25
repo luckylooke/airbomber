@@ -132,6 +132,9 @@ PendingGame.prototype = {
 		this.tilemapName = tilemapName;
 		game.slotId = slotId || socket.id;
 		game.screenId = socket.id;
+		screen.isReady = false;
+		screen.players = {};
+		screen.playersNicks = {};
 	},
 
 	create: function() {

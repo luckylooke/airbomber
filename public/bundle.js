@@ -529,6 +529,9 @@
 			this.tilemapName = tilemapName;
 			game.slotId = slotId || socket.id;
 			game.screenId = socket.id;
+			screen.isReady = false;
+			screen.players = {};
+			screen.playersNicks = {};
 		},
 
 		create: function() {
@@ -710,7 +713,8 @@
 	    },
 
 	    create: function () {
-	        bomberman.level = level = this;
+	        bomberman.level = this;
+	        level = this;
 	        this.lastFrameTime;
 	        this.deadGroup = [];
 
@@ -787,13 +791,14 @@
 	        this.gameFrozen = true;
 	        var animation = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
 	        animation.beginAnimation(function () {
+	            controllers = {};
 	            game.state.start("GameOver", true, false, data.gameWinnerColor, false);
 	        });
 	        AudioPlayer.stopMusicSound();
 	    },
 
 	    onNoOpponentsLeft: function (data) {
-	        acTools.rmListener('movePlayer');
+	        controllers = {};
 	        game.state.start("GameOver", true, false, null, true);
 	    },
 
@@ -1076,7 +1081,7 @@
 	    this.facing = "down";
 	    this.bombButtonJustPressed = false;
 	    this.speed = DEFAULT_PLAYER_SPEED;
-
+	    
 	    game.physics.enable(this, Phaser.Physics.ARCADE);
 
 	    this.anchor.setTo(0.1, 0.6);
@@ -1498,6 +1503,7 @@
 		init: function(winnerColor, winByDefault) {
 			this.winnerColor = winnerColor;
 			this.winByDefault = winByDefault;
+			bomberman.level = undefined;
 		},
 
 		create: function() {

@@ -37,60 +37,60 @@ setInterval(broadcastingLoop, updateInterval);
 
 
 function setEventHandlers () {
-    socket.sockets.on("connection", function(client) {
-        console.log("New screen has connected: " + client.id);
-        client.on("move player", onMovePlayer);
-        client.on("disconnect", onClientDisconnect);
-        client.on("place bomb", onPlaceBomb);
-        client.on("register map", onRegisterMap);
-        client.on("start game on server", onStartGame);
-        client.on("ready for round", onReadyForRound);
-        client.on("powerup overlap", onPowerupOverlap);
-        client.on("enter lobby", lobby.onEnterlobby);
-        client.on("host game", lobby.onHostGame);
-        client.on("select stage", lobby.onStageSelect);
-        client.on("enter pending game", lobby.onEnterPendingGame);
-        client.on("player enter pending game", lobby.onPlayerEnterPendingGame);
-        client.on("leave pending game", lobby.onLeavePendingGame);
+    socket.sockets.on("connection", function(screen) {
+        // screen === client !!!
+        console.log("New screen has connected: " + screen.id);
+        screen.on("move player", onMovePlayer);
+        screen.on("disconnect", onScreenDisconnect);
+        screen.on("place bomb", onPlaceBomb);
+        screen.on("register map", onRegisterMap);
+        screen.on("start game on server", onStartGame);
+        screen.on("ready for round", onReadyForRound);
+        screen.on("powerup overlap", onPowerupOverlap);
+        screen.on("enter lobby", lobby.onEnterlobby);
+        screen.on("host game", lobby.onHostGame);
+        screen.on("select stage", lobby.onStageSelect);
+        screen.on("enter pending game", lobby.onEnterPendingGame);
+        screen.on("player enter pending game", lobby.onPlayerEnterPendingGame);
+        screen.on("leave pending game", lobby.onLeavePendingGame);
     });
 };
 
-function onClientDisconnect() {
-        // TODO: Refactor to screens/players enviroment
+function onScreenDisconnect() {
     console.log('Screen has disconected: ' + this.id);
-    // var lobbySlot = lobby.getlobbySlots()[this.slotId];
-    // if(!lobbySlot){
-    //     return;
-    // }
-    // if (lobbySlot.state == "joinable" || lobbySlot.state == "full") {
-    //     lobby.onLeavePendingGame.call(this, {screenId:this.id, slotId:this.slotId});
-    // } else if (lobbySlot.state == "settingup") {
-    //     lobbySlot.state = "empty";
-    //     lobby.broadcastSlotStateUpdate(this.id, "empty");
-    // } else if (games[this.slotId] && lobbySlot.state == "inprogress") {
-    //     var game = games[this.slotId];
-    //     if (this.id in game.players) {
-    //         delete game.players[this.id];
-    //         socket.sockets.in(this.id).emit("remove player", {id: this.id});
-    //     }
+    var lobbySlot = lobby.getlobbySlots()[this.slotId];
+    if(!lobbySlot){
+        return;
+    }
+    if (lobbySlot.state == "joinable" || lobbySlot.state == "full") {
+        lobby.onLeavePendingGame.call(this, {screenId:this.id, slotId:this.slotId});
+    } else if (lobbySlot.state == "settingup") {
+        lobbySlot.state = "empty";
+        lobby.broadcastSlotStateUpdate(this.id, "empty");
+    } else if (games[this.slotId] && lobbySlot.state == "inprogress") {
+        var game = games[this.slotId];
+        if (this.id in game.players) {
+            delete game.players[this.id];
+            socket.sockets.in(this.id).emit("remove player", {id: this.id});
+        }
         
-    //     // MAY BE DISSABLED FOR DEVELOPEMENT
-    //     if (game && game.numPlayers < 2) {
-    //         if (games[this.slotId].numPlayers == 1) {
-    //             socket.sockets.in(this.id).emit("no opponents left");
-    //         }
-    //         terminateExistingGame(this.id);
-    //     }
+        // MAY BE DISSABLED FOR DEVELOPEMENT
+        if (game && game.numPlayers < 2) {
+            if (games[this.slotId].numPlayers == 1) {
+                socket.sockets.in(this.id).emit("no opponents left");
+            }
+            terminateExistingGame(this.id);
+        }
         
-    //     if (game && game.awaiting && game.numEndOfRoundAcknowledgements >= game.numPlayers) {
-    //         game.awaiting = false;
-    //     }
-    // }
+        if (game && game.awaiting && game.numEndOfRoundAcknowledgements >= game.numPlayers) {
+            game.awaiting = false;
+        }
+    }
 };
 
 function terminateExistingGame(slotId) {
     games[slotId].clearBombs();
-    // games[slotId] = undefined;
+    games[slotId] = undefined;
     lobby.restartlobby(slotId);
     lobby.broadcastSlotStateUpdate(slotId, "empty");
 };
@@ -138,7 +138,6 @@ function onPlaceBomb(data) {
     var slotId = this.slotId;
     var game = games[slotId];
     var player = game.players[data.nick];
-    console.log('game.awaiting', game.awaiting);
     if (game === undefined || game.awaiting || player.numBombsAlive >= player.bombCapacity) {
         return;
     }
@@ -244,18 +243,20 @@ function onReadyForRound() {
 function broadcastingLoop() {
     for (var i in games) {
         var game = games[i];
-        for (var ii in game.players) {
-            var player = game.players[ii];
-            if (player.alive) {
-                socket.sockets.in(game.id).emit("move player", {
-                    nick: player.nick,
-                    x: player.x,
-                    y: player.y,
-                    facing: player.facing,
-                    timestamp: (+new Date())
-                });
+        if (game) {
+            for (var ii in game.players) {
+                var player = game.players[ii];
+                if (player.alive) {
+                    socket.sockets.in(game.id).emit("move player", {
+                        nick: player.nick,
+                        x: player.x,
+                        y: player.y,
+                        facing: player.facing,
+                        timestamp: (+new Date())
+                    });
+                }
+                
             }
-            
         }
     }
 };

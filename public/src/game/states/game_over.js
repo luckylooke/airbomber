@@ -9,6 +9,7 @@ GameOver.prototype = {
 	init: function(winnerColor, winByDefault) {
 		this.winnerColor = winnerColor;
 		this.winByDefault = winByDefault;
+		bomberman.level = undefined;
 	},
 
 	create: function() {

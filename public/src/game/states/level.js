@@ -69,7 +69,8 @@ Level.prototype = {
     },
 
     create: function () {
-        bomberman.level = level = this;
+        bomberman.level = this;
+        level = this;
         this.lastFrameTime;
         this.deadGroup = [];
 
@@ -146,13 +147,14 @@ Level.prototype = {
         this.gameFrozen = true;
         var animation = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
         animation.beginAnimation(function () {
+            controllers = {};
             game.state.start("GameOver", true, false, data.gameWinnerColor, false);
         });
         AudioPlayer.stopMusicSound();
     },
 
     onNoOpponentsLeft: function (data) {
-        acTools.rmListener('movePlayer');
+        controllers = {};
         game.state.start("GameOver", true, false, null, true);
     },
 

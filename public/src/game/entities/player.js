@@ -21,7 +21,7 @@ var Player = function (x, y, nick, color) {
     this.facing = "down";
     this.bombButtonJustPressed = false;
     this.speed = DEFAULT_PLAYER_SPEED;
-
+    
     game.physics.enable(this, Phaser.Physics.ARCADE);
 
     this.anchor.setTo(0.1, 0.6);
