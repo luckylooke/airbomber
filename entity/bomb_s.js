@@ -1,4 +1,5 @@
-var Bomb = function(x, y, explosionTimerId) {
+var Bomb = function(x, y, explosionTimerId, TILE_SIZE) {
+	this.TILE_SIZE = TILE_SIZE;
 	this.x = x;
 	this.y = y;
 	this.explosionTimerId = explosionTimerId;
@@ -56,7 +57,7 @@ Bomb.prototype = {
 			if(!player.alive) {
 				continue;
 			}
-            if (Math.floor((player.x + 3) / TILE_SIZE) == Math.floor(x / TILE_SIZE) && Math.floor((player.y + 10) / TILE_SIZE) == Math.floor(y / TILE_SIZE)) {
+            if (Math.floor((player.x + 3) / this.TILE_SIZE) == Math.floor(x / this.TILE_SIZE) && Math.floor((player.y + 10) / this.TILE_SIZE) == Math.floor(y / this.TILE_SIZE)) {
 				explosionData.killedPlayers.push(player.nick);
 			}
 		}

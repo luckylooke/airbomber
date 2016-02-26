@@ -13,12 +13,12 @@ var lobby = {
         lobbySlots[slotId] = new PendingGame();
     },
 
-    // getNumlobbySlots: function () {
-    //     return numlobbySlots;
-    // },
+    getNumlobbySlots: function () {
+        return Object.keys(this.lobbySlots).length;
+    },
 
-    broadcastSlotStateUpdate: function (slotId, newState) {
-        broadcastSlotStateUpdate(slotId, newState);
+    broadcastSlotStateUpdate: function (socketScreen, slotId, newState) {
+        socketScreen.emit("update slot", {slotId: slotId, newState: newState});
     },
 
     initialize: function () {
@@ -26,33 +26,33 @@ var lobby = {
     },
 
     onEnterlobby: function (data) {
-        socket.emit("update slots", slotsInfo());
+        this.emit("update slots", slotsInfo());
     },
 
     onHostGame: function (data) {
         console.log(data);
         lobbySlots[data.slotId] = new PendingGame();
         lobbySlots[data.slotId].state = "settingup";
-        broadcastSlotStateUpdate(data.slotId, "settingup");
+        lobby.broadcastSlotStateUpdate(this, data.slotId, "settingup");
     },
 
     onStageSelect: function (data) {
         lobbySlots[data.slotId].state = "joinable";
         lobbySlots[data.slotId].mapName = data.mapName;
-        broadcastSlotStateUpdate(data.slotId, lobbySlots[data.slotId].state);
+        lobby.broadcastSlotStateUpdate(this, data.slotId, lobbySlots[data.slotId].state);
     },
 
     onEnterPendingGame: function (data) {
         var pendingGame = lobbySlots[data.slotId];
         pendingGame.addScreen(this.id);
         this.slotId = data.slotId;
-        this.join(data.slotId); // join socket room
+        this.join(data.slotId); // join io room
         this.emit("show current players", {players: pendingGame.players});
         this.broadcast.to(data.slotId).emit("screen joined", {id: this.id, color: pendingGame.screens[this.id].color});
-        // if (pendingGame.getNumScreens() >= MapInfo['First'].spawnLocations.length) {
-        //     pendingGame.state = "full";
-        //     broadcastSlotStateUpdate(data.gameId, "full");
-        // }
+        if (pendingGame.getNumScreens() >= MapInfo['First'].spawnLocations.length) {
+            pendingGame.state = "full";
+            lobby.broadcastSlotStateUpdate(this, data.slotId, "full");
+        }
     },
 
     onPlayerEnterPendingGame: function (data) {
@@ -63,10 +63,10 @@ var lobby = {
         pendingGame.addPlayer(data);
         this.emit("show current players", {players: pendingGame.players});
         this.broadcast.to(data.slotId).emit("player joined", {nick: data.nick, color: pendingGame.players[data.nick].color});
-        // if (pendingGame.getNumScreens() >= MapInfo['First'].spawnLocations.length) {
-        //     pendingGame.state = "full";
-        //     broadcastSlotStateUpdate(data.gameId, "full");
-        // }
+        if (pendingGame.getNumScreens() >= MapInfo['First'].spawnLocations.length) {
+            pendingGame.state = "full";
+            lobby.broadcastSlotStateUpdate(this, data.slotId, "full");
+        }
     },
 
     onLeavePendingGame: function (data) {
@@ -76,25 +76,21 @@ var lobby = {
         var lobbySlot = lobbySlots[data.slotId];
         var numPlayersLeft = lobbySlot.screens[data.screenId].players.length;
         lobbySlot.removeScreen(data.screenId);
-        socket.emit("players left", {players: lobbySlot.players, numPlayersLeft: numPlayersLeft});
+        this.emit("players left", {players: lobbySlot.players, numPlayersLeft: numPlayersLeft});
         if(data.slotId === data.screenId){
            delete lobbySlots[data.slotId]; 
         }else{
             if (lobbySlot.getNumPlayers() == 0) {
                 lobbySlot.state = "empty";
-                socket.emit("update slot", {slotId: data.slotId, newState: "empty"});
+                this.emit("update slot", {slotId: data.slotId, newState: "empty"});
             }
             if (lobbySlot.state == "full") {
                 lobbySlot.state = "joinable";
-                socket.emit("update slot", {slotId: data.slotId, newState: "joinable"});
+                this.emit("update slot", {slotId: data.slotId, newState: "joinable"});
             }
         }
     }
 };
-
-function broadcastSlotStateUpdate(slotId, newState) {
-    socket.emit("update slot", {slotId: slotId, newState: newState});
-}
 
 function slotsInfo() {
     var slots = Object.keys(lobbySlots),
