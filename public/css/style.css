@@ -1,8 +1,23 @@
-html, body, #bomber {
+html, body, #bomber, #gui {
     width: 100%;
     height: 100%;
 }
 body {
     margin: 0px;
     background: black;
+}
+
+#gui{
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: black;
+    color: white;
+}
+
+.hidden {
+    display: none;
+}
+
+#lobby {
 }

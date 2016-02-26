@@ -14,6 +14,7 @@ module.exports = Lobby;
 
 Lobby.prototype = {
     init: function () {
+    	bomberman.guiElm.classList.remove("hidden");
 	},
 
 	create: function() {
@@ -61,6 +62,12 @@ Lobby.prototype = {
 	},
 
 	updateSlots: function(slots) {
+		var htmlSlotsElm = document.getElementById('slots');
+		htmlSlotsElm.innerHTML = '';
+		var htmlSlotElm = document.createElement('BUTTON');
+		htmlSlotElm.className = 'slot btn btn-default col-lg-12';
+		htmlSlotElm.setAttribute('type', 'button');
+		
 		this.slots.length = 0;
 		var names = Object.keys(slots);
         for (var i = 0; i < names.length; i++) {
@@ -70,6 +77,7 @@ Lobby.prototype = {
 	            return function(){
 	            	if (settings.callback != null)
 	                settings.callback(slotId);
+	                bomberman.guiElm.classList.add("hidden");
 	            };
 	        })(names[i]);
 	        var slotYOffset = initialSlotYOffset + lobbySlotDistance*i;
@@ -77,8 +85,13 @@ Lobby.prototype = {
 	        var text = game.add.text(slotXOffset + textXOffset, slotYOffset + textYOffset, settings.text);
 	        TextConfigurer.configureText(text, "white", 18);
 	        text.anchor.setTo(.5, .5);
+        	this.labels.push(text);
+        	
+        	var newSlotElm = htmlSlotElm.cloneNode(true);
+        	newSlotElm.innerHTML = settings.text;
+        	newSlotElm.addEventListener("click", callback);
+        	htmlSlotsElm.appendChild(newSlotElm);
         }
-        this.labels = text;
 	},
 
 	hostGameAction: function() {
