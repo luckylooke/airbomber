@@ -185,7 +185,7 @@ PendingGame.prototype = {
 				this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + color);
 			this.numPlayersInGame++;
 		}
-		if(this.numPlayersInGame > 1) {
+		if(this.numPlayersInGame > 1 && game.slotId === game.screenId) {
 			this.activateStartGameButton();
 		} else {
 			this.minPlayerMessage.visible = true;
