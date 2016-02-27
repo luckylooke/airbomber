@@ -240,12 +240,10 @@ Level.prototype = {
     },
 
     initializePlayers: function () {
-            console.log('screen.playersNicks',screen.playersNicks);
-            console.log('this.players',this.players);
         for (var i in this.players) {
             var player = this.players[i];
-            if (player.nick in screen.playersNicks) {
-                if(player.controller){
+            if (player.nick in screen.players) {
+                if(player.controller === 'controller'){
                     controllers[player.nick] = {};
                 }
                 screen.players[player.nick] = new Player(player.x, player.y, player.nick, player.color);

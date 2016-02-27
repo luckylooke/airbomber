@@ -1,7 +1,11 @@
 TODO:
+- test all disconnection scenarios
+- local player (keyboard)
 - add nickname on controller
 - burnable powerups?
 - missing resources (bomberman_green.png missing... etc.)
+- bigger level (generated?)
+- Nickname over players
 
 Useful links:
 https://gitlab.com/luckylooke/airconsole

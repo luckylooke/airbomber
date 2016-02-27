@@ -67,9 +67,9 @@ Preloader.prototype = {
         this.load.image("round_2", "resource/round_2.png");
         this.load.image("final_round", "resource/final_round.png");
         this.load.image("tiebreaker", "resource/tiebreaker.png");
-        this.load.image("background", "resource/Background_1.png");
-        this.load.image("background_b", "resource/Background_button.png");
-        this.load.image("background_s", "resource/Background_select.png");
+        // this.load.image("background", "resource/Background_1.png");
+        // this.load.image("background_b", "resource/Background_button.png");
+        // this.load.image("background_s", "resource/Background_select.png");
 
         this.load.audio("explosion", "assets/sounds/bomb.ogg");
         this.load.audio("powerup", "assets/sounds/powerup.ogg");

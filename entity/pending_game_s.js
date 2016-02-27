@@ -34,7 +34,10 @@ PendingGame.prototype = {
 	},
 
 	removeScreen: function(id) {
-		this.colors[colorIndices[this.screens[id].color]].available = true;
+		var screen = this.screens[id];
+		for (var playerId in screen.players) {
+			this.colors[colorIndices[screen.players[playerId].color]].available = true;
+		}
 		delete this.screens[id];
 	},
 

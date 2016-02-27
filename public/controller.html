@@ -99,7 +99,11 @@
       acTools.addListener('ready', function(from, data){
         if(from == AirConsole.SCREEN){
           clearInterval(acInterval);
-          airconsole.message(AirConsole.SCREEN, {listener: 'newPlayer', nick: nickname, controller: true});
+          airconsole.message(AirConsole.SCREEN, {
+            listener: 'newPlayer',
+            nick: nickname,
+            controller: 'controller'
+          });
         }
       });
 

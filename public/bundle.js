@@ -224,9 +224,9 @@
 	        this.load.image("round_2", "resource/round_2.png");
 	        this.load.image("final_round", "resource/final_round.png");
 	        this.load.image("tiebreaker", "resource/tiebreaker.png");
-	        this.load.image("background", "resource/Background_1.png");
-	        this.load.image("background_b", "resource/Background_button.png");
-	        this.load.image("background_s", "resource/Background_select.png");
+	        // this.load.image("background", "resource/Background_1.png");
+	        // this.load.image("background_b", "resource/Background_button.png");
+	        // this.load.image("background_s", "resource/Background_select.png");
 
 	        this.load.audio("explosion", "assets/sounds/bomb.ogg");
 	        this.load.audio("powerup", "assets/sounds/powerup.ogg");
@@ -433,7 +433,6 @@
 
 	screen.isReady = false;
 	screen.players = {};
-	screen.playersNicks = {};
 
 	var PendingGame = function() {};
 
@@ -525,7 +524,7 @@
 	  		player.screenId = game.screenId;
 	  		player.device_id = game.device_id;
 			socket.emit('player enter pending game', player);
-			screen.playersNicks[player.nick] = {};
+			screen.players[player.nick] = player;
 	  	}
 	}
 	acTools.addListener('newPlayer', newPlayer);
@@ -555,28 +554,38 @@
 
 	PendingGame.prototype = {
 	    init: function (tilemapName, slotId) {
-	    	console.log(slotId);
+	    	document.getElementById('pendingGame').classList.remove("hidden");
+			this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
+	    	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
 			this.tilemapName = tilemapName;
 			game.slotId = slotId || socket.id;
 			game.screenId = socket.id;
 			screen.isReady = false;
 			screen.players = {};
-			screen.playersNicks = {};
 		},
 
 		create: function() {
-	        game.add.sprite(0, 0, 'background_s');
+			this.startGameBtn = document.getElementById('startGameBtn');
+			this.startGameBtn.setAttribute('disabled', 'disabled');
+			this.bindedStartGameAction = this.startGameAction.bind(this);
+			this.startGameBtn.addEventListener('click', this.bindedStartGameAction);
+			this.minPlayersMessage = document.getElementById('minPlayersMessage');
+			this.minPlayersMessage.classList.remove('hidden');
+			this.htmlPlayersElm = document.getElementById('players');
+			this.htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
+			this.htmlPlayersElm.innerHTML = '';
+	        // game.add.sprite(0, 0, 'background_s');
 			socket.emit("enter pending game", {slotId: game.slotId});
-			var backdrop = game.add.image(xOffset, yOffset, "pending_game_backdrop");
-			this.startGameButton = game.add.button(buttonXOffset, startGameButtonYOffset, "start_game_button", null, this,
-				2, 2);
-			this.leaveGameButton = game.add.button(buttonXOffset, leaveButtonYOffset, "leave_game_button", this.leaveGameAction, null, 1, 0);
-			this.characterSquares = this.drawCharacterSquares(4);
-			this.characterImages = [];
-			this.numPlayersInGame = 0;
-			this.minPlayerMessage = game.add.text(minPlayerMessageOffsetX, minPlayerMessageOffsetY, "Cannot start game without\nat least 2 players.")
-			TextConfigurer.configureText(this.minPlayerMessage, "red", 17);
-			this.minPlayerMessage.visible = false;
+			// var backdrop = game.add.image(xOffset, yOffset, "pending_game_backdrop");
+			// this.startGameButton = game.add.button(buttonXOffset, startGameButtonYOffset, "start_game_button", null, this,
+			// 	2, 2);
+			// this.leaveGameButton = game.add.button(buttonXOffset, leaveButtonYOffset, "leave_game_button", this.leaveGameAction, null, 1, 0);
+			// this.characterSquares = this.drawCharacterSquares(4);
+			// this.characterImages = [];
+			// this.numPlayersInGame = 0;
+			// this.minPlayerMessage = game.add.text(minPlayerMessageOffsetX, minPlayerMessageOffsetY, "Cannot start game without\nat least 2 players.")
+			// TextConfigurer.configureText(this.minPlayerMessage, "red", 17);
+			// this.minPlayerMessage.visible = false;
 			socket.on("show current players", this.populateCharacterSquares.bind(this));
 			socket.on("player joined", this.playerJoined.bind(this));
 			socket.on("players left", this.playersLeft.bind(this));
@@ -586,80 +595,100 @@
 		update: function() {
 		},
 
-		drawCharacterSquares: function(numOpenings) {
-			var characterSquares = [];
-			var yOffset = characterSquareStartingY;
-			var xOffset = characterSquareStartingX;
-			for(var i = 0; i < numCharacterSquares; i++) {
-				var frame = i < numOpenings ? 0 : 1;
-				characterSquares[i] = game.add.sprite(xOffset, yOffset, "character_square", frame);
-				if(i % 2 == 0) {
-					xOffset += characterSquareXDistance;
-				} else {
-					xOffset = characterSquareStartingX;
-					yOffset += characterSquareYDistance;
-				}
-			}
-			return characterSquares;
-		},
+		// drawCharacterSquares: function(numOpenings) {
+		// 	var characterSquares = [];
+		// 	var yOffset = characterSquareStartingY;
+		// 	var xOffset = characterSquareStartingX;
+		// 	for(var i = 0; i < numCharacterSquares; i++) {
+		// 		var frame = i < numOpenings ? 0 : 1;
+		// 		characterSquares[i] = game.add.sprite(xOffset, yOffset, "character_square", frame);
+		// 		if(i % 2 == 0) {
+		// 			xOffset += characterSquareXDistance;
+		// 		} else {
+		// 			xOffset = characterSquareStartingX;
+		// 			yOffset += characterSquareYDistance;
+		// 		}
+		// 	}
+		// 	return characterSquares;
+		// },
 
 		populateCharacterSquares: function(data) {
 			screen.isReady = true;
 			this.numPlayersInGame = 0;
+			this.htmlPlayersElm.innerHTML = '';
 			for(var playerId in data.players) {
-				var color = data.players[playerId].color;
-				this.characterImages[playerId] = game.add.image(this.characterSquares[this.numPlayersInGame].position.x + characterOffsetX, 
-					this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + color);
+				var player = data.players[playerId];
+				var newPlayerElm = this.htmlPlayerElm.cloneNode(true);
+				newPlayerElm.children[0].innerHTML = player.nick;
+	        	newPlayerElm.children[1].setAttribute('src', './resource/icon_' + player.color + '.png');
+	        	newPlayerElm.children[2].innerHTML = 'Type: ' + player.type; // Controller, Keyboard, Remote, AI..
+	        	newPlayerElm.children[3].innerHTML = 'Screen: ' + player.screenName || game.screenId;
+				// this.characterImages[playerId] = game.add.image(this.characterSquares[this.numPlayersInGame].position.x + characterOffsetX, 
+				// this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + player.color);
+				this.htmlPlayersElm.appendChild(newPlayerElm);
 				this.numPlayersInGame++;
 			}
 			if(this.numPlayersInGame > 1 && game.slotId === game.screenId) {
 				this.activateStartGameButton();
 			} else {
-				this.minPlayerMessage.visible = true;
+				// this.minPlayerMessage.visible = true;
+				this.minPlayersMessage.classList.remove('hidden');
 			}
 		},
 
 		playerJoined: function(data) {
 			this.numPlayersInGame++;
-			var index = this.numPlayersInGame - 1;
-			this.characterImages[data.id] = game.add.image(this.characterSquares[index].position.x + characterOffsetX, this.characterSquares[index].position.y + characterOffsetY, "bomberman_head_" +  data.color);
+			// var index = this.numPlayersInGame - 1;
+			// this.characterImages[data.id] = game.add.image(this.characterSquares[index].position.x + characterOffsetX, this.characterSquares[index].position.y + characterOffsetY, "bomberman_head_" +  data.color);
 			if(this.numPlayersInGame == 2) {
 				this.activateStartGameButton();
 			}
-			screen.players[data.nick] = {};
+			this.populateCharacterSquares(data);
 		},
-
-		activateStartGameButton: function() {
-			this.minPlayerMessage.visible = false;
-			this.startGameButton.setFrames(1, 0);
-			this.startGameButton.onInputUp.removeAll();
-			this.startGameButton.onInputUp.add(this.startGameAction, this);
-		},
-
-		deactivateStartGameButton: function() {
-			this.minPlayerMessage.visible = true;
-			this.startGameButton.setFrames(2, 2);
-			this.startGameButton.onInputUp.removeAll();
-		},
-
 		playersLeft: function(data) {
 			this.numPlayersInGame -= data.numPlayersLeft;
 			if(this.numPlayersInGame == 1) {
 				this.deactivateStartGameButton();
 			}
-			for(var playerId in this.characterImages) {
-				this.characterImages[playerId].destroy();
-			}
+			// for(var playerId in this.characterImages) {
+			// 	this.characterImages[playerId].destroy();
+			// }
 			this.populateCharacterSquares(data);
 		},
+
+		activateStartGameButton: function() {
+			// this.minPlayerMessage.visible = false;
+			this.minPlayersMessage.classList.add('hidden');
+			// this.startGameButton.setFrames(1, 0);
+			// this.startGameButton.onInputUp.removeAll();
+			// this.startGameButton.onInputUp.add(this.startGameAction, this);
+			this.startGameBtn.removeAttribute('disabled');
+		},
+
+		deactivateStartGameButton: function() {
+			this.minPlayersMessage.classList.remove('hidden');
+			// this.minPlayerMessage.visible = true;
+			// this.startGameButton.setFrames(2, 2);
+			// this.startGameButton.onInputUp.removeAll();
+			this.startGameBtn.setAttribute('disabled', 'disabled');
+		},
+
 		startGameAction: function() {
+			this.leavingPendingGame();
 			socket.emit("start game on server", game.slotId);
 		},
 
 		leaveGameAction: function() {
+			this.leavingPendingGame();
 			socket.emit("leave pending game", game.slotId);
 			socket.removeAllListeners();
 	        game.state.start("Lobby");
+		},
+		
+		leavingPendingGame: function(){
+			this.startGameBtn.removeEventListener('click', this.bindedStartGameAction);
+	    	document.getElementById('leaveGameBtn').removeEventListener("click", this.bindedLeaveGameAction);
+			document.getElementById('pendingGame').classList.add("hidden");
 		},
 
 		startGame: function(data) {
@@ -914,12 +943,10 @@
 	    },
 
 	    initializePlayers: function () {
-	            console.log('screen.playersNicks',screen.playersNicks);
-	            console.log('this.players',this.players);
 	        for (var i in this.players) {
 	            var player = this.players[i];
-	            if (player.nick in screen.playersNicks) {
-	                if(player.controller){
+	            if (player.nick in screen.players) {
+	                if(player.controller === 'controller'){
 	                    controllers[player.nick] = {};
 	                }
 	                screen.players[player.nick] = new Player(player.x, player.y, player.nick, player.color);
