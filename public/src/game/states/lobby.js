@@ -2,19 +2,20 @@
 var game = bomberman.game;
 var socket = bomberman.socket;
 var Lobby = function() {};
-var TextConfigurer = require('../util/text_configurer');
 
-var initialSlotYOffset = 350;
-var slotXOffset = 155;
-var lobbySlotDistance = 65;
-var textXOffset = 260;
-var textYOffset = 25;
+// var TextConfigurer = require('../util/text_configurer');
+
+// var initialSlotYOffset = 350;
+// var slotXOffset = 155;
+// var lobbySlotDistance = 65;
+// var textXOffset = 260;
+// var textYOffset = 25;
 
 module.exports = Lobby;
 
 Lobby.prototype = {
     init: function () {
-    	bomberman.guiElm.classList.remove("hidden");
+    	bomberman.lobbyElm.classList.remove("hidden");
 	},
 
 	create: function() {
@@ -50,10 +51,10 @@ Lobby.prototype = {
 				callback: null
 			}
 		};
-        game.add.sprite(0, 0, 'background');
-        this.backdrop = game.add.image(130, 300, "background_b");
-		this.slots = [];
-		this.labels = [];
+        // game.add.sprite(0, 0, 'background');
+        // this.backdrop = game.add.image(130, 300, "background_b");
+		// this.slots = [];
+		// this.labels = [];
 		socket.emit("enter lobby");
         socket.on("update slots", this.updateSlots.bind(this));
 	},
@@ -68,7 +69,7 @@ Lobby.prototype = {
 		htmlSlotElm.className = 'slot btn btn-default col-lg-12';
 		htmlSlotElm.setAttribute('type', 'button');
 		
-		this.slots.length = 0;
+		// this.slots.length = 0;
 		var names = Object.keys(slots);
         for (var i = 0; i < names.length; i++) {
         	var state = slots[names[i]].state;
@@ -77,15 +78,15 @@ Lobby.prototype = {
 	            return function(){
 	            	if (settings.callback != null)
 	                settings.callback(slotId);
-	                bomberman.guiElm.classList.add("hidden");
+	                bomberman.lobbyElm.classList.add("hidden");
 	            };
 	        })(names[i]);
-	        var slotYOffset = initialSlotYOffset + lobbySlotDistance*i;
-	        this.slots.push(game.add.button(slotXOffset, slotYOffset, "game_slot", callback, null, settings.overFrame, settings.outFrame));
-	        var text = game.add.text(slotXOffset + textXOffset, slotYOffset + textYOffset, settings.text);
-	        TextConfigurer.configureText(text, "white", 18);
-	        text.anchor.setTo(.5, .5);
-        	this.labels.push(text);
+	        // var slotYOffset = initialSlotYOffset + lobbySlotDistance*i;
+	        // this.slots.push(game.add.button(slotXOffset, slotYOffset, "game_slot", callback, null, settings.overFrame, settings.outFrame));
+	        // var text = game.add.text(slotXOffset + textXOffset, slotYOffset + textYOffset, settings.text);
+	        // TextConfigurer.configureText(text, "white", 18);
+	        // text.anchor.setTo(.5, .5);
+        	// this.labels.push(text);
         	
         	var newSlotElm = htmlSlotElm.cloneNode(true);
         	newSlotElm.innerHTML = settings.text;
