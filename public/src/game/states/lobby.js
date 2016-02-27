@@ -15,7 +15,7 @@ module.exports = Lobby;
 
 Lobby.prototype = {
     init: function () {
-    	bomberman.lobbyElm.classList.remove("hidden");
+        document.getElementById('lobby').classList.remove("hidden");
 	},
 
 	create: function() {
@@ -64,10 +64,8 @@ Lobby.prototype = {
 
 	updateSlots: function(slots) {
 		var htmlSlotsElm = document.getElementById('slots');
+		var htmlSlotElm = htmlSlotsElm.children[0].cloneNode(true);
 		htmlSlotsElm.innerHTML = '';
-		var htmlSlotElm = document.createElement('BUTTON');
-		htmlSlotElm.className = 'slot btn btn-default col-lg-12';
-		htmlSlotElm.setAttribute('type', 'button');
 		
 		// this.slots.length = 0;
 		var names = Object.keys(slots);
@@ -78,7 +76,7 @@ Lobby.prototype = {
 	            return function(){
 	            	if (settings.callback != null)
 	                settings.callback(slotId);
-	                bomberman.lobbyElm.classList.add("hidden");
+	                document.getElementById('lobby').classList.add("hidden");
 	            };
 	        })(names[i]);
 	        // var slotYOffset = initialSlotYOffset + lobbySlotDistance*i;

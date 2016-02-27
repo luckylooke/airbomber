@@ -44,11 +44,11 @@ Preloader.prototype = {
         this.load.spritesheet("leave_game_button", "resource/leave_game_button.png", 202, 43);
         this.load.spritesheet("game_slot", "resource/game_slot.png", 522, 48);
         this.load.tilemap("First", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
-        this.load.tilemap("levelTwo", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
+        // this.load.tilemap("levelTwo", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
         this.load.image("tiles", "resource/tileset.png");
         this.load.image("select_stage", "resource/select_stage.png");
-        this.load.image("first_", "assets/levels/thumbnails/danger_desert_thumbnail.png");
-        this.load.image("danger_desert_thumbnail", "assets/levels/thumbnails/danger_desert_thumbnail.png");
+        // this.load.image("first_", "assets/levels/thumbnails/danger_desert_thumbnail.png");
+        // this.load.image("danger_desert_thumbnail", "assets/levels/thumbnails/danger_desert_thumbnail.png");
         this.load.image("pending_game_backdrop", "resource/lobby_backdrop.png");
         this.load.image("round_end_display", "resource/end_of_round_window.png");
         this.load.image("bomberman_head_white", "resource/icon_white.png");

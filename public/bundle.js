@@ -201,11 +201,11 @@
 	        this.load.spritesheet("leave_game_button", "resource/leave_game_button.png", 202, 43);
 	        this.load.spritesheet("game_slot", "resource/game_slot.png", 522, 48);
 	        this.load.tilemap("First", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
-	        this.load.tilemap("levelTwo", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
+	        // this.load.tilemap("levelTwo", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
 	        this.load.image("tiles", "resource/tileset.png");
 	        this.load.image("select_stage", "resource/select_stage.png");
-	        this.load.image("first_", "assets/levels/thumbnails/danger_desert_thumbnail.png");
-	        this.load.image("danger_desert_thumbnail", "assets/levels/thumbnails/danger_desert_thumbnail.png");
+	        // this.load.image("first_", "assets/levels/thumbnails/danger_desert_thumbnail.png");
+	        // this.load.image("danger_desert_thumbnail", "assets/levels/thumbnails/danger_desert_thumbnail.png");
 	        this.load.image("pending_game_backdrop", "resource/lobby_backdrop.png");
 	        this.load.image("round_end_display", "resource/end_of_round_window.png");
 	        this.load.image("bomberman_head_white", "resource/icon_white.png");
@@ -241,25 +241,26 @@
 
 /***/ },
 /* 5 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	/* global bomberman */
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var Lobby = function() {};
-	var TextConfigurer = __webpack_require__(3);
 
-	var initialSlotYOffset = 350;
-	var slotXOffset = 155;
-	var lobbySlotDistance = 65;
-	var textXOffset = 260;
-	var textYOffset = 25;
+	// var TextConfigurer = require('../util/text_configurer');
+
+	// var initialSlotYOffset = 350;
+	// var slotXOffset = 155;
+	// var lobbySlotDistance = 65;
+	// var textXOffset = 260;
+	// var textYOffset = 25;
 
 	module.exports = Lobby;
 
 	Lobby.prototype = {
 	    init: function () {
-	    	bomberman.guiElm.classList.remove("hidden");
+	        document.getElementById('lobby').classList.remove("hidden");
 		},
 
 		create: function() {
@@ -295,10 +296,10 @@
 					callback: null
 				}
 			};
-	        game.add.sprite(0, 0, 'background');
-	        this.backdrop = game.add.image(130, 300, "background_b");
-			this.slots = [];
-			this.labels = [];
+	        // game.add.sprite(0, 0, 'background');
+	        // this.backdrop = game.add.image(130, 300, "background_b");
+			// this.slots = [];
+			// this.labels = [];
 			socket.emit("enter lobby");
 	        socket.on("update slots", this.updateSlots.bind(this));
 		},
@@ -308,12 +309,10 @@
 
 		updateSlots: function(slots) {
 			var htmlSlotsElm = document.getElementById('slots');
+			var htmlSlotElm = htmlSlotsElm.children[0].cloneNode(true);
 			htmlSlotsElm.innerHTML = '';
-			var htmlSlotElm = document.createElement('BUTTON');
-			htmlSlotElm.className = 'slot btn btn-default col-lg-12';
-			htmlSlotElm.setAttribute('type', 'button');
 			
-			this.slots.length = 0;
+			// this.slots.length = 0;
 			var names = Object.keys(slots);
 	        for (var i = 0; i < names.length; i++) {
 	        	var state = slots[names[i]].state;
@@ -322,15 +321,15 @@
 		            return function(){
 		            	if (settings.callback != null)
 		                settings.callback(slotId);
-		                bomberman.guiElm.classList.add("hidden");
+		                document.getElementById('lobby').classList.add("hidden");
 		            };
 		        })(names[i]);
-		        var slotYOffset = initialSlotYOffset + lobbySlotDistance*i;
-		        this.slots.push(game.add.button(slotXOffset, slotYOffset, "game_slot", callback, null, settings.overFrame, settings.outFrame));
-		        var text = game.add.text(slotXOffset + textXOffset, slotYOffset + textYOffset, settings.text);
-		        TextConfigurer.configureText(text, "white", 18);
-		        text.anchor.setTo(.5, .5);
-	        	this.labels.push(text);
+		        // var slotYOffset = initialSlotYOffset + lobbySlotDistance*i;
+		        // this.slots.push(game.add.button(slotXOffset, slotYOffset, "game_slot", callback, null, settings.overFrame, settings.outFrame));
+		        // var text = game.add.text(slotXOffset + textXOffset, slotYOffset + textYOffset, settings.text);
+		        // TextConfigurer.configureText(text, "white", 18);
+		        // text.anchor.setTo(.5, .5);
+	        	// this.labels.push(text);
 	        	
 	        	var newSlotElm = htmlSlotElm.cloneNode(true);
 	        	newSlotElm.innerHTML = settings.text;
@@ -362,45 +361,63 @@
 
 	module.exports = StageSelect;
 
-	var xOffset = 180;
-	var yOffset = 25;
-	var thumbnailXOffset = 396;
-	var thumbnailYOffset = 125;
-	var stageNameYOffset = 320;
+	// var xOffset = 180;
+	// var yOffset = 25;
+	// var thumbnailXOffset = 396;
+	// var thumbnailYOffset = 125;
+	// var stageNameYOffset = 320;
 
-	var stages = {name: "Comeback", thumbnailKey: "first_", tilemapName: "First", maxPlayers: 4, size: "medium"};
+	var stages = [{name: "Comeback", thumbnailFile: "danger_desert_thumbnail.png", tilemapName: "First", maxPlayers: 4, size: "medium"}];
 
 	StageSelect.prototype = {
-	 //   init: function (slotId) {
-		// 	this.slotId = slotId;
-		// },
+	    init: function () {
+	    	document.getElementById('stageSelect').classList.remove("hidden");
+		},
 
 		create: function() {
-	        game.add.sprite(0, 0, 'background_s');
-			var selectionWindow = game.add.image(xOffset, yOffset, "select_stage");
-	        this.okButton = game.add.button(625, 425, "ok_button", this.confirmStageSelection, this, 1, 0);
-	        this.thumbnail = game.add.image(thumbnailXOffset, thumbnailYOffset, stages.thumbnailKey);
-	        this.text = game.add.text(game.camera.width / 2, stageNameYOffset, stages.name);
-			this.configureText(this.text, "white", 28);
-			this.text.anchor.setTo(.5, .5);
-	        this.numPlayersText = game.add.text(360, 380, "Max # of players:   " + stages.maxPlayers);
-			this.configureText(this.numPlayersText, "white", 18);
-	        this.stageSizeText = game.add.text(360, 410, "Map size:   " + stages.size);
-			this.configureText(this.stageSizeText, "white", 18);
+			var htmlStagesElm = document.getElementById('stages');
+			var htmlStageElm = htmlStagesElm.children[0].cloneNode(true);
+			htmlStagesElm.innerHTML = '';
+			
+			var stage,
+				newStageElm;
+	        
+	        for (var i = 0; i < stages.length; i++) {
+	        	stage = stages[i];
+	        	newStageElm = htmlStageElm.cloneNode(true);
+	        	newStageElm.children[0].innerHTML = stage.name;
+	        	newStageElm.children[1].setAttribute('src', './assets/levels/thumbnails/' + stage.thumbnailFile);
+	        	newStageElm.children[2].innerHTML = 'Max players: ' + stage.maxPlayers;
+	        	newStageElm.children[3].innerHTML = 'Size: ' + stage.size;
+	        	newStageElm.addEventListener("click", this.confirmStageSelection);
+	        	htmlStagesElm.appendChild(newStageElm);
+	        }
+	        // game.add.sprite(0, 0, 'background_s');
+			// var selectionWindow = game.add.image(xOffset, yOffset, "select_stage");
+	        // this.okButton = game.add.button(625, 425, "ok_button", this.confirmStageSelection, this, 1, 0);
+	        // this.thumbnail = game.add.image(thumbnailXOffset, thumbnailYOffset, stage.thumbnailKey);
+	        // this.text = game.add.text(game.camera.width / 2, stageNameYOffset, stage.name);
+			// this.configureText(this.text, "white", 28);
+			// this.text.anchor.setTo(.5, .5);
+	  //      this.numPlayersText = game.add.text(360, 380, "Max # of players:   " + stage.maxPlayers);
+			// this.configureText(this.numPlayersText, "white", 18);
+	  //      this.stageSizeText = game.add.text(360, 410, "Map size:   " + stage.size);
+			// this.configureText(this.stageSizeText, "white", 18);
 		},
 
 		update: function() {
 		},
 
-		configureText: function(text, color, size) {
-			text.font = "Carter One";
-			text.fill = color;
-			text.fontSize = size;
-		},
+		// configureText: function(text, color, size) {
+		// 	text.font = "Carter One";
+		// 	text.fill = color;
+		// 	text.fontSize = size;
+		// },
 
 		confirmStageSelection: function() {
-	        socket.emit("select stage", {slotId: socket.id, mapName: stages.tilemapName});
-	        game.state.start("PendingGame", true, false, stages.tilemapName, socket.id);
+			document.getElementById('stageSelect').classList.add("hidden");
+	        socket.emit("select stage", {slotId: socket.id, mapName: stages[0].tilemapName});
+	        game.state.start("PendingGame", true, false, stages[0].tilemapName, socket.id);
 		}
 	};
 
