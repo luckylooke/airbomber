@@ -54,7 +54,6 @@ PendingGame.prototype = {
 		if(!this.screens[player.screenId]){
 			return;
 		}
-		player.color = this.claimFirstAvailableColor();
 		this.screens[player.screenId].players[player.nick] = player;
 		this.players[player.nick] = player;
 		return player;

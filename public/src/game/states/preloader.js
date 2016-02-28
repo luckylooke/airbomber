@@ -8,7 +8,7 @@ module.exports = Preloader;
 Preloader.prototype = {
 
     preload: function () {
-        this.load.spritesheet("bomberman_white", "resource/bomberman.png", 32, 64);
+        this.load.spritesheet("bomberman_white", "resource/bomberman_white.png", 32, 64);
         this.load.spritesheet("bomberman_black", "resource/bomberman_black.png", 32, 64);
         this.load.spritesheet("bomberman_blue", "resource/bomberman_blue.png", 32, 64);
         this.load.spritesheet("bomberman_red", "resource/bomberman_red.png", 32, 64);

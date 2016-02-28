@@ -59,9 +59,11 @@
 	game.state.add("StageSelect", __webpack_require__(6));
 	game.state.add("PendingGame", __webpack_require__(7));
 	game.state.add("Level", __webpack_require__(8));
-	game.state.add("GameOver", __webpack_require__(17));
+	game.state.add("GameOver", __webpack_require__(18));
 
 	game.state.start('Boot');
+
+	__webpack_require__(19);undefined
 
 /***/ },
 /* 1 */
@@ -161,7 +163,7 @@
 	Preloader.prototype = {
 
 	    preload: function () {
-	        this.load.spritesheet("bomberman_white", "resource/bomberman.png", 32, 64);
+	        this.load.spritesheet("bomberman_white", "resource/bomberman_white.png", 32, 64);
 	        this.load.spritesheet("bomberman_black", "resource/bomberman_black.png", 32, 64);
 	        this.load.spritesheet("bomberman_blue", "resource/bomberman_blue.png", 32, 64);
 	        this.load.spritesheet("bomberman_red", "resource/bomberman_red.png", 32, 64);
@@ -633,7 +635,7 @@
 	var Bomb = __webpack_require__(12);
 	var RoundEndAnimation = __webpack_require__(14);
 	var PowerupImageKeys = __webpack_require__(15);
-	var PowerupNotificationPlayer = __webpack_require__(16);
+	var PowerupNotificationPlayer = __webpack_require__(17);
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var level = bomberman.level;
@@ -1083,6 +1085,7 @@
 	Player.prototype.handleCtrlInput = function (data) {
 	    game.physics.arcade.collide(this, level.blockLayer);
 	    game.physics.arcade.collide(this, level.bombs);
+
 	    
 	    data.x = data.x > 1 ? 1 : data.x;
 	    data.x = data.x < -1 ? -1 : data.x;
@@ -1097,9 +1100,9 @@
 	    this.body.velocity.x = data.x * this.speed;
 
 	    if (data.y < 0) {
-	        this.facing = "down";
-	    } else if (data.y > 0) {
 	        this.facing = "up";
+	    } else if (data.y > 0) {
+	        this.facing = "down";
 	    }
 	    this.body.velocity.y = data.y * this.speed;
 
@@ -1111,43 +1114,43 @@
 	    }
 	};
 
-	Player.prototype.handleKeysInput = function () {
-	    var moving = false;
+	// Player.prototype.handleKeysInput = function () {
+	//     var moving = false;
 
-	    game.physics.arcade.collide(this, level.blockLayer);
-	    game.physics.arcade.collide(this, level.bombs);
+	//     game.physics.arcade.collide(this, level.blockLayer);
+	//     game.physics.arcade.collide(this, level.bombs);
 
-	    if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-	        this.body.velocity.x = -this.speed;
-	        this.facing = "left";
-	        moving = true;
-	    } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-	        this.body.velocity.x = this.speed;
-	        this.facing = "right";
-	        moving = true;
-	    } else {
-	        this.body.velocity.x = 0;
-	    }
+	//     if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+	//         this.body.velocity.x = -this.speed;
+	//         this.facing = "left";
+	//         moving = true;
+	//     } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+	//         this.body.velocity.x = this.speed;
+	//         this.facing = "right";
+	//         moving = true;
+	//     } else {
+	//         this.body.velocity.x = 0;
+	//     }
 	    
-	    if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
-	        this.body.velocity.y = -this.speed;
-	        this.facing = "up";
-	        moving = true;
-	    } else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
-	        this.body.velocity.y = this.speed;
-	        this.facing = "down";
-	        moving = true;
-	    } else {
-	        this.body.velocity.y = 0;
-	    }
+	//     if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+	//         this.body.velocity.y = this.speed;
+	//         this.facing = "up";
+	//         moving = true;
+	//     } else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+	//         this.body.velocity.y = -this.speed;
+	//         this.facing = "down";
+	//         moving = true;
+	//     } else {
+	//         this.body.velocity.y = 0;
+	//     }
 
-	    if (moving) {
-	        this.animations.play(this.facing);
-	        socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing});
-	    } else {
-	        this.freeze();
-	    }
-	};
+	//     if (moving) {
+	//         this.animations.play(this.facing);
+	//         socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing});
+	//     } else {
+	//         this.freeze();
+	//     }
+	// };
 
 	Player.prototype.handleBombInput = function () {
 	    if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && !game.physics.arcade.overlap(this, level.bombs) && !this.bombButtonJustPressed) {
@@ -1405,7 +1408,7 @@
 /* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var PowerupIDs = __webpack_require__(9);
+	var PowerupIDs = __webpack_require__(16);
 
 	var powerupImageKeys = {};
 
@@ -1417,9 +1420,25 @@
 
 /***/ },
 /* 16 */
+/***/ function(module, exports) {
+
+	module.exports = {
+		BOMB_STRENGTH: 5,
+
+		BOMB_CAPACITY: 6,
+
+		SPEED: 7,
+
+		isAPowerup: function(id) {
+			return id === this.BOMB_STRENGTH || id === this.BOMB_CAPACITY || id === this.SPEED;
+		}
+	};
+
+/***/ },
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var PowerupIds = __webpack_require__(9);
+	var PowerupIds = __webpack_require__(16);
 
 	var notificationImageMap = {};
 	notificationImageMap[PowerupIds.BOMB_STRENGTH] = "bomb_strength_notification";
@@ -1444,7 +1463,7 @@
 	};
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var TextConfigurer = __webpack_require__(3);
@@ -1478,6 +1497,43 @@
 	};
 
 	module.exports = GameOver;
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var map = {
+		"./common/map_info.js": 10,
+		"./common/powerup_ids.js": 9,
+		"./entities/bomb.js": 12,
+		"./entities/player.js": 11,
+		"./entities/remoteplayer.js": 13,
+		"./entities/round_end_animation.js": 14,
+		"./states/boot.js": 1,
+		"./states/game_over.js": 18,
+		"./states/level.js": 8,
+		"./states/lobby.js": 5,
+		"./states/pending_game.js": 7,
+		"./states/preloader.js": 4,
+		"./states/stage_select.js": 6,
+		"./util/audio_player.js": 2,
+		"./util/powerup_image_keys.js": 15,
+		"./util/powerup_notification_player.js": 17,
+		"./util/text_configurer.js": 3
+	};
+	function webpackContext(req) {
+		return __webpack_require__(webpackContextResolve(req));
+	};
+	function webpackContextResolve(req) {
+		return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
+	};
+	webpackContext.keys = function webpackContextKeys() {
+		return Object.keys(map);
+	};
+	webpackContext.resolve = webpackContextResolve;
+	module.exports = webpackContext;
+	webpackContext.id = 19;
+
 
 /***/ }
 /******/ ]);

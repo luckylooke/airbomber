@@ -16,3 +16,5 @@ game.state.add("Level", require("./game/states/level"));
 game.state.add("GameOver", require("./game/states/game_over"));
 
 game.state.start('Boot');
+
+require.context("./game/", true, /\.js$/);undefined
