@@ -1,5 +1,5 @@
 var ItemGenerator = require("../util/item_generator");
-var PowerupIDs = require("../common/powerup_ids");
+var PowerupIDs = require("./../public/src/game/common/powerup_ids");
 
 var Map = function(data, tileSize) {
 	this.mapData = [];

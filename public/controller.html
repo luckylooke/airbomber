@@ -58,6 +58,7 @@
     
     var nickname;
     var acTools = {};
+    var acInterval;
 
     acTools.listeners = {};
     acTools.uniListeners = [];
@@ -81,7 +82,7 @@
     	}
     };
     acTools.onMessage = function(device_id, data) {
-    	if(data.listener){
+    	if(data.listener && acTools.listeners[data.listener]){
     		acTools.listeners[data.listener](device_id, data);
     	}
     	for (var i = 0; i < acTools.uniListeners.length; i++) {
@@ -96,20 +97,9 @@
       
       airconsole.onMessage = acTools.onMessage;
       
-      var acInterval = setInterval(function(){
+      acInterval = setInterval(function(){
         airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
       }, 2000);
-      
-      acTools.addListener('ready', function(from, data){
-        if(from == AirConsole.SCREEN){
-          clearInterval(acInterval);
-          airconsole.message(AirConsole.SCREEN, {
-            listener: 'newPlayer',
-            nick: nickname,
-            controller: 'controller'
-          });
-        }
-      });
 
       // debug info
       acTools.addListener(undefined, function(from, data){
@@ -173,8 +163,13 @@
   function addPlayer(name, color){
     acTools.addListener('ready', function(from, data){
       if(from == AirConsole.SCREEN){
-       //clearInterval(acInterval);
-       airconsole.message(AirConsole.SCREEN, {listener: 'newPlayer', nick: nickname, color:color, controller: true});
+       clearInterval(acInterval);
+       airconsole.message(AirConsole.SCREEN, {
+            listener: 'newPlayer',
+            nick: nickname,
+            color:color,
+            controller: 'controller'
+          });
       }
     });
     airconsole.message(AirConsole.SCREEN, {listener: 'ready'});

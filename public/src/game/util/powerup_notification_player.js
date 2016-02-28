@@ -1,6 +1,6 @@
 /* global Phaser, bomberman */
 
-var PowerupIds = require("../../../../common/powerup_ids");
+var PowerupIds = require("./../common/powerup_ids");
 var game = bomberman.game;
 
 var notificationImageMap = {};

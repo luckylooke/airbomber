@@ -1,4 +1,4 @@
-var PowerupIDs = require("../../../../common/powerup_ids");
+var PowerupIDs = require("./../common/powerup_ids");
 
 var powerupImageKeys = {};
 

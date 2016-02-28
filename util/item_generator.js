@@ -1,4 +1,4 @@
-var PowerupIDs = require("../common/powerup_ids");
+var PowerupIDs = require("./../public/src/game/common/powerup_ids");
 
 exports.generateItem = function() {
     var randomNumber = Math.floor(Math.random() * 10) + 1;

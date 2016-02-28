@@ -1,6 +1,6 @@
 /* global socket */
 var PendingGame = require("./pending_game_s");
-var MapInfo = require("./../common/map_info");
+var MapInfo = require("./../public/src/game/common/map_info");
 
 var lobbySlots = {};
 
@@ -17,8 +17,8 @@ var lobby = {
         return Object.keys(this.lobbySlots).length;
     },
 
-    broadcastSlotStateUpdate: function (socketScreen, slotId, newState) {
-        socketScreen.emit("update slot", {slotId: slotId, newState: newState});
+    broadcastSlotStateUpdate: function (socket, slotId, newState) {
+        socket.emit("update slot", {slotId: slotId, newState: newState});
     },
 
     initialize: function () {
@@ -30,7 +30,7 @@ var lobby = {
     },
 
     onHostGame: function (data) {
-        console.log(data);
+        this.slotId = data.slotId;
         lobbySlots[data.slotId] = new PendingGame();
         lobbySlots[data.slotId].state = "settingup";
         lobby.broadcastSlotStateUpdate(this, data.slotId, "settingup");

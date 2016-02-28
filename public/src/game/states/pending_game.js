@@ -53,7 +53,7 @@ acTools.rmListener = function(name, fn){
 	}
 };
 acTools.onMessage = function(device_id, data) {
-	if(data.listener){
+	if(data.listener && acTools.listeners[data.listener]){
 		acTools.listeners[data.listener](device_id, data);
 	}
 	for (var i = 0; i < acTools.uniListeners.length; i++) {

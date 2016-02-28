@@ -60,7 +60,7 @@ function onSocketDisconnect() {
         return;
     }
     if (lobbySlot.state == "joinable" || lobbySlot.state == "full") {
-        lobby.onLeavePendingGame({screenId: this.id, slotId: this.slotId});
+        lobby.onLeavePendingGame.call(this, {screenId: this.id, slotId: this.slotId});
     } else if (this.id === this.slotId && lobbySlot.state == "settingup") {
         lobbySlot.state = "empty";
         lobby.broadcastSlotStateUpdate(this, this.slotId, "empty");
@@ -79,7 +79,7 @@ function onSocketDisconnect() {
             if (games[this.slotId].numPlayers == 1) {
                 io.in(this.id).emit("no opponents left");
             }
-            terminateExistingGame(this.slotId);
+            terminateExistingGame(this);
         }
         
         if (game && game.awaiting && game.numEndOfRoundAcknowledgements >= game.numPlayers) {
@@ -88,11 +88,12 @@ function onSocketDisconnect() {
     }
 };
 
-function terminateExistingGame(slotId) {
+function terminateExistingGame(socket) {
+    var slotId = socket.slotId;
     games[slotId].clearBombs();
     games[slotId] = undefined;
     lobby.restartlobby(slotId);
-    lobby.broadcastSlotStateUpdate(io.sockets[slotId], slotId, "empty");
+    lobby.broadcastSlotStateUpdate(socket, slotId, "empty");
 };
 
 function onStartGame(slotId) {
@@ -135,6 +136,7 @@ function onMovePlayer(clientPlayer) {
 };
 
 function onPlaceBomb(data) {
+    var socket = this;
     var slotId = this.slotId;
     var game = games[slotId];
     var player = game.players[data.nick];
@@ -155,7 +157,7 @@ function onPlaceBomb(data) {
         delete game.bombs[bombId];
         game.map.removeBombFromGrid(data.x, data.y);
 
-        handlePlayerDeath(explosionData.killedPlayers, slotId);
+        handlePlayerDeath(explosionData.killedPlayers, socket);
     }, 2000);
     var bomb = new Bomb(normalizedBombLocation.x, normalizedBombLocation.y, bombTimeoutId, TILE_SIZE);
     game.bombs[bombId] = bomb;
@@ -178,7 +180,8 @@ function onPowerupOverlap(data) {
     io.in(this.slotId).emit("powerup acquired", {acquiringPlayerId: player.nick, powerupId: powerup.id, powerupType: powerup.powerupType});
 }
 
-function handlePlayerDeath(deadPlayerNicks, slotId) {
+function handlePlayerDeath(deadPlayerNicks, socket) {
+    var slotId = socket.slotId;
     var game = games[slotId];
     var tiedWinnerNicks;
     if (deadPlayerNicks.length > 1 && game.numPlayersAlive - deadPlayerNicks.length == 0) {
@@ -192,11 +195,12 @@ function handlePlayerDeath(deadPlayerNicks, slotId) {
 
     // MAY BE DISSABLED FOR DEVELOPEMENT
     if (game.numPlayersAlive <= 1) {
-        endRound(tiedWinnerNicks, slotId);
+        endRound(tiedWinnerNicks, socket);
     }
 }
 
-function endRound(tiedWinnerIds, slotId) {
+function endRound(tiedWinnerIds, socket) {
+    var slotId = socket.slotId;
     var game = games[slotId];
     var roundWinnerColors = [];
     if(tiedWinnerIds) {
@@ -216,7 +220,7 @@ function endRound(tiedWinnerIds, slotId) {
             io.in(slotId).emit("end game", {
                 completedRoundNumber: game.currentRound - 1, roundWinnerColors: roundWinnerColors,
                 gameWinnerColor: gameWinners[0].color});
-            terminateExistingGame(slotId);
+            terminateExistingGame(socket);
             return;
         }
     }

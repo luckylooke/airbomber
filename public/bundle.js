@@ -63,11 +63,12 @@
 	game.state.add("StageSelect", __webpack_require__(6));
 	game.state.add("PendingGame", __webpack_require__(7));
 	game.state.add("Level", __webpack_require__(8));
-	game.state.add("GameOver", __webpack_require__(18));
+	game.state.add("GameOver", __webpack_require__(17));
 
 	game.state.start('Boot');
 
-	__webpack_require__(19);undefined
+	__webpack_require__(18);undefined
+
 
 /***/ },
 /* 1 */
@@ -167,7 +168,7 @@
 	Preloader.prototype = {
 
 	    preload: function () {
-<<<<<<< HEAD
+	        this.load.spritesheet("bomberman_white", "resource/bomberman_white.png", 32, 64);
 	        
 	        game.scale.setGameSize(25*35, 15*35);
 	        game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -185,9 +186,6 @@
 	        // game.world.scale = {x:scaleRatio,y:scaleRatio};
 
 	        this.load.spritesheet("bomberman_white", "resource/bomberman.png", 32, 64);
-=======
-	        this.load.spritesheet("bomberman_white", "resource/bomberman_white.png", 32, 64);
->>>>>>> dev
 	        this.load.spritesheet("bomberman_black", "resource/bomberman_black.png", 32, 64);
 	        this.load.spritesheet("bomberman_blue", "resource/bomberman_blue.png", 32, 64);
 	        this.load.spritesheet("bomberman_red", "resource/bomberman_red.png", 32, 64);
@@ -486,7 +484,7 @@
 		}
 	};
 	acTools.onMessage = function(device_id, data) {
-		if(data.listener){
+		if(data.listener && acTools.listeners[data.listener]){
 			acTools.listeners[data.listener](device_id, data);
 		}
 		for (var i = 0; i < acTools.uniListeners.length; i++) {
@@ -719,7 +717,7 @@
 	var Bomb = __webpack_require__(12);
 	var RoundEndAnimation = __webpack_require__(14);
 	var PowerupImageKeys = __webpack_require__(15);
-	var PowerupNotificationPlayer = __webpack_require__(17);
+	var PowerupNotificationPlayer = __webpack_require__(16);
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var level = bomberman.level;
@@ -1511,7 +1509,7 @@
 /* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var PowerupIDs = __webpack_require__(16);
+	var PowerupIDs = __webpack_require__(9);
 
 	var powerupImageKeys = {};
 
@@ -1523,32 +1521,12 @@
 
 /***/ },
 /* 16 */
-/***/ function(module, exports) {
-
-	module.exports = {
-		BOMB_STRENGTH: 5,
-
-		BOMB_CAPACITY: 6,
-
-		SPEED: 7,
-
-		isAPowerup: function(id) {
-			return id === this.BOMB_STRENGTH || id === this.BOMB_CAPACITY || id === this.SPEED;
-		}
-	};
-
-/***/ },
-/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-<<<<<<< HEAD
 	/* global Phaser, bomberman */
 
 	var PowerupIds = __webpack_require__(9);
 	var game = bomberman.game;
-=======
-	var PowerupIds = __webpack_require__(16);
->>>>>>> dev
 
 	var notificationImageMap = {};
 	notificationImageMap[PowerupIds.BOMB_STRENGTH] = "bomb_strength_notification";
@@ -1573,7 +1551,7 @@
 	};
 
 /***/ },
-/* 18 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
@@ -1612,7 +1590,7 @@
 	module.exports = GameOver;
 
 /***/ },
-/* 19 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var map = {
@@ -1623,7 +1601,7 @@
 		"./entities/remoteplayer.js": 13,
 		"./entities/round_end_animation.js": 14,
 		"./states/boot.js": 1,
-		"./states/game_over.js": 18,
+		"./states/game_over.js": 17,
 		"./states/level.js": 8,
 		"./states/lobby.js": 5,
 		"./states/pending_game.js": 7,
@@ -1631,7 +1609,7 @@
 		"./states/stage_select.js": 6,
 		"./util/audio_player.js": 2,
 		"./util/powerup_image_keys.js": 15,
-		"./util/powerup_notification_player.js": 17,
+		"./util/powerup_notification_player.js": 16,
 		"./util/text_configurer.js": 3
 	};
 	function webpackContext(req) {
@@ -1645,7 +1623,7 @@
 	};
 	webpackContext.resolve = webpackContextResolve;
 	module.exports = webpackContext;
-	webpackContext.id = 19;
+	webpackContext.id = 18;
 
 
 /***/ }
