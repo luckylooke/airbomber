@@ -2,8 +2,8 @@
 var BLACK_HEX_CODE = "#000000";
 var TILE_SIZE = 35;
 
-var PowerupIDs = require("../../../../common/powerup_ids");
-var MapInfo = require("../../../../common/map_info");
+var PowerupIDs = require("../common/powerup_ids");
+var MapInfo = require("../common/map_info");
 var AudioPlayer = require("../util/audio_player");
 var Player = require("../entities/player");
 var RemotePlayer = require("../entities/remoteplayer");

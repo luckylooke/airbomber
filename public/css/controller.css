@@ -1,0 +1,58 @@
+.gamepad_container{
+    display:none;
+  }
+  
+  #name-and-color-container{
+      width: 100%;
+      height: 100%;
+  }
+  
+  .name-container{
+    color:white;
+    height: 10%;
+  }
+  
+  .color-container{
+    height: 80%;
+    margin:0 50px 0 50px;
+  }
+  
+  .color-container .player-color{
+    float: left;
+    height: 45%;
+    width: 24%;
+    cursor: pointer;
+  }
+  
+  .selected {
+    box-sizing:border-box;
+    border:2px solid white;
+  }
+  
+  .play-button{
+    height:10%;
+  }
+  
+  .play-button input{
+    display:inherit;
+    margin: 0 auto;
+  }
+  
+  #gamepad-container{
+    display: none;
+  }
+  
+  #my-DPad {
+    position: absolute;
+    width: 40%;
+    height: 100%;
+    top: 0px;
+    left: 5%;
+  }
+  #button-bomb {
+    position: absolute;
+    width: 40%;
+    height: 100%;
+    right: 5%;
+    top: 0px;
+  }

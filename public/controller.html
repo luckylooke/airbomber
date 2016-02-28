@@ -1,58 +1,62 @@
   <html>
 <head>
 <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<link rel="stylesheet" href="airconsole-controls/button/button.css">
-<link rel="stylesheet" href="airconsole-controls/dpad/dpad.css">
-<style type="text/css">
-  #my-DPad {
-    position: absolute;
-    width: 40%;
-    height: 100%;
-    top: 0px;
-    left: 5%;
-  }
-  #button-bomb {
-    position: absolute;
-    width: 40%;
-    height: 100%;
-    right: 5%;
-    top: 0px;
-  }
-</style>
+<link rel="stylesheet" href="controller/button/button.css">
+<link rel="stylesheet" href="controller/dpad/dpad.css">
+<link rel="stylesheet" href="css/controller.css">
 </head>
 <body onload='init()'>
+  
+  <div id="name-and-color-container">
+    <form>
+      <div class="name-container">
+        Player name: <input type="text" name="player_name" id="player_name">
+      </div>
+      <div class="color-container">
+       <img class="player-color" src="resource/icon_black.png">
+       <img class="player-color" src="resource/icon_white.png">
+       <img class="player-color" src="resource/icon_blue.png">
+       <img class="player-color" src="resource/icon_green.png">
+       <img class="player-color" src="resource/icon_black.png">
+       <img class="player-color" src="resource/icon_white.png">
+       <img class="player-color" src="resource/icon_blue.png">
+       <img class="player-color" src="resource/icon_green.png">
+      </div>
+      <div class="play-button">
+        <input type="button" value="Play" onClick="getPlayerInfo()">
+      </div>
+    </form>
+  </div>
 
-    <div class="gamepad_container">
-      <div id="left" class="left">
-        <div id="my-DPad">
-          <div>
-            <div class="dpad-arrow dpad-arrow-up"></div>
-            <div class="dpad-arrow dpad-arrow-down"></div>
-            <div class="dpad-arrow dpad-arrow-left"></div>
-            <div class="dpad-arrow dpad-arrow-right"></div>
-          </div>
+  <div id="gamepad-container">
+    <div id="left" class="left">
+      <div id="my-DPad">
+        <div>
+          <div class="dpad-arrow dpad-arrow-up"></div>
+          <div class="dpad-arrow dpad-arrow-down"></div>
+          <div class="dpad-arrow dpad-arrow-left"></div>
+          <div class="dpad-arrow dpad-arrow-right"></div>
         </div>
       </div>
-      <div id="middle" class="middle"></div>
-      <div id="right" class="right">
-        <div id="button-bomb" class="button-300-300"><div class="button-text">BOMB</div></div>
-      </div>
     </div>
+    <div id="middle" class="middle"></div>
+    <div id="right" class="right">
+      <div id="button-bomb" class="button-300-300"><div class="button-text">BOMB</div></div>
+    </div>
+  </div>
   
 <script type="text/javascript" src="https://www.airconsole.com/api/airconsole-1.3.0.js"></script>
-<script type="text/javascript" src="airconsole-controls/rate-limiter/rate-limiter.js"></script>
-<script type="text/javascript" src="airconsole-controls/dpad/dpad.js"></script>
-<script type="text/javascript" src="airconsole-controls/button/button.js"></script>
+<script type="text/javascript" src="controller/rate-limiter/rate-limiter.js"></script>
+<script type="text/javascript" src="controller/dpad/dpad.js"></script>
+<script type="text/javascript" src="controller/button/button.js"></script>
 <script type="text/javascript">
   /* global AirConsole, DPad, Button */
     navigator.vibrate = (navigator.vibrate ||
                          navigator.webkitVibrate ||
                          navigator.mozVibrate ||
                          navigator.msVibrate);
-
-    var rndInt = Math.floor(Math.random() * (100 - 1)) + 1;
-    var nickname = 'plNick' + rndInt;
     
+    var nickname;
     var acTools = {};
 
     acTools.listeners = {};
@@ -111,6 +115,10 @@
       acTools.addListener(undefined, function(from, data){
 	      console.log('on ctrl: ', from, data);
       });
+      
+      window.addEventListener("deviceorientation", function(e){
+        console.log(e);
+      })
 
       /*
        * Checks if this device is part of the active game.
@@ -133,14 +141,71 @@
           console.log("Vibrating: " + data.vibrate);
         }
       });
+      
+      document.addEventListener('click',function(e){
+  	  	var clickedElement = e.target;
+  	  	if (clickedElement.nodeName == 'IMG'){
+  	  	  unselectAll(clickedElement);
+  	  	  clickedElement.className += ' selected';
+  	  	}
+	    })
     }
+    
+    
+
+  function getPlayerInfo(name, color){
+    
+    var color = getColor();
+    nickname  = getName();
+    
+    console.log(color, nickname);
+    
+    if(color && nickname){
+      
+      document.getElementById("name-and-color-container").style.display = "none";
+      document.getElementById("gamepad-container").style.display = "block";
+      
+      addPlayer(nickname, color);
+      
+    }
+  }
+  
+  function addPlayer(name, color){
+    acTools.addListener('ready', function(from, data){
+      if(from == AirConsole.SCREEN){
+       //clearInterval(acInterval);
+       airconsole.message(AirConsole.SCREEN, {listener: 'newPlayer', nick: nickname, color:color, controller: true});
+      }
+    });
+    airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
+  }
+  
+   function getColor(){
+  	var el = document.getElementsByClassName('selected');
+  	if (el[0]){
+  	  var reg = /[a-z]+(?=.png)(?!_)/;
+  	  var color = reg.exec(el[0].currentSrc);
+  	}
+  	
+    return color[0];
+  }
+  
+  function getName(){
+    return document.getElementById('player_name').value;
+  }
+      
+  function unselectAll(clickedElement){
+    var allCharacters = document.getElementsByClassName(clickedElement.className);
+    for(var i = 0; i < allCharacters.length; i++)
+      allCharacters[i].classList.remove('selected');
+  }
 
     /**
      * Tells the screen to move the paddle of this player.
      * @param amount
      */
     function move(amount) {
-      airconsole.message(AirConsole.SCREEN, {listener: 'movePlayer', nick: nickname, x: amount.x, y: amount.y})
+      airconsole.message(AirConsole.SCREEN, {listener: 'movePlayer', nick: nickname, x: amount.x, y: amount.y});
     }
     function bomb(setting) {
       airconsole.message(AirConsole.SCREEN, {listener: 'setBomb', nick: nickname, setting: setting});

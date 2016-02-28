@@ -8,6 +8,7 @@ module.exports = Preloader;
 Preloader.prototype = {
 
     preload: function () {
+        this.load.spritesheet("bomberman_white", "resource/bomberman_white.png", 32, 64);
         
         game.scale.setGameSize(25*35, 15*35);
         game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;

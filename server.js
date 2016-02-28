@@ -16,11 +16,11 @@ var TILE_SIZE = 35;
 var Player = require("./entity/player_s");
 var Bomb = require("./entity/bomb_s");
 var Map = require("./entity/map_s");
-var MapInfo = require("./common/map_info");
+var MapInfo = require("./public/src/game/common/map_info");
 var Game = require("./entity/game_s");
 var lobby = require("./entity/lobby_s");
 // var PendingGame = require("./entity/pending_game_s");
-var PowerupIDs = require("./common/powerup_ids");
+var PowerupIDs = require("./public/src/game/common/powerup_ids");
 
 var games = {};
 
