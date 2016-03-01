@@ -139,6 +139,9 @@ function onPlaceBomb(data) {
     var socket = this;
     var slotId = this.slotId;
     var game = games[slotId];
+    if(!game){
+        return;
+    }
     var player = game.players[data.nick];
     if (game === undefined || game.awaiting || player.numBombsAlive >= player.bombCapacity) {
         return;

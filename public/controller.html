@@ -50,8 +50,9 @@
     </div>
   </div>
 
-  <div id="gyro-pad" onmousedown="bomb(true)" onmouseup="bomb(false)">
+  <div id="gyro-pad">
     GYROPAD
+    <div id="button-bomb-gyro" class="button-300-300"><div class="button-text">BOMB</div></div>
   </div>
 
   <div id="gyro-calibration">
@@ -69,9 +70,10 @@
 <script type="text/javascript" src="controller/rate-limiter/rate-limiter.js"></script>
 <script type="text/javascript" src="controller/dpad/dpad.js"></script>
 <script type="text/javascript" src="controller/button/button.js"></script>
+<script type="text/javascript" src="controller/rate-limiter/rate-limiter.js"></script>
 <script type="text/javascript" src="controller/gyronorm.complete.js"></script>
 <script type="text/javascript">
-  /* global AirConsole, DPad, Button, GyroNorm */
+  /* global AirConsole, DPad, Button, GyroNorm, RateLimiter */
   
   console.log('TEST', Date.now());
   
@@ -226,6 +228,8 @@
     var airconsole = new AirConsole({
                             orientation: AirConsole.ORIENTATION_LANDSCAPE
                           });
+    // rateLimiter -> https://github.com/AirConsole/airconsole-controls/tree/master/rate-limiter                      
+    var rateLimiter = new RateLimiter(airconsole);
     
     
     function init() {
@@ -432,7 +436,7 @@
      * @param amount
      */
     function moveDPad(amount) {
-      airconsole.message(AirConsole.SCREEN, {
+      rateLimiter.message(AirConsole.SCREEN, {
         type: 'DPad',
         listener: 'movePlayer',
         nick: nickname,
@@ -444,7 +448,7 @@
       data.nick = nickname;
       data.type = 'Gyro';
       data.listener = 'movePlayer';
-      airconsole.message(AirConsole.SCREEN, data);
+      rateLimiter.message(AirConsole.SCREEN, data);
     }
     function bomb(setting) {
       airconsole.message(AirConsole.SCREEN, {
@@ -504,6 +508,17 @@
           bomb('setting');
         },
         "up": function() {
+          bomb(!'setting');
+        }
+      });
+    
+    new Button("button-bomb-gyro", {
+        "down": function() {
+          console.log('bomb gyro true');
+          bomb('setting');
+        },
+        "up": function() {
+          console.log('bomb gyro false');
           bomb(!'setting');
         }
       });
