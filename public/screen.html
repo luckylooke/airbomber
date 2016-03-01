@@ -12,27 +12,33 @@
     
     <!-- GUIs -->
     <div id="lobby" class="gui hidden">
-        <div class="container">
-            <h1>LOBBY</h1>
+        <div class="airbomber-header">
+            <p class="airbomber-text">AIRBOMBER</p>
         </div>
         <!-- list of slots -->
-        <div id="slots" class="container"> 
-            <button type="button" class="slot btn btn-default col-lg-12">Loading..</button>
+        <div id="slots" class=""> 
+            <button type="submit" class="lobby-button host-button"></button>
         </div>
     </div>
     
-    <div id="stageSelect" class="gui hidden">
-        <div class="container">
-            <h1>SELECT STAGE</h1>
+    <div id="stage-select" class="gui hidden">
+        <div class="airbomber-header">
+            <p class="airbomber-text">SELECT STAGE</p>
         </div>
         <!-- list of stages -->
-        <div id="stages" class="container"> 
-            <div class="stage btn btn-default col-lg-2 col-md-3 col-sm-6 col-xs-12">
-                <h3>Loading..</h3>
+        <div class="arrow" id="arrow-left">
+            <img src="../resource/arrow_left.png"></img>
+        </div>
+        <div id="stages" class=""> 
+            <div class="stage stage-button">
+                <div>Loading..</div>
                 <img src="./assets/levels/thumbnails/empty.png"></img>
                 <div>Loading..</div>
                 <div>Loading..</div>
             </div>
+        </div>
+        <div class="arrow" id="arrow-right">
+            <img src="../resource/arrow_right.png"></img>
         </div>
     </div>
     

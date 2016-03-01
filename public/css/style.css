@@ -1,3 +1,8 @@
+@font-face {
+    font-family: bombermanFont;
+    src: url(Bomberman.ttf);
+}
+
 html, body, #bomber, .gui {
     width: 100%;
     height: 100%;
@@ -19,4 +24,106 @@ body {
 
 .hidden {
     display: none;
+}
+
+
+#lobby{
+    width:100%;
+    height:100%;
+    background: url("../resource/Background_1.png") no-repeat;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}
+
+#lobby #slots{
+    position:relative;
+    width: 300px;
+    height: 150px;
+    margin:0 auto;
+    bottom: -310px;
+    
+}
+
+#lobby .airbomber-header{
+    width: 605px;
+    margin: 0 auto;
+    font-family: bombermanFont;
+}
+
+#lobby .lobby-button{
+    float: left;
+    width: 300px;
+    height: 45px;
+    margin-bottom: 10px;
+    border: 1px solid white;
+    border-radius: 15px;
+    font-size: 27px;
+}
+
+#lobby .host-button{
+    background-color:#0082C1;
+    border: 1px solid #0082C1;
+}
+
+#lobby .host-button:hover{
+    background-color:#3B5EC1;
+    border: 1px solid #3B5EC1;
+}
+
+#lobby .airbomber-header .airbomber-text,
+#stage-select .airbomber-header .airbomber-text {
+    margin-top:100px;
+    margin-bottom:10px;
+    font-size: 90px;
+}
+
+#stage-select .airbomber-header{
+    width: 715px;
+    margin: 0 auto;
+    color:#FFD34E;
+    font-family: bombermanFont;
+    
+}
+
+#stage-select #stages{
+    float: left;
+    height: 48%;
+    width: 21.9%;
+}
+
+#stage-select #stages .stage{
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    text-align: center;
+    font-size: 30px;
+}
+
+#stage-select #stages .stage img{
+    width: inherit;
+    height: 269px;
+}
+
+#stage-select{
+    width:100%;
+    height:100%;
+    background: url("../resource/green_stage_background.png") no-repeat;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}
+
+#stage-select .arrow{
+    float: left;
+    height: 15%;
+    width: 9%;
+    margin-top: 9%;
+    cursor: pointer;
+}
+
+#stage-select #arrow-left{
+    margin-left: 30.1%;
 }
