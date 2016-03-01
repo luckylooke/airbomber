@@ -748,6 +748,7 @@
 	/* global Phaser, bomberman */
 	var BLACK_HEX_CODE = "#000000";
 	var TILE_SIZE = 35;
+	var ROUNDS = 2; // number of rounds
 
 	var PowerupIDs = __webpack_require__(9);
 	var MapInfo = __webpack_require__(10);
@@ -831,22 +832,12 @@
 	        this.setEventHandlers();
 	        this.initializePlayers();
 
-	        this.createDimGraphic();
-	        this.beginRoundAnimation("round_1");
+	        this.beginRoundAnimation(1);
 	        //AudioPlayer.playMusicSound();
 			airconsole.broadcast({listener: 'gameState', gameState: 'level'});
 	    },
 
-	    createDimGraphic: function () {
-	        this.dimGraphic = game.add.graphics(0, 0);
-	        this.dimGraphic.alpha = .7;
-	        this.dimGraphic.beginFill(BLACK_HEX_CODE, 1);
-	        this.dimGraphic.drawRect(0, 0, game.camera.width, game.camera.height);
-	        this.dimGraphic.endFill();
-	    },
-
 	    restartGame: function () {
-	        this.dimGraphic.destroy();
 
 	        for (var i in screen.players) {
 	            screen.players[i].reset();
@@ -876,22 +867,20 @@
 	    },
 
 	    onNewRound: function (data) {
-	        this.createDimGraphic();
 	        var datAnimationDoe = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
 	        this.gameFrozen = true;
-	        var roundImage;
-	        if (data.completedRoundNumber < 2) {
-	            roundImage = "round_" + (data.completedRoundNumber + 1);
-	        } else if (data.completedRoundNumber == 2) {
-	            roundImage = "final_round";
+	        var round;
+	        if (data.completedRoundNumber < ROUNDS) {
+	            round = data.completedRoundNumber + 1;
+	        } else if (data.completedRoundNumber == ROUNDS) {
+	            round = "final!";
 	        } else {
-	            roundImage = "Oops";
+	            round = "Oops";
 	        }
-	        datAnimationDoe.beginAnimation(this.beginRoundAnimation.bind(this, roundImage, this.restartGame.bind(this)));
+	        datAnimationDoe.beginAnimation(this.beginRoundAnimation.bind(this, round, this.restartGame.bind(this)));
 	    },
 
 	    onEndGame: function (data) {
-	        this.createDimGraphic();
 	        this.gameFrozen = true;
 	        var animation = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
 	        animation.beginAnimation(function () {
@@ -906,20 +895,18 @@
 	        game.state.start("GameOver", true, false, null, true);
 	    },
 
-	    beginRoundAnimation: function (image, callback) {
-	        var beginRoundText = game.add.image(-600, game.camera.height / 2, image);
-	        beginRoundText.anchor.setTo(.5, .5);
-	        var tween = game.add.tween(beginRoundText);
-	        tween.to({x: game.camera.width / 2}, 300).to({x: 1000}, 300, Phaser.Easing.Default, false, 800).onComplete.add(function () {
-	            this.dimGraphic.destroy();
-	            beginRoundText.destroy();
-	            this.gameFrozen = false;
+	    beginRoundAnimation: function (round, callback) {
+	    	document.getElementById('beginRound').classList.remove("hidden");
+	    	document.getElementById('roundNumber').innerHTML = round;
+	    	var self = this;
+	    	setTimeout(function(){
+	    	    document.getElementById('beginRound').classList.add("hidden");
+	    	    // after animation:
+	            self.gameFrozen = false;
 	            if (callback) {
 	                callback();
 	            }
-	        }, this);
-
-	        tween.start();
+	    	}, 2000);
 	    },
 
 	    update: function () {
