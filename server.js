@@ -35,8 +35,8 @@ setInterval(broadcastingLoop, updateInterval);
 
 function setEventHandlers () {
     io.on("connection", function(socket) {
-        // socket === client !!!
-        console.log("New socket has connected: " + socket.id);
+        // socket === client === screen !!!
+        console.log("New screen has connected: " + socket.id);
         socket.on("move player", onMovePlayer);
         socket.on("disconnect", onSocketDisconnect);
         socket.on("place bomb", onPlaceBomb);

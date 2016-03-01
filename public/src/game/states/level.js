@@ -22,14 +22,14 @@ var controllers = {}, // keeps state of connected controllers
     acTools = bomberman.acTools;
 
 function movePlayer(device_id, data) {
-  var consignee = airconsole.convertDeviceIdToPlayerNumber(device_id);
-  if (consignee != undefined) {
+  if (data.nick && controllers[data.nick]) {
       if(data.x != undefined){
           controllers[data.nick].x = data.x;
       }
       if(data.y != undefined){
           controllers[data.nick].y = data.y;
       }
+      controllers[data.nick].type = data.type;
     // paddles[consignee].move.y = data.move;
   }
 }
@@ -87,6 +87,7 @@ Level.prototype = {
         this.createDimGraphic();
         this.beginRoundAnimation("round_1");
         //AudioPlayer.playMusicSound();
+		airconsole.broadcast({listener: 'gameState', gameState: 'level'});
     },
 
     createDimGraphic: function () {
@@ -243,9 +244,7 @@ Level.prototype = {
         for (var i in this.players) {
             var player = this.players[i];
             if (player.nick in screen.players) {
-                if(player.controller === 'controller'){
-                    controllers[player.nick] = {};
-                }
+                controllers[player.nick] = {};
                 screen.players[player.nick] = new Player(player.x, player.y, player.nick, player.color);
             } else {
                 this.remotePlayers[player.nick] = new RemotePlayer(player.x, player.y, player.nick, player.color);

@@ -1,5 +1,8 @@
 TODO:
+- bomb vibrations
+- on orientation change http://stackoverflow.com/questions/20810356/temporarily-flip-website-upside-down-using-js-and-css
 - test all disconnection scenarios
+- status bar on controller (including nick color score(killed vs deaths) etc..)
 - local player (keyboard)
 - add nickname on controller
 - burnable powerups?
@@ -11,6 +14,7 @@ Useful links:
 https://gitlab.com/luckylooke/airconsole
 http://developers.airconsole.com/#/getting_started
 https://github.com/AirConsole/airconsole-controls
+https://github.com/dorukeker/gyronorm.js
 https://github.com/AirConsole/airconsole-view-manager
 https://github.com/lean/phaser-es6-webpack
 
