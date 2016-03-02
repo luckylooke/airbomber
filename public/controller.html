@@ -300,19 +300,20 @@
     
     function init() {
       if (window.DeviceOrientationEvent) {
-        console.log('deviceorientation');
         window.addEventListener("deviceorientation", function (event) {
-            tilt({beta: event.beta, gamma: event.gamma});
+            if(event.beta || event.beta === 0){
+              tilt({source: 'deviceorientation', beta: event.beta, gamma: event.gamma});
+            }
         }, true);
       } else if (window.DeviceMotionEvent) {
         window.addEventListener('devicemotion', function (event) {
-            tilt({beta: event.acceleration.x * 2, gamma: event.acceleration.y * 2});
+            tilt({source: 'devicemotion', beta: event.acceleration.x * 2, gamma: event.acceleration.y * 2});
         }, true);
       } else {
         window.addEventListener("MozOrientation", function (event) {
             event.gamma = -(event.x * (180 / Math.PI));
             event.beta = -(event.y * (180 / Math.PI));
-            tilt({beta: event.beta, gamma: event.gamma});
+            tilt({source: 'MozOrientation', beta: event.beta, gamma: event.gamma});
         }, true);
       }
       
@@ -364,7 +365,7 @@
     }
     
   function tilt(data){
-    console.log('tilt');
+    console.log('tilt', data);
     if(tiltLimiter()){
       return;
     }
