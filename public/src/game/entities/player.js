@@ -64,13 +64,6 @@ Player.prototype.handleCtrlInput = function (ctrl) {
     if(ctrl.type === 'DPad'){
         this.body.velocity.x = ctrl.x * this.speed;
         this.body.velocity.y = ctrl.y * this.speed;
-    
-        if (ctrl.x || ctrl.y) {
-            this.animations.play(this.facing);
-            socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing, nick: this.nick});
-        }else{
-            this.freeze();
-        }
     }
     
     // gyroscope/accelerators movement
@@ -104,6 +97,13 @@ Player.prototype.handleCtrlInput = function (ctrl) {
       else {
         this.facing = "up";
       }
+    }
+    
+    if (ctrl.x || ctrl.y) {
+        this.animations.play(this.facing);
+        socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing, nick: this.nick});
+    }else{
+        this.freeze();
     }
     
     // BOMBS
