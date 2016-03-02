@@ -30,7 +30,6 @@ function movePlayer(device_id, data) {
           controllers[data.nick].y = data.y;
       }
       controllers[data.nick].type = data.type;
-    // paddles[consignee].move.y = data.move;
   }
 }
 acTools.addListener('movePlayer', movePlayer);
@@ -51,7 +50,6 @@ Level.prototype = {
 
     init: function (data) {
         this.tilemapName = data.mapName;
-        //console.log(this.tilemapName + '||' + players + "||" + id);
         this.players = data.players;
     },
 
@@ -337,6 +335,7 @@ Level.prototype = {
                 this.generateItemEntity(destroyedTile.itemId, destroyedTile.row, destroyedTile.col);
             }
         }, this);
+        airconsole.broadcast({listener:'vibrator', vibrate:100});
     },
 
     onPowerupAcquired: function (data) {

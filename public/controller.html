@@ -389,13 +389,13 @@
   function addPlayer(nickname, color){
     acTools.addListener('ready', function(from, data){
       if(from == AirConsole.SCREEN && !gameState){
-       clearInterval(acInterval);
-       airconsole.message(AirConsole.SCREEN, {
-            listener: 'newPlayer',
-            nick: nickname,
-            color:color,
-            controller: controller
-          });
+        clearInterval(acInterval);
+        airconsole.message(AirConsole.SCREEN, {
+          listener: 'newPlayer',
+          nick: nickname,
+          color:color,
+          controller: controller
+        });
           
         if(data.gameState){
           gameState = data.gameState;
