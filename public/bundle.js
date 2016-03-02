@@ -254,14 +254,6 @@
 	var socket = bomberman.socket;
 	var Lobby = function() {};
 
-	// var TextConfigurer = require('../util/text_configurer');
-
-	// var initialSlotYOffset = 350;
-	// var slotXOffset = 155;
-	// var lobbySlotDistance = 65;
-	// var textXOffset = 260;
-	// var textYOffset = 25;
-
 	module.exports = Lobby;
 
 	Lobby.prototype = {
@@ -302,12 +294,8 @@
 					callback: null
 				}
 			};
-	        // game.add.sprite(0, 0, 'background');
-	        // this.backdrop = game.add.image(130, 300, "background_b");
-			// this.slots = [];
-			// this.labels = [];
-			socket.emit("enter lobby");
 	        socket.on("update slots", this.updateSlots.bind(this));
+			socket.emit("enter lobby");
 		},
 
 		update: function() {
@@ -318,27 +306,22 @@
 			var htmlSlotElm = htmlSlotsElm.children[0].cloneNode(true);
 			htmlSlotsElm.innerHTML = '';
 			
-			// this.slots.length = 0;
 			var names = Object.keys(slots);
 	        for (var i = 0; i < names.length; i++) {
-	        	var state = slots[names[i]].state;
-		        var settings = this.stateSettings[state];
+	        	var slot = slots[names[i]];
+		        var settings = this.stateSettings[slot.state];
 		        var callback = (function (slotId) {
 		            return function(){
-		            	if (settings.callback != null)
-		                settings.callback(slotId);
+		            	if (settings.callback != null){
+		                	settings.callback(slotId);
+		            	}
 		                document.getElementById('lobby').classList.add("hidden");
 		            };
 		        })(names[i]);
-		        // var slotYOffset = initialSlotYOffset + lobbySlotDistance*i;
-		        // this.slots.push(game.add.button(slotXOffset, slotYOffset, "game_slot", callback, null, settings.overFrame, settings.outFrame));
-		        // var text = game.add.text(slotXOffset + textXOffset, slotYOffset + textYOffset, settings.text);
-		        // TextConfigurer.configureText(text, "white", 18);
-		        // text.anchor.setTo(.5, .5);
-	        	// this.labels.push(text);
 	        	
 	        	var newSlotElm = htmlSlotElm.cloneNode(true);
-	        	newSlotElm.innerHTML = settings.text;
+	        	console.log(settings.text + (slot.numOfPlayers ? "(" + slot.numOfPlayers +")" : ""), settings.text, (slot.numOfPlayers ? "(" + slot.numOfPlayers +")" : ""));
+	        	newSlotElm.innerHTML = settings.text + (slot.numOfPlayers ? "(" + slot.numOfPlayers +")" : "");
 	        	newSlotElm.addEventListener("click", callback);
 	        	htmlSlotsElm.appendChild(newSlotElm);
 	        }
@@ -376,6 +359,7 @@
 	var stages = [
 		{name: "Green field", thumbnailFile: "../resource/green_field_thumbnail.png", tilemapName: "First", maxPlayers: 4, size: "Small", background:"../resource/green_field_background.png"},
 		{name: "Desert", thumbnailFile: "../resource/danger_desert_thumbnail.png", tilemapName: "Second", maxPlayers: 4, size: "Small", background:"../resource/danger_desert_background.png"},
+		{name: "Desert2", thumbnailFile: "../resource/danger_desert_thumbnail.png", tilemapName: "Third", maxPlayers: 4, size: "Small", background:"../resource/danger_desert_background.png"},
 	];
 
 	StageSelect.prototype = {
@@ -405,7 +389,7 @@
 	        	newStageElm.children[1].setAttribute('src', stage.thumbnailFile);
 	        	newStageElm.children[2].innerHTML = 'Max players: ' + stage.maxPlayers;
 	        	newStageElm.children[3].innerHTML = 'Size: ' + stage.size;
-	        	newStageElm.addEventListener("click", this.confirmStageSelection);
+	        	newStageElm.addEventListener("click", this.getHandler(i));
 	        	newStageElm.classList.add("hidden");
 	        	newStageElm.background = stage.background;
 	        	htmlStagesElm.appendChild(newStageElm);
@@ -464,10 +448,12 @@
 		// 	text.fontSize = size;
 		// },
 
-		confirmStageSelection: function() {
-			document.getElementById('stage-select').classList.add("hidden");
-	        socket.emit("select stage", {slotId: socket.id, mapName: stages[0].tilemapName});
-	        game.state.start("PendingGame", true, false, stages[0].tilemapName, socket.id);
+		getHandler: function(index) {
+			return function confirmStageSelection(){
+				document.getElementById('stage-select').classList.add("hidden");
+		        socket.emit("select stage", {slotId: socket.id, mapName: stages[index].tilemapName});
+		        game.state.start("PendingGame", true, false, stages[index].tilemapName, socket.id);
+			};
 		}
 		
 	};
@@ -575,9 +561,10 @@
 	function newPlayer(device_id, player){
 		console.log('newPlayer game.slotId', {slotId: game.slotId});
 	  	if(player.nick){
+	  		delete player.listener;
 	  		player.slotId = game.slotId;
 	  		player.screenId = game.screenId;
-	  		player.device_id = game.device_id;
+	  		player.device_id = device_id;
 			socket.emit('player enter pending game', player);
 			screen.players[player.nick] = player;
 	  	}
@@ -731,7 +718,7 @@
 
 		startGameAction: function() {
 			this.leavingPendingGame();
-			socket.emit("start game on server", {slotId: game.slotId});
+			socket.emit("start game on server", {slotId: game.slotId, tilemapName: this.tilemapName});
 		},
 
 		leaveGameAction: function() {

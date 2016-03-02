@@ -9,6 +9,11 @@ var lobby = {
         return lobbySlots;
     },
 
+    removeSlot: function(socket, slotId){
+        delete lobbySlots[slotId];
+        lobby.broadcastSlotStateUpdate(socket);
+    },
+
     restartlobby: function(data){
         lobbySlots[data.slotId] = new PendingGame();
     },
@@ -17,29 +22,38 @@ var lobby = {
         return Object.keys(this.lobbySlots).length;
     },
 
-    broadcastSlotStateUpdate: function (socket, slotId, newState) {
-        socket.emit("update slot", {slotId: slotId, newState: newState});
+    broadcastSlotStateUpdate: function (socket) {
+        var slots = Object.keys(lobbySlots),
+            result = {};
+        for (var i = 0; i < slots.length; i++) {
+            result[slots[i]] = {
+                numOfPlayers:lobbySlots[slots[i]].getNumPlayers(),
+                state:lobbySlots[slots[i]].state
+            };
+        }
+        socket.emit("update slots", result);
+        socket.broadcast.emit("update slots", result);
     },
 
     initialize: function () {
         lobbySlots['default'] = new PendingGame();
     },
 
-    onEnterlobby: function (data) {
-        this.emit("update slots", slotsInfo());
+    onEnterlobby: function () {
+        lobby.broadcastSlotStateUpdate(this);
     },
 
     onHostGame: function (data) {
         this.slotId = data.slotId;
         lobbySlots[data.slotId] = new PendingGame();
         lobbySlots[data.slotId].state = "settingup";
-        lobby.broadcastSlotStateUpdate(this, data.slotId, "settingup");
+        lobby.broadcastSlotStateUpdate(this);
     },
 
     onStageSelect: function (data) {
         lobbySlots[data.slotId].state = "joinable";
         lobbySlots[data.slotId].mapName = data.mapName;
-        lobby.broadcastSlotStateUpdate(this, data.slotId, lobbySlots[data.slotId].state);
+        lobby.broadcastSlotStateUpdate(this);
     },
 
     onEnterPendingGame: function (data) {
@@ -51,7 +65,7 @@ var lobby = {
         this.broadcast.to(data.slotId).emit("screen joined", {id: this.id, color: pendingGame.screens[this.id].color});
         if (pendingGame.getNumScreens() >= MapInfo['First'].spawnLocations.length) {
             pendingGame.state = "full";
-            lobby.broadcastSlotStateUpdate(this, data.slotId, "full");
+            lobby.broadcastSlotStateUpdate(this);
         }
     },
 
@@ -65,7 +79,7 @@ var lobby = {
         this.broadcast.to(data.slotId).emit("player joined", {nick: data.nick, color: pendingGame.players[data.nick].color});
         if (pendingGame.getNumScreens() >= MapInfo['First'].spawnLocations.length) {
             pendingGame.state = "full";
-            lobby.broadcastSlotStateUpdate(this, data.slotId, "full");
+            lobby.broadcastSlotStateUpdate(this);
         }
     },
 
@@ -82,26 +96,13 @@ var lobby = {
         }else{
             if (lobbySlot.getNumPlayers() == 0) {
                 lobbySlot.state = "empty";
-                this.emit("update slot", {slotId: data.slotId, newState: "empty"});
             }
             if (lobbySlot.state == "full") {
                 lobbySlot.state = "joinable";
-                this.emit("update slot", {slotId: data.slotId, newState: "joinable"});
             }
+            lobby.broadcastSlotStateUpdate(this);
         }
     }
 };
-
-function slotsInfo() {
-    var slots = Object.keys(lobbySlots),
-        result = {};
-    for (var i = 0; i < slots.length; i++) {
-        result[slots[i]] = {
-            numOfPlayers:lobbySlots[slots[i]].getNumPlayers(),
-            state:lobbySlots[slots[i]].state
-        };
-    }
-    return result;
-}
 
 module.exports = lobby;

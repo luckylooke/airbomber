@@ -24,13 +24,13 @@ var PowerupIDs = require("./public/src/game/common/powerup_ids");
 
 var games = {};
 
-var updateInterval = 100;
+var UPDATE_INTERVAL = 100;
 app.use(express.static("client"));
 server.listen(process.env.PORT || 3000);
 
 lobby.initialize();
 setEventHandlers();
-setInterval(broadcastingLoop, updateInterval);
+setInterval(broadcastingLoop, UPDATE_INTERVAL);
 
 
 function setEventHandlers () {
@@ -51,7 +51,7 @@ function setEventHandlers () {
         socket.on("player enter pending game", lobby.onPlayerEnterPendingGame);
         socket.on("leave pending game", lobby.onLeavePendingGame);
     });
-};
+}
 
 function onSocketDisconnect() {
     console.log('Screen has disconected: ' + this.id);
@@ -59,25 +59,25 @@ function onSocketDisconnect() {
     if(!lobbySlot){
         return;
     }
+    console.log(lobbySlot.state);
     if (lobbySlot.state == "joinable" || lobbySlot.state == "full") {
         lobby.onLeavePendingGame.call(this, {screenId: this.id, slotId: this.slotId});
-    } else if (this.id === this.slotId && lobbySlot.state == "settingup") {
-        lobbySlot.state = "empty";
-        lobby.broadcastSlotStateUpdate(this, this.slotId, "empty");
-    } else if (games[this.slotId] && lobbySlot.state == "inprogress") {
+    } else if (lobbySlot.state == "settingup") {
+        lobby.removeSlot(this, this.id);
+    } else if (lobbySlot.state == "inprogress") {
         var game = games[this.slotId];
         var screen = lobbySlot.screens[this.id];
-        for(var player in screen.players){
-            if (player.nick in game.players) {
-                delete game.players[player.nick];
-                io.in(this.slotId).emit("remove player", {nick: player.nick});
+        for(var nick in screen.players){
+            if (nick in game.players) {
+                delete game.players[nick];
+                io.in(this.slotId).emit("remove player", {nick: nick});
             }
         }
         
         // MAY BE DISSABLED FOR DEVELOPEMENT
         if (game && game.numPlayers < 2) {
-            if (games[this.slotId].numPlayers == 1) {
-                io.in(this.id).emit("no opponents left");
+            if (game.numPlayers == 1) {
+                io.in(this.slotId).emit("no opponents left");
             }
             terminateExistingGame(this);
         }
@@ -86,15 +86,14 @@ function onSocketDisconnect() {
             game.awaiting = false;
         }
     }
-};
+}
 
 function terminateExistingGame(socket) {
     var slotId = socket.slotId;
     games[slotId].clearBombs();
-    games[slotId] = undefined;
-    lobby.restartlobby(slotId);
-    lobby.broadcastSlotStateUpdate(socket, slotId, "empty");
-};
+    delete games[slotId];
+    lobby.removeSlot(socket, slotId);
+}
 
 function onStartGame(data) {
     this.slotId = data.slotId;
@@ -103,11 +102,11 @@ function onStartGame(data) {
     games[data.slotId] = game;
     var pendingGame = lobbySlots[data.slotId];
     pendingGame.state = "inprogress";
-    lobby.broadcastSlotStateUpdate(this, data.slotId, "inprogress");
+    lobby.broadcastSlotStateUpdate(this);
     var nicks = pendingGame.getPlayersNicks();
     for(var i = 0; i < nicks.length; i++) {
         var nick = nicks[i];
-        var spawnPoint = MapInfo['First'].spawnLocations[i];
+        var spawnPoint = MapInfo[data.tilemapName].spawnLocations[i];
         var newPlayer = new Player(spawnPoint.x * TILE_SIZE, spawnPoint.y * TILE_SIZE, "down", nick, pendingGame.players[nick].color);
         newPlayer.spawnPoint = spawnPoint;
         newPlayer.controller = pendingGame.players[nick].controller;
@@ -115,11 +114,11 @@ function onStartGame(data) {
     }
     game.numPlayersAlive = nicks.length;
     io.in(data.slotId).emit("start game on client", {mapName: pendingGame.mapName, players: game.players});
-};
+}
 
 function onRegisterMap(data) {
     games[this.slotId].map = new Map(data, TILE_SIZE);
-};
+}
 
 function onMovePlayer(clientPlayer) {
     var game = games[this.slotId];
@@ -133,7 +132,7 @@ function onMovePlayer(clientPlayer) {
     serverPlayer.x = clientPlayer.x;
     serverPlayer.y = clientPlayer.y;
     serverPlayer.facing = clientPlayer.facing;
-};
+}
 
 function onPlaceBomb(data) {
     var socket = this;
@@ -266,4 +265,4 @@ function broadcastingLoop() {
             }
         }
     }
-};
+}

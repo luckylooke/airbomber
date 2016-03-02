@@ -96,9 +96,10 @@ acTools.addListener('ready', function(from, data){
 function newPlayer(device_id, player){
 	console.log('newPlayer game.slotId', {slotId: game.slotId});
   	if(player.nick){
+  		delete player.listener;
   		player.slotId = game.slotId;
   		player.screenId = game.screenId;
-  		player.device_id = game.device_id;
+  		player.device_id = device_id;
 		socket.emit('player enter pending game', player);
 		screen.players[player.nick] = player;
   	}
@@ -252,7 +253,7 @@ PendingGame.prototype = {
 
 	startGameAction: function() {
 		this.leavingPendingGame();
-		socket.emit("start game on server", {slotId: game.slotId});
+		socket.emit("start game on server", {slotId: game.slotId, tilemapName: this.tilemapName});
 	},
 
 	leaveGameAction: function() {
