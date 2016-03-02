@@ -411,12 +411,15 @@
     airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
   }
   
-   function getColor(){
-  	var el = document.getElementsByClassName('selected');
-  	if (el[0]){
-  	  var reg = /[a-z]+(?=.png)(?!_)/;
-  	  var color = reg.exec(el[0].currentSrc);
-  	}
+  function getColor(){
+   var el = document.getElementsByClassName('selected');
+   if (el[0]){
+     var reg = /[a-z]+(?=.png)(?!_)/;
+     if(el[0].currentSrc)
+       var color = reg.exec(el[0].currentSrc);
+     else if (el[0].src)
+       var color = reg.exec(el[0].src);
+  }
   	
     return color[0];
   }
