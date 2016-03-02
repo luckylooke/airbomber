@@ -235,7 +235,8 @@
     };
     
     var airconsole = new AirConsole({
-                            orientation: AirConsole.ORIENTATION_LANDSCAPE
+                            orientation: AirConsole.ORIENTATION_LANDSCAPE,
+                            device_motion: 100
                           });
     // rateLimiter -> https://github.com/AirConsole/airconsole-controls/tree/master/rate-limiter                      
     var rateLimiter = new RateLimiter(airconsole);
@@ -310,12 +311,9 @@
 // FUNCTION DEFINITIONS: ***********************************************************************************************************************************************************************************
     
     function init() {
+      // standard listeners for some devices (e.g. Samsung Galaxy S4 mini)
       if (window.DeviceOrientationEvent) {
-        window.addEventListener("deviceorientation", function (event) {
-            if(event.beta || event.beta === 0){
-              tilt({source: 'deviceorientation', beta: event.beta, gamma: event.gamma});
-            }
-        }, true);
+        window.addEventListener("deviceorientation", getDoListener('deviceorientation'), true);
       } else if (window.DeviceMotionEvent) {
         window.addEventListener('devicemotion', function (event) {
             tilt({source: 'devicemotion', beta: event.acceleration.x * 2, gamma: event.acceleration.y * 2});
@@ -328,7 +326,8 @@
         }, true);
       }
       
-      
+      // secondary listeners for some devices (e.g. Iphone)
+      airconsole.onDeviceMotion =  getDoListener('onDeviceMotion');
       
       window.addEventListener("orientationchange", function() {
         if(!orientationDefault){
@@ -395,6 +394,14 @@
     
     function getOrientation(){
       return screen.orientation || screen.mozOrientation || screen.msOrientation || window.orientation;
+    }
+    
+    function getDoListener(source){
+      return function doListener(data) {
+        if(data.beta || data.beta === 0){
+          tilt({source: source, beta: data.beta, gamma: data.gamma});
+        }
+      };
     }
       
     function tilt(data){
