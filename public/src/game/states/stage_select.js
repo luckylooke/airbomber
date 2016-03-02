@@ -12,15 +12,14 @@ module.exports = StageSelect;
 // var stageNameYOffset = 320;
 
 var stages = [
-	{name: "Comeback1", thumbnailFile: "danger_desert_thumbnail.png", tilemapName: "First", maxPlayers: 4, size: "Small"},
-	{name: "Comeback2", thumbnailFile: "danger_desert_thumbnail.png", tilemapName: "Second", maxPlayers: 6, size: "Medium"},
-	{name: "Comeback3", thumbnailFile: "danger_desert_thumbnail.png", tilemapName: "Third", maxPlayers: 8, size: "Large"},
-	{name: "Comeback4", thumbnailFile: "danger_desert_thumbnail.png", tilemapName: "Fourth", maxPlayers: 10, size: "Very large"},
+	{name: "Green field", thumbnailFile: "../resource/green_field_thumbnail.png", tilemapName: "First", maxPlayers: 4, size: "Small", background:"../resource/green_field_background.png"},
+	{name: "Desert", thumbnailFile: "../resource/danger_desert_thumbnail.png", tilemapName: "Second", maxPlayers: 4, size: "Small", background:"../resource/danger_desert_background.png"},
 ];
 
 StageSelect.prototype = {
     init: function () {
     	document.getElementById('stage-select').classList.remove("hidden");
+    	
 	},
 
 	create: function() {
@@ -29,9 +28,10 @@ StageSelect.prototype = {
 		var completeStages = [];
 		var arrow_left = document.getElementById('arrow-left');
 		var arrow_right = document.getElementById('arrow-right');
+		var stageSelectElement = document.getElementById('stage-select');
+		var pendingGameElement = document.getElementById('pendingGame');
 		var currentStage = 0;
 		htmlStagesElm.innerHTML = '';
-		
 		
 		var stage,
 			newStageElm;
@@ -40,15 +40,18 @@ StageSelect.prototype = {
         	stage = stages[i];
         	newStageElm = htmlStageElm.cloneNode(true);
         	newStageElm.children[0].innerHTML = stage.name;
-        	newStageElm.children[1].setAttribute('src', './assets/levels/thumbnails/' + stage.thumbnailFile);
+        	newStageElm.children[1].setAttribute('src', stage.thumbnailFile);
         	newStageElm.children[2].innerHTML = 'Max players: ' + stage.maxPlayers;
         	newStageElm.children[3].innerHTML = 'Size: ' + stage.size;
         	newStageElm.addEventListener("click", this.confirmStageSelection);
         	newStageElm.classList.add("hidden");
+        	newStageElm.background = stage.background;
         	htmlStagesElm.appendChild(newStageElm);
         	completeStages.push(newStageElm);
         }
         
+        stageSelectElement.style.backgroundImage = "url(" + completeStages[0].background + ")";
+        pendingGameElement.style.backgroundImage = "url(" + completeStages[0].background + ")";	
         completeStages[0].classList.remove("hidden");
         // game.add.sprite(0, 0, 'background_s');
 		// var selectionWindow = game.add.image(xOffset, yOffset, "select_stage");
@@ -69,6 +72,9 @@ StageSelect.prototype = {
 			currentStage--;
 			if(currentStage < 0)
 				currentStage = completeStages.length - 1;
+				
+			stageSelectElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
+			pendingGameElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
 		
 		completeStages[currentStage].classList.remove("hidden");		
 		})
@@ -79,6 +85,9 @@ StageSelect.prototype = {
 			currentStage++;
 			if(currentStage >= completeStages.length)
 				currentStage = 0;
+				
+			stageSelectElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
+			pendingGameElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
 				
 			completeStages[currentStage].classList.remove("hidden");	
 		})

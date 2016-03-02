@@ -205,6 +205,8 @@
 	        this.load.spritesheet("leave_game_button", "resource/leave_game_button.png", 202, 43);
 	        this.load.spritesheet("game_slot", "resource/game_slot.png", 522, 48);
 	        this.load.tilemap("First", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
+	        this.load.tilemap("Second", "assets/levels/level_one.json", null, Phaser.Tilemap.TILED_JSON);
+	        this.load.tilemap("Third", "assets/levels/level_two.json", null, Phaser.Tilemap.TILED_JSON);
 	        // this.load.tilemap("levelTwo", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
 	        this.load.image("tiles", "resource/tileset.png");
 	        this.load.image("select_stage", "resource/select_stage.png");
@@ -372,15 +374,14 @@
 	// var stageNameYOffset = 320;
 
 	var stages = [
-		{name: "Comeback1", thumbnailFile: "danger_desert_thumbnail.png", tilemapName: "First", maxPlayers: 4, size: "Small"},
-		{name: "Comeback2", thumbnailFile: "danger_desert_thumbnail.png", tilemapName: "Second", maxPlayers: 6, size: "Medium"},
-		{name: "Comeback3", thumbnailFile: "danger_desert_thumbnail.png", tilemapName: "Third", maxPlayers: 8, size: "Large"},
-		{name: "Comeback4", thumbnailFile: "danger_desert_thumbnail.png", tilemapName: "Fourth", maxPlayers: 10, size: "Very large"},
+		{name: "Green field", thumbnailFile: "../resource/green_field_thumbnail.png", tilemapName: "First", maxPlayers: 4, size: "Small", background:"../resource/green_field_background.png"},
+		{name: "Desert", thumbnailFile: "../resource/danger_desert_thumbnail.png", tilemapName: "Second", maxPlayers: 4, size: "Small", background:"../resource/danger_desert_background.png"},
 	];
 
 	StageSelect.prototype = {
 	    init: function () {
 	    	document.getElementById('stage-select').classList.remove("hidden");
+	    	
 		},
 
 		create: function() {
@@ -389,9 +390,10 @@
 			var completeStages = [];
 			var arrow_left = document.getElementById('arrow-left');
 			var arrow_right = document.getElementById('arrow-right');
+			var stageSelectElement = document.getElementById('stage-select');
+			var pendingGameElement = document.getElementById('pendingGame');
 			var currentStage = 0;
 			htmlStagesElm.innerHTML = '';
-			
 			
 			var stage,
 				newStageElm;
@@ -400,15 +402,18 @@
 	        	stage = stages[i];
 	        	newStageElm = htmlStageElm.cloneNode(true);
 	        	newStageElm.children[0].innerHTML = stage.name;
-	        	newStageElm.children[1].setAttribute('src', './assets/levels/thumbnails/' + stage.thumbnailFile);
+	        	newStageElm.children[1].setAttribute('src', stage.thumbnailFile);
 	        	newStageElm.children[2].innerHTML = 'Max players: ' + stage.maxPlayers;
 	        	newStageElm.children[3].innerHTML = 'Size: ' + stage.size;
 	        	newStageElm.addEventListener("click", this.confirmStageSelection);
 	        	newStageElm.classList.add("hidden");
+	        	newStageElm.background = stage.background;
 	        	htmlStagesElm.appendChild(newStageElm);
 	        	completeStages.push(newStageElm);
 	        }
 	        
+	        stageSelectElement.style.backgroundImage = "url(" + completeStages[0].background + ")";
+	        pendingGameElement.style.backgroundImage = "url(" + completeStages[0].background + ")";	
 	        completeStages[0].classList.remove("hidden");
 	        // game.add.sprite(0, 0, 'background_s');
 			// var selectionWindow = game.add.image(xOffset, yOffset, "select_stage");
@@ -429,6 +434,9 @@
 				currentStage--;
 				if(currentStage < 0)
 					currentStage = completeStages.length - 1;
+					
+				stageSelectElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
+				pendingGameElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
 			
 			completeStages[currentStage].classList.remove("hidden");		
 			})
@@ -439,6 +447,9 @@
 				currentStage++;
 				if(currentStage >= completeStages.length)
 					currentStage = 0;
+					
+				stageSelectElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
+				pendingGameElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
 					
 				completeStages[currentStage].classList.remove("hidden");	
 			})
@@ -471,6 +482,7 @@
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var screen = bomberman.screen;
+	var MAX_PLAYERS = 4;
 
 	screen.isReady = false;
 	screen.players = {};
@@ -794,7 +806,7 @@
 	    gameFrozen: true,
 
 	    init: function (data) {
-	        this.tilemapName = 'First';
+	        this.tilemapName = data.mapName;
 	        //console.log(this.tilemapName + '||' + players + "||" + id);
 	        this.players = data.players;
 	    },
@@ -1139,7 +1151,7 @@
 			tilesetImage: "tiles",
 			destructibleTileId: 4
 		},
-		levelTwo: {
+		Second: {
 			spawnLocations: [{x: 2, y: 1}, {x: 13, y: 1}, {x: 2, y: 13}, {x: 13, y: 13}],
 			collisionTiles: [169, 191],
 			groundLayer: "Ground",

@@ -7,7 +7,7 @@
          "opacity":1,
          "type":"tilelayer",
          "visible":true,
-         "width":15,
+         "width":25,
          "x":0,
          "y":0
         }, 
@@ -18,7 +18,7 @@
          "opacity":1,
          "type":"tilelayer",
          "visible":true,
-         "width":15,
+         "width":25,
          "x":0,
          "y":0
         }],
@@ -28,13 +28,13 @@
 
     },
  "renderorder":"right-down",
- "tileheight":40,
+ "tileheight":35,
  "tilesets":[
         {
          "firstgid":1,
-         "image":"..\/tiles\/tileset.png",
-         "imageheight":639,
-         "imagewidth":1200,
+         "image":"..\/resource\/tileset.png",
+         "imageheight":35,
+         "imagewidth":175,
          "margin":0,
          "name":"tiles",
          "properties":
@@ -42,11 +42,11 @@
 
             },
          "spacing":0,
-         "tileheight":40,
-         "tilewidth":40,
+         "tileheight":35,
+         "tilewidth":35,
          "transparentcolor":"#ff00ff"
         }],
- "tilewidth":40,
+ "tilewidth":35,
  "version":1,
- "width":15
+ "width":25
 }

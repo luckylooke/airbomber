@@ -32,7 +32,7 @@
         <div id="stages" class=""> 
             <div class="stage stage-button">
                 <div>Loading..</div>
-                <img src="./assets/levels/thumbnails/empty.png"></img>
+                <img src="./resource/green_field_thumbnail.png"></img>
                 <div>Loading..</div>
                 <div>Loading..</div>
             </div>
@@ -43,24 +43,23 @@
     </div>
     
     <div id="pendingGame" class="gui hidden">
-        <div class="container">
-            <h1>PLAYERS</h1>
+        <div class="airbomber-header">
+            <p class="airbomber-text">PLAYERS</p>
         </div>
         <!-- list of players -->
         <div id="players" class="container"> 
-            <div class="player btn btn-default col-lg-2 col-md-3 col-sm-6 col-xs-12">
-                <h3>Loading..</h3>
-                <img src="./assets/levels/thumbnails/empty.png"></img>
+            <div class="player">
+                <p class="player-name">Loading..</p>
+                <img src="./resource/green_field_thumbnail.png"></img>
                 <div>Loading..</div>
                 <div>Loading..</div>
             </div>
         </div>
-        <div class="container"> 
-            <div class="col-lg-12">
-                <button type="button" class="btn btn-primary" id="startGameBtn">Start Game</button>
-                <button type="button" class="btn btn-warning" id="leaveGameBtn">Leave</button>
-                <div id="minPlayersMessage">Cannot start game without at least two players!</div>
-            </div>
+        
+        <div class="pending-game-buttons">
+            <button type="button" class="lobby-button start-button" id="startGameBtn">Start Game</button>
+            <button type="button" class="lobby-button leave-button" id="leaveGameBtn">Leave</button>
+            <div id="minPlayersMessage">Cannot start game without at least two players!</div>
         </div>
     </div>
     <script type="text/javascript">

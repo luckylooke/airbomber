@@ -3,6 +3,7 @@ var TextConfigurer = require('../util/text_configurer');
 var game = bomberman.game;
 var socket = bomberman.socket;
 var screen = bomberman.screen;
+var MAX_PLAYERS = 4;
 
 screen.isReady = false;
 screen.players = {};

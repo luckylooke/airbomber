@@ -3,18 +3,24 @@
     src: url(Bomberman.ttf);
 }
 
-html, body, #bomber, .gui {
+html,
+body,
+#bomber,
+.gui {
     width: 100%;
     height: 100%;
 }
-html, #bomber {
+
+html,
+#bomber {
     background: black;
 }
+
 body {
     margin: 0px;
 }
 
-.gui{
+.gui {
     position: absolute;
     top: 0;
     left: 0;
@@ -26,10 +32,9 @@ body {
     display: none;
 }
 
-
-#lobby{
-    width:100%;
-    height:100%;
+#lobby {
+    width: 100%;
+    height: 100%;
     background: url("../resource/Background_1.png") no-repeat;
     -webkit-background-size: cover;
     -moz-background-size: cover;
@@ -37,22 +42,21 @@ body {
     background-size: cover;
 }
 
-#lobby #slots{
-    position:relative;
+#lobby #slots {
+    position: relative;
     width: 300px;
     height: 150px;
-    margin:0 auto;
+    margin: 0 auto;
     bottom: -310px;
-    
 }
 
-#lobby .airbomber-header{
+#lobby .airbomber-header {
     width: 605px;
     margin: 0 auto;
     font-family: bombermanFont;
 }
 
-#lobby .lobby-button{
+#lobby .lobby-button {
     float: left;
     width: 300px;
     height: 45px;
@@ -60,40 +64,48 @@ body {
     border: 1px solid white;
     border-radius: 15px;
     font-size: 27px;
+    cursor: pointer;
 }
 
-#lobby .host-button{
-    background-color:#0082C1;
+#lobby .host-button {
+    background-color: #0082C1;
     border: 1px solid #0082C1;
 }
 
-#lobby .host-button:hover{
-    background-color:#3B5EC1;
+#lobby .host-button:hover {
+    background-color: #3B5EC1;
     border: 1px solid #3B5EC1;
 }
 
 #lobby .airbomber-header .airbomber-text,
-#stage-select .airbomber-header .airbomber-text {
-    margin-top:100px;
-    margin-bottom:10px;
+#stage-select .airbomber-header .airbomber-text,
+#pendingGame .airbomber-header .airbomber-text {
+    margin-top: 100px;
+    margin-bottom: 10px;
     font-size: 90px;
 }
 
-#stage-select .airbomber-header{
+#stage-select .airbomber-header {
     width: 715px;
     margin: 0 auto;
-    color:#FFD34E;
+    color: #FFD34E;
     font-family: bombermanFont;
-    
 }
 
-#stage-select #stages{
+#pendingGame .airbomber-header {
+    width: 463px;
+    margin: 0 auto;
+    color: #FFD34E;
+    font-family: bombermanFont;
+}
+
+#stage-select #stages {
     float: left;
     height: 48%;
     width: 21.9%;
 }
 
-#stage-select #stages .stage{
+#stage-select #stages .stage {
     width: 100%;
     height: 100%;
     margin: 0 auto;
@@ -101,22 +113,21 @@ body {
     font-size: 30px;
 }
 
-#stage-select #stages .stage img{
+#stage-select #stages .stage img {
     width: inherit;
     height: 269px;
 }
 
-#stage-select{
-    width:100%;
-    height:100%;
-    background: url("../resource/green_stage_background.png") no-repeat;
+#stage-select {
+    width: 100%;
+    height: 100%;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
 }
 
-#stage-select .arrow{
+#stage-select .arrow {
     float: left;
     height: 15%;
     width: 9%;
@@ -124,6 +135,76 @@ body {
     cursor: pointer;
 }
 
-#stage-select #arrow-left{
+#stage-select #arrow-left {
     margin-left: 30.1%;
+}
+
+#pendingGame {
+    width: 100%;
+    height: 100%;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}
+
+#pendingGame #players {
+    width: 80%;
+    height: 45%;
+}
+
+#pendingGame .player:first-child {
+    margin-left: 0;
+}
+
+#pendingGame .player {
+    height: 100%;
+    background: #3E454C;
+    border-radius: 65px;
+    margin-left: 1%;
+    text-align: center;
+    width: 25%;
+    float: left;
+}
+
+#pendingGame .player .player-name {
+    margin-top: 10%;
+    margin-bottom: 10%;
+    font-size: 38px;
+}
+
+#pendingGame .player img {
+    width: 50%;
+}
+
+#pendingGame .pending-game-buttons {
+    margin-left: 36%;
+    margin-top: 5%;
+    width: 28%;
+    height: 5%;
+    text-align: center;
+}
+
+#pendingGame .lobby-button {
+    float: left;
+    width: 49%;
+    height: 100%;
+    border: 1px solid white;
+    border-radius: 15px;
+    font-size: 27px;
+    cursor: pointer;
+}
+
+#pendingGame .leave-button {
+    margin-left: 2%;
+}
+
+#pendingGame .start-button {
+    background-color: #0082C1;
+    border: 1px solid #0082C1;
+}
+
+#pendingGame .leave-button {
+    background-color: #FFC44E;
+    border: 1px solid #FFC44E;
 }
