@@ -573,7 +573,7 @@
 	});
 
 	function newPlayer(device_id, player){
-		console.log('newPlayer game.slotId', game.slotId);
+		console.log('newPlayer game.slotId', {slotId: game.slotId});
 	  	if(player.nick){
 	  		player.slotId = game.slotId;
 	  		player.screenId = game.screenId;
@@ -731,12 +731,12 @@
 
 		startGameAction: function() {
 			this.leavingPendingGame();
-			socket.emit("start game on server", game.slotId);
+			socket.emit("start game on server", {slotId: game.slotId});
 		},
 
 		leaveGameAction: function() {
 			this.leavingPendingGame();
-			socket.emit("leave pending game", game.slotId);
+			socket.emit("leave pending game", {slotId: game.slotId});
 			socket.removeAllListeners();
 	        game.state.start("Lobby");
 		},

@@ -9,8 +9,8 @@ var lobby = {
         return lobbySlots;
     },
 
-    restartlobby: function(slotId){
-        lobbySlots[slotId] = new PendingGame();
+    restartlobby: function(data){
+        lobbySlots[data.slotId] = new PendingGame();
     },
 
     getNumlobbySlots: function () {

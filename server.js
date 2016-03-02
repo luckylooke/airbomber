@@ -96,14 +96,14 @@ function terminateExistingGame(socket) {
     lobby.broadcastSlotStateUpdate(socket, slotId, "empty");
 };
 
-function onStartGame(slotId) {
-    this.slotId = slotId;
+function onStartGame(data) {
+    this.slotId = data.slotId;
     var lobbySlots = lobby.getlobbySlots();
-    var game = new Game(slotId);
-    games[slotId] = game;
-    var pendingGame = lobbySlots[slotId];
+    var game = new Game(data.slotId);
+    games[data.slotId] = game;
+    var pendingGame = lobbySlots[data.slotId];
     pendingGame.state = "inprogress";
-    lobby.broadcastSlotStateUpdate(this, slotId, "inprogress");
+    lobby.broadcastSlotStateUpdate(this, data.slotId, "inprogress");
     var nicks = pendingGame.getPlayersNicks();
     for(var i = 0; i < nicks.length; i++) {
         var nick = nicks[i];
@@ -114,7 +114,7 @@ function onStartGame(slotId) {
         game.players[nick] = newPlayer;
     }
     game.numPlayersAlive = nicks.length;
-    io.in(slotId).emit("start game on client", {mapName: pendingGame.mapName, players: game.players});
+    io.in(data.slotId).emit("start game on client", {mapName: pendingGame.mapName, players: game.players});
 };
 
 function onRegisterMap(data) {
