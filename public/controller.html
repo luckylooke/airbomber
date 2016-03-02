@@ -60,8 +60,8 @@
       <div class="calibre-button">
         <div id="debugMessage"></div>
         <div id="calibrateMessage">Tap "Begin" button to start calibration!</div>
-        <button id="calibrateBtn" type="button" onClick="gnCal.calibrate()">Begin</button>
-        <button id="calStartOverBtn" type="button" onClick="gnCal.startOver()">Start over!</button>
+        <button id="calibrateBtn" type="button" onClick="gyro.calibrate()">Begin</button>
+        <button id="calStartOverBtn" type="button" onClick="gyro.startOver()">Start over!</button>
       </div>
     </form>
   </div>
@@ -71,7 +71,6 @@
 <script type="text/javascript" src="controller/dpad/dpad.js"></script>
 <script type="text/javascript" src="controller/button/button.js"></script>
 <script type="text/javascript" src="controller/rate-limiter/rate-limiter.js"></script>
-<script type="text/javascript" src="controller/gyronorm.complete.js"></script>
 <script type="text/javascript">
   /* global AirConsole, DPad, Button, GyroNorm, RateLimiter */
   
@@ -89,11 +88,10 @@
     var acInterval;
     var controller = 'DPad'; // DPad, Gyro
     var transitFrom = 'welcome';
-    var STILL_SNAP = 10; // % of movement to be considered as still player
-    var gn = new GyroNorm();
-    var gndoSupported;
-    var gnActualData;
-    var gnCal = {
+    var STILL_SNAP = 10; // [%] of movement to be considered as still player
+    var TILT_LIMITER_RATE = 10; // [ms] of minimal time between tilt function executions
+    var gyroActual;
+    var gyro = {
       init: function(){
         this.startOverBtn.style.display = "none";
       },
@@ -128,14 +126,14 @@
         if(this.step === 0){
           setMessages(steps[++this.step]);
         }else if(this.step === 4){
-          this[steps[this.step]] = {beta: gnActualData.do.beta, gamma: gnActualData.do.gamma};
+          this[steps[this.step]] = {beta: gyroActual.beta, gamma: gyroActual.gamma};
           this.step = 1;
           setMessages(steps[++this.step]);
           this.calculateLimits();
           this.calibrated = true;
           transitView("name-and-color");
         }else{
-          this[steps[this.step]] = {beta: gnActualData.do.beta, gamma: gnActualData.do.gamma};
+          this[steps[this.step]] = {beta: gyroActual.beta, gamma: gyroActual.gamma};
           setMessages(steps[++this.step]);
         }
         
@@ -168,14 +166,14 @@
             this.MAX_GAMMA_SIDE = side;
           }
         }
-        gnCal.debugMessage.innerHTML = '2calculateLimits';
+        gyro.debugMessage.innerHTML = '2calculateLimits';
         
         // GET CENTER
         this.CENTER = {
           beta: (this.MIN_BETA + this.MAX_BETA)/2,
           gamma: (this.MIN_GAMMA + this.MAX_GAMMA)/2
         };
-        gnCal.debugMessage.innerHTML = '3calculateLimits';
+        gyro.debugMessage.innerHTML = '3calculateLimits';
         
         // NORMALISE
         this.MIN_BETA -= this.CENTER.beta;
@@ -230,9 +228,93 @@
                           });
     // rateLimiter -> https://github.com/AirConsole/airconsole-controls/tree/master/rate-limiter                      
     var rateLimiter = new RateLimiter(airconsole);
+      
+    new DPad("my-DPad", {
+      // Set to true if you want to have a relative swipe dpad
+      "relative": false,
+      // Gets called when the dpad direction changes.
+      // Key is one of: DPad.UP, DPad.DOWN, DPad.LEFT, DPad.RIGHT.
+      // Pressed is a boolean, true if the direction is active.
+      "directionchange": function(key, pressed) {
+        if(controller === 'DPad'){
+          switch(key) {
+            case 'right':
+                pressed ? moveDPad({x:1}) : moveDPad({x: 0});
+                break;
+            case 'left':
+                pressed ? moveDPad({x:-1}) : moveDPad({x: 0});
+                break;
+            case 'up':
+                pressed ? moveDPad({y:-1}) : moveDPad({y: 0});
+                break;
+            case 'down':
+                pressed ? moveDPad({y:1}) : moveDPad({y: 0});
+                break;
+          }
+        }
+      },
+
+      // // Gets called when the DPad is touched.
+      // "touchstart": function() {
+      //   console.log('touch start');
+      // },
+
+      // // Gets called when the DPad is released.
+      // // had_direction is a boolean that tells you if at lease one direction was active.
+      // //               can be used to determine if it was just a "tap" on the DPad.
+      // "touchend": function(had_direction) {
+      //   console.log('touch end', had_direction);
+      // },
+
+      // (Optional) distance which the user needs to move before triggering a direction.
+      "distance": {x: 10, y:10},
+
+      // (Optional) diagonal: If true, diagonal movement are possible and it becomes a 8-way DPad:
+      //                      For exmaple UP and RIGHT at the same time.
+      "diagonal": true
+    });
     
+    new Button("button-bomb", {
+        "down": function() {
+          bomb('setting');
+        },
+        "up": function() {
+          bomb(!'setting');
+        }
+      });
+    
+    new Button("button-bomb-gyro", {
+        "down": function() {
+          console.log('bomb gyro true');
+          bomb('setting');
+        },
+        "up": function() {
+          console.log('bomb gyro false');
+          bomb(!'setting');
+        }
+      });
+      
+      
+    
+// FUNCTION DEFINITIONS: ***********************************************************************************************************************************************************************************
     
     function init() {
+      if (window.DeviceOrientationEvent) {
+        console.log('deviceorientation');
+        window.addEventListener("deviceorientation", function (event) {
+            tilt({beta: event.beta, gamma: event.gamma});
+        }, true);
+      } else if (window.DeviceMotionEvent) {
+        window.addEventListener('devicemotion', function (event) {
+            tilt({beta: event.acceleration.x * 2, gamma: event.acceleration.y * 2});
+        }, true);
+      } else {
+        window.addEventListener("MozOrientation", function (event) {
+            event.gamma = -(event.x * (180 / Math.PI));
+            event.beta = -(event.y * (180 / Math.PI));
+            tilt({beta: event.beta, gamma: event.gamma});
+        }, true);
+      }
       
       airconsole.onMessage = acTools.onMessage;
       
@@ -249,7 +331,7 @@
        * Checks if this device is part of the active game.
        */
       airconsole.onActivePlayersChange = function(player) {
-        var div = document.getElementById("player_id");
+        // var div = document.getElementById("player_id");
         // if (player !== undefined) {
         //   div.innerHTML =  (["Left Player", "Right Player"][player]);
         // } else {
@@ -257,81 +339,6 @@
         // }
       };
       
-      gn.init({
-          frequency:100,                   // ( How often the object sends the values - milliseconds )
-          gravityNormalized:false,         // ( If the garvity related values to be normalized )
-          orientationBase:GyroNorm.GAME,      // ( Can be GyroNorm.GAME or GyroNorm.WORLD. gn.GAME returns orientation values with respect to the head direction of the device. gn.WORLD returns the orientation values with respect to the actual north direction of the world. )
-          decimalCount:2,                 // ( How many digits after the decimal point will there be in the return values )
-          logger:null,                    // ( Function to be called to log messages from gyronorm.js )
-          screenAdjusted:true            // ( If set to true it will return screen adjusted values. )
-      }).then(function(){
-        gndoSupported = gn.isAvailable(GyroNorm.DEVICE_ORIENTATION);
-        
-        if(gndoSupported){
-          controller = 'Gyro';
-          
-          gn.start(function(data){
-              // Process:
-              // data.do.alpha    ( deviceorientation event alpha value )
-              // data.do.beta     ( deviceorientation event beta value )
-              // data.do.gamma    ( deviceorientation event gamma value )
-              // data.do.absolute ( deviceorientation event absolute value )
-  
-              // data.dm.x        ( devicemotion event acceleration x value )
-              // data.dm.y        ( devicemotion event acceleration y value )
-              // data.dm.z        ( devicemotion event acceleration z value )
-  
-              // data.dm.gx       ( devicemotion event accelerationIncludingGravity x value )
-              // data.dm.gy       ( devicemotion event accelerationIncludingGravity y value )
-              // data.dm.gz       ( devicemotion event accelerationIncludingGravity z value )
-  
-              // data.dm.alpha    ( devicemotion event rotationRate alpha value )
-              // data.dm.beta     ( devicemotion event rotationRate beta value )
-              // data.dm.gamma    ( devicemotion event rotationRate gamma value )
-              
-              // gnCal.debugMessage.innerHTML = data.do.beta + " - " + data.do.gamma;
-              
-              if(gnCal.calibrated){
-                // if(gameState === 'level'){
-                  var mov = process('beta', {x: 0, y:0});
-                  mov = process('gamma', mov);
-                  // console.log(mov.x + " - " + mov.y, mov);
-                  moveGyro(mov);
-                // }
-              }else{
-                gnActualData = data;
-              }
-              
-              function process(name, mov){
-                var value = data.do[name],
-                  axis, dir;
-                
-                if(value > gnCal.CENTER[name]){
-                  dir = gnCal['MAX_' + name.toUpperCase() + '_SIDE'];
-                  axis = gnCal.dirToAxis[dir];
-                  mov[axis] = Math.abs(value - gnCal.CENTER[name]) / Math.abs(gnCal['MAX_' + name.toUpperCase()]);
-                }else{
-                  dir = gnCal['MIN_' + name.toUpperCase() + '_SIDE'];
-                  axis = gnCal.dirToAxis[dir];
-                  mov[axis] = Math.abs(value - gnCal.CENTER[name]) / Math.abs(gnCal['MIN_' + name.toUpperCase()]);
-                }
-                
-                mov[axis] *= gnCal.dirToSign[dir];
-                return mov;
-              }
-          });
-        }else{
-          controller = 'DPad';
-        }
-        afterInit();
-      }).catch(function(e){
-        // Catch if the DeviceOrientation or DeviceMotion is not supported by the browser or device
-        console.log(e);
-        controller = 'DPad';
-        afterInit();
-      });
-      
-     
 
       /*
        * Makes the device vibrate if the screen says so.
@@ -350,13 +357,67 @@
   	  	  clickedElement.className += ' selected';
   	  	}
 	    });
+    console.log('BEFORE afterInit', controller);
+	    
+	    // timeout to get chance gyro/accelerators to fire tilt() function and so tell controller to use gyro functiuonality
+      setTimeout(afterInit, 500);
     }
+    
+  function tilt(data){
+    console.log('tilt');
+    if(tiltLimiter()){
+      return;
+    }
+    console.log('tilt limited');
+    controller = 'Gyro';
+   if(gyro.calibrated){
+      // if(gameState === 'level'){
+        var mov = process('beta', {x: 0, y:0});
+        mov = process('gamma', mov);
+        // console.log(mov.x + " - " + mov.y, mov);
+        moveGyro(mov);
+      // }
+    }else{
+      gyroActual = data;
+    }
+    
+    function process(name, mov){
+      var value = data[name],
+        axis, dir;
+      
+      if(value > gyro.CENTER[name]){
+        dir = gyro['MAX_' + name.toUpperCase() + '_SIDE'];
+        axis = gyro.dirToAxis[dir];
+        mov[axis] = Math.abs(value - gyro.CENTER[name]) / Math.abs(gyro['MAX_' + name.toUpperCase()]);
+      }else{
+        dir = gyro['MIN_' + name.toUpperCase() + '_SIDE'];
+        axis = gyro.dirToAxis[dir];
+        mov[axis] = Math.abs(value - gyro.CENTER[name]) / Math.abs(gyro['MIN_' + name.toUpperCase()]);
+      }
+      
+      mov[axis] *= gyro.dirToSign[dir];
+      return mov;
+    }
+  }
+    
+  function tiltLimiter(){
+    if(this.tiltLimit){
+      return true;
+    }else{
+      this.tiltLimit = true;
+      setTimeout(function(){
+        this.tiltLimit = false;
+      }, TILT_LIMITER_RATE);
+      return false;
+    }
+  }
   
   function afterInit(){
+    console.log('afterInit', controller);
      if(controller === 'DPad'){
         transitView("name-and-color");
       }else{
-        gnCal.init();
+        gyro.init();
         transitView("gyro-calibration");
       }
   }
@@ -460,70 +521,5 @@
         setting: setting
       });
     }
-      
-    new DPad("my-DPad", {
-      // Set to true if you want to have a relative swipe dpad
-      "relative": false,
-      // Gets called when the dpad direction changes.
-      // Key is one of: DPad.UP, DPad.DOWN, DPad.LEFT, DPad.RIGHT.
-      // Pressed is a boolean, true if the direction is active.
-      "directionchange": function(key, pressed) {
-        if(controller === 'DPad'){
-          switch(key) {
-            case 'right':
-                pressed ? moveDPad({x:1}) : moveDPad({x: 0});
-                break;
-            case 'left':
-                pressed ? moveDPad({x:-1}) : moveDPad({x: 0});
-                break;
-            case 'up':
-                pressed ? moveDPad({y:-1}) : moveDPad({y: 0});
-                break;
-            case 'down':
-                pressed ? moveDPad({y:1}) : moveDPad({y: 0});
-                break;
-          }
-        }
-      },
-
-      // // Gets called when the DPad is touched.
-      // "touchstart": function() {
-      //   console.log('touch start');
-      // },
-
-      // // Gets called when the DPad is released.
-      // // had_direction is a boolean that tells you if at lease one direction was active.
-      // //               can be used to determine if it was just a "tap" on the DPad.
-      // "touchend": function(had_direction) {
-      //   console.log('touch end', had_direction);
-      // },
-
-      // (Optional) distance which the user needs to move before triggering a direction.
-      "distance": {x: 10, y:10},
-
-      // (Optional) diagonal: If true, diagonal movement are possible and it becomes a 8-way DPad:
-      //                      For exmaple UP and RIGHT at the same time.
-      "diagonal": true
-    });
-    
-    new Button("button-bomb", {
-        "down": function() {
-          bomb('setting');
-        },
-        "up": function() {
-          bomb(!'setting');
-        }
-      });
-    
-    new Button("button-bomb-gyro", {
-        "down": function() {
-          console.log('bomb gyro true');
-          bomb('setting');
-        },
-        "up": function() {
-          console.log('bomb gyro false');
-          bomb(!'setting');
-        }
-      });
     
 </script></body></html>
