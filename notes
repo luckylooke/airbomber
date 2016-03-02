@@ -1,0 +1,23 @@
+TODO:
+- test all disconnection scenarios
+- status bar on controller (including nick color score(killed vs deaths) etc..)
+- local player (keyboard)
+- burnable powerups?
+- missing resources (bomberman_green.png missing... etc.)
+- bigger level (generated?)
+- Nickname over players
+- https://github.com/AirConsole/airconsole-view-manager
+- move data about maps from stages in stage_select.js to map_info.js and load it from there
+
+Useful links:
+https://gitlab.com/luckylooke/airconsole
+http://developers.airconsole.com/#/getting_started
+https://github.com/AirConsole/airconsole-controls
+https://github.com/AirConsole/airconsole-view-manager
+https://github.com/dorukeker/gyronorm.js
+https://github.com/AirConsole/airconsole-view-manager
+https://github.com/lean/phaser-es6-webpack
+
+Sources:
+https://github.com/definder/bomberman-webpack-phaser-socket.io
+https://github.com/ahung89/bomb-arena

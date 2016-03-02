@@ -1,3 +1,16 @@
-The OpenShift `nodejs` cartridge documentation can be found at:
+# AIRBOMBER
+Bomberman clone for airconsole.com contest
 
-http://openshift.github.io/documentation/oo_cartridge_guide.html#nodejs
+Planned features:
+- status bar on controller (including nick color score(killed vs deaths) etc..)
+- local player (keyboard)
+- bigger levels (generated?)
+- Nickname over players
+
+Sources:
+Starting point of this open project was here:
+https://github.com/definder/bomberman-webpack-phaser-socket.io
+it probably is mostly based on this:
+https://github.com/ahung89/bomb-arena
+
+Thank you guys for sharing!

@@ -1,0 +1,91 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+	<meta charset="UTF-8" />
+    <title>AirBomber</title>
+    <link rel="stylesheet" href="css/style.css"/>
+    <link rel="stylesheet" href="css/bootstrap.css"/>
+    <link rel="stylesheet" href="css/bootstrap-theme.css"/>
+</head>
+<body>
+    <div id="bomber"></div>
+    
+    <!-- GUIs -->
+    <div id="lobby" class="gui hidden">
+        <div class="airbomber-header">
+            <p class="airbomber-text">AIRBOMBER</p>
+        </div>
+        <!-- list of slots -->
+        <div id="slots" class=""> 
+            <button type="submit" class="lobby-button host-button"></button>
+        </div>
+    </div>
+    
+    <div id="stage-select" class="gui hidden">
+        <div class="airbomber-header">
+            <p class="airbomber-text">SELECT STAGE</p>
+        </div>
+        <!-- list of stages -->
+        <div class="arrow" id="arrow-left">
+            <img src="../resource/arrow_left.png"></img>
+        </div>
+        <div id="stages" class=""> 
+            <div class="stage stage-button">
+                <div>Loading..</div>
+                <img src="./resource/green_field_thumbnail.png"></img>
+                <div>Loading..</div>
+                <div>Loading..</div>
+            </div>
+        </div>
+        <div class="arrow" id="arrow-right">
+            <img src="../resource/arrow_right.png"></img>
+        </div>
+    </div>
+    
+    <div id="pendingGame" class="gui hidden">
+        <div class="airbomber-header">
+            <p class="airbomber-text">PLAYERS</p>
+        </div>
+        <!-- list of players -->
+        <div id="players" class="container"> 
+            <div class="player">
+                <p class="player-name">Loading..</p>
+                <img src="./resource/green_field_thumbnail.png"></img>
+                <div>Loading..</div>
+                <div>Loading..</div>
+            </div>
+        </div>
+        
+        <div class="pending-game-buttons">
+            <button type="button" class="lobby-button start-button" id="startGameBtn">Start Game</button>
+            <button type="button" class="lobby-button leave-button" id="leaveGameBtn">Leave</button>
+            <div id="minPlayersMessage">Cannot start game without at least two players!</div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        WebFontConfig = {
+          google: { families: [ 'Carter+One::latin' ] }
+        };
+        (function() {
+            var wf = document.createElement('script');
+            wf.src = ('https:' == document.location.protocol ? 'https' : 'http' ) +
+              '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+            wf.type = 'text/javascript';
+            wf.async = 'true';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(wf, s);
+        })();
+    </script>
+    <script type="text/javascript">
+        this.bomberman = {}; // namespace
+        this.bomberman.device = 'screen';
+        this.bomberman.bomberElm = document.getElementById('bomber');
+        this.bomberman.guiElm = document.getElementById('gui');
+    </script>
+    <script type="text/javascript" src="https://www.airconsole.com/api/airconsole-1.3.0.js"></script>
+    <script src="src/lib/phaser.js"></script>
+    <script src="src/lib/bootstrap-native.js"></script>
+    <script src="src/lib/socket.io.js"></script>
+    <script src="bundle.js"></script>
+</body>
+</html>
