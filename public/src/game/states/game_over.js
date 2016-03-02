@@ -1,6 +1,7 @@
 /* global Phaser, bomberman */
 var TextConfigurer = require('../util/text_configurer');
-var game = bomberman.game;
+var game = bomberman.game,
+	airconsole = bomberman.airconsole;
 
 function GameOver() {
 }
@@ -18,6 +19,7 @@ GameOver.prototype = {
 		var textObject = game.add.text(game.camera.width / 2, game.camera.height / 2, textToDisplay);
 		textObject.anchor.setTo(0.5, 0.5);
 		TextConfigurer.configureText(textObject, "white", 28);
+		airconsole.broadcast({listener: 'gameState', gameState: 'game_over'});
 	},
 
 	update: function() {
@@ -27,6 +29,7 @@ GameOver.prototype = {
 	},
 
 	returnToLobby: function() {
+		airconsole.broadcast({listener: 'gameState'});
 		game.state.start("Lobby");
 	}
 };

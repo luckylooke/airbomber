@@ -35,8 +35,8 @@ setInterval(broadcastingLoop, updateInterval);
 
 function setEventHandlers () {
     io.on("connection", function(socket) {
-        // socket === client !!!
-        console.log("New socket has connected: " + socket.id);
+        // socket === client === screen !!!
+        console.log("New screen has connected: " + socket.id);
         socket.on("move player", onMovePlayer);
         socket.on("disconnect", onSocketDisconnect);
         socket.on("place bomb", onPlaceBomb);
@@ -139,6 +139,9 @@ function onPlaceBomb(data) {
     var socket = this;
     var slotId = this.slotId;
     var game = games[slotId];
+    if(!game){
+        return;
+    }
     var player = game.players[data.nick];
     if (game === undefined || game.awaiting || player.numBombsAlive >= player.bombCapacity) {
         return;

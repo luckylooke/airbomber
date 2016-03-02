@@ -1,13 +1,18 @@
   <html>
 <head>
-<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0" charset="UTF-8"/>
+<link rel="manifest" href="controller/manifest.json">
 <link rel="stylesheet" href="controller/button/button.css">
 <link rel="stylesheet" href="controller/dpad/dpad.css">
 <link rel="stylesheet" href="css/controller.css">
 </head>
 <body onload='init()'>
   
-  <div id="name-and-color-container">
+  <div id="welcome">
+    <span style="color:white, font-size:200%">Welcome!</span>
+  </div>
+  
+  <div id="name-and-color">
     <form>
       <div class="name-container">
         Player name: <input type="text" name="player_name" id="player_name">
@@ -44,21 +49,151 @@
       <div id="button-bomb" class="button-300-300"><div class="button-text">BOMB</div></div>
     </div>
   </div>
+
+  <div id="gyro-pad">
+    GYROPAD
+    <div id="button-bomb-gyro" class="button-300-300"><div class="button-text">BOMB</div></div>
+  </div>
+
+  <div id="gyro-calibration">
+    <form>
+      <div class="calibre-button">
+        <div id="debugMessage"></div>
+        <div id="calibrateMessage">Tap "Begin" button to start calibration!</div>
+        <button id="calibrateBtn" type="button" onClick="gnCal.calibrate()">Begin</button>
+        <button id="calStartOverBtn" type="button" onClick="gnCal.startOver()">Start over!</button>
+      </div>
+    </form>
+  </div>
   
 <script type="text/javascript" src="https://www.airconsole.com/api/airconsole-1.3.0.js"></script>
 <script type="text/javascript" src="controller/rate-limiter/rate-limiter.js"></script>
 <script type="text/javascript" src="controller/dpad/dpad.js"></script>
 <script type="text/javascript" src="controller/button/button.js"></script>
+<script type="text/javascript" src="controller/rate-limiter/rate-limiter.js"></script>
+<script type="text/javascript" src="controller/gyronorm.complete.js"></script>
 <script type="text/javascript">
-  /* global AirConsole, DPad, Button */
+  /* global AirConsole, DPad, Button, GyroNorm, RateLimiter */
+  
+  console.log('TEST', Date.now());
+  
     navigator.vibrate = (navigator.vibrate ||
                          navigator.webkitVibrate ||
                          navigator.mozVibrate ||
                          navigator.msVibrate);
     
     var nickname;
+    var color;
+    var gameState;
     var acTools = {};
     var acInterval;
+    var controller = 'DPad'; // DPad, Gyro
+    var transitFrom = 'welcome';
+    var STILL_SNAP = 10; // % of movement to be considered as still player
+    var gn = new GyroNorm();
+    var gndoSupported;
+    var gnActualData;
+    var gnCal = {
+      init: function(){
+        this.startOverBtn.style.display = "none";
+      },
+      calibrated: false,
+      step: 0,
+      count: 0,
+      message: document.getElementById('calibrateMessage'),
+      button: document.getElementById('calibrateBtn'),
+      startOverBtn: document.getElementById('calStartOverBtn'),
+      debugMessage: document.getElementById('debugMessage'),
+      MAX_BETA: -1000,
+      MIN_BETA: 1000,
+      MAX_GAMMA: -1000,
+      MIN_GAMMA: 1000,
+      dirToAxis: {
+        LEFT: "x",
+        RIGHT: "x",
+        UP: "y",
+        DOWN: "y"
+      },
+      dirToSign: {
+        LEFT: -1,
+        RIGHT: +1,
+        UP: -1,
+        DOWN: +1
+      },
+      calibrate: function(){
+        
+        var self = this;
+        var steps = ['BEGIN', 'LEFT', 'RIGHT', 'UP', 'DOWN'];
+        
+        if(this.step === 0){
+          setMessages(steps[++this.step]);
+        }else if(this.step === 4){
+          this[steps[this.step]] = {beta: gnActualData.do.beta, gamma: gnActualData.do.gamma};
+          this.step = 1;
+          setMessages(steps[++this.step]);
+          this.calculateLimits();
+          this.calibrated = true;
+          transitView("name-and-color");
+        }else{
+          this[steps[this.step]] = {beta: gnActualData.do.beta, gamma: gnActualData.do.gamma};
+          setMessages(steps[++this.step]);
+        }
+        
+        function setMessages(direction){
+            self.message.innerHTML = 'Now tilt your controller to desired maximum <b>' + direction + '</b> and then tap the button.';
+            self.button.innerHTML = 'MAX ' + direction;
+        }
+      },
+      calculateLimits: function(){
+        var sides = ['LEFT', 'RIGHT', 'UP', 'DOWN'];
+            
+        for (var i = 0; i < sides.length; i++) {
+          var side = sides[i],
+            beta = this[side].beta,
+            gamma = this[side].gamma;
+          if(beta < this.MIN_BETA){
+            this.MIN_BETA = beta;
+            this.MIN_BETA_SIDE = side;
+          }
+          if(beta > this.MAX_BETA){
+            this.MAX_BETA = beta;
+            this.MAX_BETA_SIDE = side;
+          }
+          if(gamma < this.MIN_GAMMA){
+            this.MIN_GAMMA = gamma;
+            this.MIN_GAMMA_SIDE = side;
+          }
+          if(gamma > this.MAX_GAMMA){
+            this.MAX_GAMMA = gamma;
+            this.MAX_GAMMA_SIDE = side;
+          }
+        }
+        gnCal.debugMessage.innerHTML = '2calculateLimits';
+        
+        // GET CENTER
+        this.CENTER = {
+          beta: (this.MIN_BETA + this.MAX_BETA)/2,
+          gamma: (this.MIN_GAMMA + this.MAX_GAMMA)/2
+        };
+        gnCal.debugMessage.innerHTML = '3calculateLimits';
+        
+        // NORMALISE
+        this.MIN_BETA -= this.CENTER.beta;
+        this.MAX_BETA -= this.CENTER.beta;
+        this.MIN_GAMMA -= this.CENTER.gamma;
+        this.MAX_GAMMA -= this.CENTER.gamma;
+      },
+      repeatMessage: function(dir){
+        this.message.innerHTML = 'This side was already used for ' + dir + '! Please try again, or tap to "Start over" button, for restarting calibration.';
+        this.startOverBtn.style.display = "block";
+      },
+      startOver: function(){
+        this.message.innerHTML = 'Tap "Begin" button to start calibration!';
+        this.button.innerHTML = 'Begin';
+        this.step = 1;
+        this.startOverBtn.style.display = "none";
+      }
+    };
 
     acTools.listeners = {};
     acTools.uniListeners = [];
@@ -90,7 +225,11 @@
     	}
     };
     
-    var airconsole = new AirConsole({orientation: AirConsole.ORIENTATION_LANDSCAPE});
+    var airconsole = new AirConsole({
+                            orientation: AirConsole.ORIENTATION_LANDSCAPE
+                          });
+    // rateLimiter -> https://github.com/AirConsole/airconsole-controls/tree/master/rate-limiter                      
+    var rateLimiter = new RateLimiter(airconsole);
     
     
     function init() {
@@ -99,16 +238,12 @@
       
       acInterval = setInterval(function(){
         airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
-      }, 2000);
+      }, 3000);
 
       // debug info
       acTools.addListener(undefined, function(from, data){
 	      console.log('on ctrl: ', from, data);
       });
-      
-      window.addEventListener("deviceorientation", function(e){
-        console.log(e);
-      })
 
       /*
        * Checks if this device is part of the active game.
@@ -121,6 +256,82 @@
         //   div.innerHTML = "It's a 2 player game!";
         // }
       };
+      
+      gn.init({
+          frequency:100,                   // ( How often the object sends the values - milliseconds )
+          gravityNormalized:false,         // ( If the garvity related values to be normalized )
+          orientationBase:GyroNorm.GAME,      // ( Can be GyroNorm.GAME or GyroNorm.WORLD. gn.GAME returns orientation values with respect to the head direction of the device. gn.WORLD returns the orientation values with respect to the actual north direction of the world. )
+          decimalCount:2,                 // ( How many digits after the decimal point will there be in the return values )
+          logger:null,                    // ( Function to be called to log messages from gyronorm.js )
+          screenAdjusted:true            // ( If set to true it will return screen adjusted values. )
+      }).then(function(){
+        gndoSupported = gn.isAvailable(GyroNorm.DEVICE_ORIENTATION);
+        
+        if(gndoSupported){
+          controller = 'Gyro';
+          
+          gn.start(function(data){
+              // Process:
+              // data.do.alpha    ( deviceorientation event alpha value )
+              // data.do.beta     ( deviceorientation event beta value )
+              // data.do.gamma    ( deviceorientation event gamma value )
+              // data.do.absolute ( deviceorientation event absolute value )
+  
+              // data.dm.x        ( devicemotion event acceleration x value )
+              // data.dm.y        ( devicemotion event acceleration y value )
+              // data.dm.z        ( devicemotion event acceleration z value )
+  
+              // data.dm.gx       ( devicemotion event accelerationIncludingGravity x value )
+              // data.dm.gy       ( devicemotion event accelerationIncludingGravity y value )
+              // data.dm.gz       ( devicemotion event accelerationIncludingGravity z value )
+  
+              // data.dm.alpha    ( devicemotion event rotationRate alpha value )
+              // data.dm.beta     ( devicemotion event rotationRate beta value )
+              // data.dm.gamma    ( devicemotion event rotationRate gamma value )
+              
+              // gnCal.debugMessage.innerHTML = data.do.beta + " - " + data.do.gamma;
+              
+              if(gnCal.calibrated){
+                // if(gameState === 'level'){
+                  var mov = process('beta', {x: 0, y:0});
+                  mov = process('gamma', mov);
+                  // console.log(mov.x + " - " + mov.y, mov);
+                  moveGyro(mov);
+                // }
+              }else{
+                gnActualData = data;
+              }
+              
+              function process(name, mov){
+                var value = data.do[name],
+                  axis, dir;
+                
+                if(value > gnCal.CENTER[name]){
+                  dir = gnCal['MAX_' + name.toUpperCase() + '_SIDE'];
+                  axis = gnCal.dirToAxis[dir];
+                  mov[axis] = Math.abs(value - gnCal.CENTER[name]) / Math.abs(gnCal['MAX_' + name.toUpperCase()]);
+                }else{
+                  dir = gnCal['MIN_' + name.toUpperCase() + '_SIDE'];
+                  axis = gnCal.dirToAxis[dir];
+                  mov[axis] = Math.abs(value - gnCal.CENTER[name]) / Math.abs(gnCal['MIN_' + name.toUpperCase()]);
+                }
+                
+                mov[axis] *= gnCal.dirToSign[dir];
+                return mov;
+              }
+          });
+        }else{
+          controller = 'DPad';
+        }
+        afterInit();
+      }).catch(function(e){
+        // Catch if the DeviceOrientation or DeviceMotion is not supported by the browser or device
+        console.log(e);
+        controller = 'DPad';
+        afterInit();
+      });
+      
+     
 
       /*
        * Makes the device vibrate if the screen says so.
@@ -138,38 +349,63 @@
   	  	  unselectAll(clickedElement);
   	  	  clickedElement.className += ' selected';
   	  	}
-	    })
+	    });
     }
+  
+  function afterInit(){
+     if(controller === 'DPad'){
+        transitView("name-and-color");
+      }else{
+        gnCal.init();
+        transitView("gyro-calibration");
+      }
+  }
     
-    
+  function transitView(to){
+      document.getElementById(transitFrom).style.display = "none";
+      document.getElementById(to).style.display = "block";
+      transitFrom = to;
+  }
 
-  function getPlayerInfo(name, color){
+  function getPlayerInfo(){
     
-    var color = getColor();
-    nickname  = getName();
+    color = getColor();
+    nickname = getName();
     
     console.log(color, nickname);
     
     if(color && nickname){
       
-      document.getElementById("name-and-color-container").style.display = "none";
-      document.getElementById("gamepad-container").style.display = "block";
-      
+      if(controller === 'Gyro'){
+        transitView("gyro-pad");
+      }else{
+        transitView("gamepad-container");
+      }
       addPlayer(nickname, color);
       
     }
   }
   
-  function addPlayer(name, color){
+  function addPlayer(nickname, color){
     acTools.addListener('ready', function(from, data){
-      if(from == AirConsole.SCREEN){
+      if(from == AirConsole.SCREEN && !gameState){
        clearInterval(acInterval);
        airconsole.message(AirConsole.SCREEN, {
             listener: 'newPlayer',
             nick: nickname,
             color:color,
-            controller: 'controller'
+            controller: controller
           });
+          
+        if(data.gameState){
+          gameState = data.gameState;
+        }
+        
+        acTools.addListener('gameState', function(from, data){
+          if(from == AirConsole.SCREEN && data.gameState){
+            gameState = data.gameState;
+          }
+        });
       }
     });
     airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
@@ -199,11 +435,27 @@
      * Tells the screen to move the paddle of this player.
      * @param amount
      */
-    function move(amount) {
-      airconsole.message(AirConsole.SCREEN, {listener: 'movePlayer', nick: nickname, x: amount.x, y: amount.y});
+    function moveDPad(amount) {
+      rateLimiter.message(AirConsole.SCREEN, {
+        type: 'DPad',
+        listener: 'movePlayer',
+        nick: nickname,
+        x: amount.x,
+        y: amount.y
+      });
+    }
+    function moveGyro(data) {
+      data.nick = nickname;
+      data.type = 'Gyro';
+      data.listener = 'movePlayer';
+      rateLimiter.message(AirConsole.SCREEN, data);
     }
     function bomb(setting) {
-      airconsole.message(AirConsole.SCREEN, {listener: 'setBomb', nick: nickname, setting: setting});
+      airconsole.message(AirConsole.SCREEN, {
+        listener: 'setBomb',
+        nick: nickname,
+        setting: setting
+      });
     }
       
     new DPad("my-DPad", {
@@ -213,19 +465,21 @@
       // Key is one of: DPad.UP, DPad.DOWN, DPad.LEFT, DPad.RIGHT.
       // Pressed is a boolean, true if the direction is active.
       "directionchange": function(key, pressed) {
-        switch(key) {
+        if(controller === 'DPad'){
+          switch(key) {
             case 'right':
-                pressed ? move({x:1}) : move({x: 0});
+                pressed ? moveDPad({x:1}) : moveDPad({x: 0});
                 break;
             case 'left':
-                pressed ? move({x:-1}) : move({x: 0});
+                pressed ? moveDPad({x:-1}) : moveDPad({x: 0});
                 break;
             case 'up':
-                pressed ? move({y:-1}) : move({y: 0});
+                pressed ? moveDPad({y:-1}) : moveDPad({y: 0});
                 break;
             case 'down':
-                pressed ? move({y:1}) : move({y: 0});
+                pressed ? moveDPad({y:1}) : moveDPad({y: 0});
                 break;
+          }
         }
       },
 
@@ -254,6 +508,17 @@
           bomb('setting');
         },
         "up": function() {
+          bomb(!'setting');
+        }
+      });
+    
+    new Button("button-bomb-gyro", {
+        "down": function() {
+          console.log('bomb gyro true');
+          bomb('setting');
+        },
+        "up": function() {
+          console.log('bomb gyro false');
           bomb(!'setting');
         }
       });
