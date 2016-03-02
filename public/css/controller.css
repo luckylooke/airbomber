@@ -2,6 +2,12 @@ body{
   color: white;
 }
 
+.upside-down {
+  transform:rotate(180deg);
+  -ms-transform:rotate(180deg);
+  -webkit-transform:rotate(180deg);
+}
+
 .gamepad_container{
   display:none;
 }

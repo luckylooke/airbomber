@@ -1,5 +1,4 @@
 TODO:
-- on orientation change http://stackoverflow.com/questions/20810356/temporarily-flip-website-upside-down-using-js-and-css
 - test all disconnection scenarios
 - status bar on controller (including nick color score(killed vs deaths) etc..)
 - local player (keyboard)

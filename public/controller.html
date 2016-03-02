@@ -84,12 +84,19 @@
     var nickname;
     var color;
     var gameState;
+    var orientationDefault;
+    var orientationOpposite = {
+      "-90": 90,
+      "90": -90,
+      "landscape-secondary": 'landscape-primary',
+      "landscape-primary": 'landscape-secondary'
+    };
     var acTools = {};
     var acInterval;
     var controller = 'DPad'; // DPad, Gyro
     var transitFrom = 'welcome';
     var STILL_SNAP = 10; // [%] of movement to be considered as still player
-    var TILT_LIMITER_RATE = 10; // [ms] of minimal time between tilt function executions
+    var TILT_LIMITER_RATE = 200; // [ms] of minimal time between tilt function executions
     var gyroActual;
     var gyro = {
       init: function(){
@@ -102,6 +109,7 @@
       button: document.getElementById('calibrateBtn'),
       startOverBtn: document.getElementById('calStartOverBtn'),
       debugMessage: document.getElementById('debugMessage'),
+      flipCor: 1,
       MAX_BETA: -1000,
       MIN_BETA: 1000,
       MAX_GAMMA: -1000,
@@ -119,6 +127,9 @@
         DOWN: +1
       },
       calibrate: function(){
+        if(!orientationDefault){
+          orientationDefault = getOrientation();
+        }
         
         var self = this;
         var steps = ['BEGIN', 'LEFT', 'RIGHT', 'UP', 'DOWN'];
@@ -317,6 +328,24 @@
         }, true);
       }
       
+      
+      
+      window.addEventListener("orientationchange", function() {
+        if(!orientationDefault){
+          return;
+        }
+        
+        var currentOrientation = getOrientation();
+        if(currentOrientation === orientationOpposite[orientationDefault]){
+          document.body.classList.add('upside-down');
+          gyro.flipCor = -1;
+          
+        }else{
+          document.body.classList.remove('upside-down');
+          gyro.flipCor = 1;
+        }
+      });
+      
       airconsole.onMessage = acTools.onMessage;
       
       acInterval = setInterval(function(){
@@ -358,21 +387,23 @@
   	  	  clickedElement.className += ' selected';
   	  	}
 	    });
-    console.log('BEFORE afterInit', controller);
+      console.log('BEFORE afterInit', controller);
 	    
 	    // timeout to get chance gyro/accelerators to fire tilt() function and so tell controller to use gyro functiuonality
       setTimeout(afterInit, 500);
     }
     
-  function tilt(data){
-    console.log('tilt', data);
-    if(tiltLimiter()){
-      return;
+    function getOrientation(){
+      return screen.orientation || screen.mozOrientation || screen.msOrientation || window.orientation;
     }
-    console.log('tilt limited');
-    controller = 'Gyro';
-   if(gyro.calibrated){
-      // if(gameState === 'level'){
+      
+    function tilt(data){
+      if(tiltLimiter()){
+        return;
+      }
+      controller = 'Gyro';
+     if(gyro.calibrated){
+        // if(gameState === 'level'){
         var mov = process('beta', {x: 0, y:0});
         mov = process('gamma', mov);
         // console.log(mov.x + " - " + mov.y, mov);
@@ -397,6 +428,7 @@
       }
       
       mov[axis] *= gyro.dirToSign[dir];
+      mov[axis] *= gyro.flipCor;
       return mov;
     }
   }
