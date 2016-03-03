@@ -13,7 +13,8 @@ module.exports = StageSelect;
 
 var stages = [
 	{name: "Green field", thumbnailFile: "../resource/green_field_thumbnail.png", tilemapName: "First", maxPlayers: 4, size: "Small", background:"../resource/green_field_background.png"},
-	{name: "Desert", thumbnailFile: "../resource/danger_desert_thumbnail.png", tilemapName: "Second", maxPlayers: 4, size: "Small", background:"../resource/danger_desert_background.png"},
+	{name: "Green hell", thumbnailFile: "../resource/green_hell_thumbnail.png", tilemapName: "Second", maxPlayers: 4, size: "Small", background:"../resource/green_hell_background.png"},
+	{name: "Desert2", thumbnailFile: "../resource/danger_desert_thumbnail.png", tilemapName: "Third", maxPlayers: 4, size: "Small", background:"../resource/danger_desert_background.png"},
 ];
 
 StageSelect.prototype = {
@@ -43,7 +44,7 @@ StageSelect.prototype = {
         	newStageElm.children[1].setAttribute('src', stage.thumbnailFile);
         	newStageElm.children[2].innerHTML = 'Max players: ' + stage.maxPlayers;
         	newStageElm.children[3].innerHTML = 'Size: ' + stage.size;
-        	newStageElm.addEventListener("click", this.confirmStageSelection);
+        	newStageElm.addEventListener("click", this.getHandler(i));
         	newStageElm.classList.add("hidden");
         	newStageElm.background = stage.background;
         	htmlStagesElm.appendChild(newStageElm);
@@ -102,10 +103,12 @@ StageSelect.prototype = {
 	// 	text.fontSize = size;
 	// },
 
-	confirmStageSelection: function() {
-		document.getElementById('stage-select').classList.add("hidden");
-        socket.emit("select stage", {slotId: socket.id, mapName: stages[0].tilemapName});
-        game.state.start("PendingGame", true, false, stages[0].tilemapName, socket.id);
+	getHandler: function(index) {
+		return function confirmStageSelection(){
+			document.getElementById('stage-select').classList.add("hidden");
+	        socket.emit("select stage", {slotId: socket.id, mapName: stages[index].tilemapName});
+	        game.state.start("PendingGame", true, false, stages[index].tilemapName, socket.id);
+		};
 	}
 	
 };

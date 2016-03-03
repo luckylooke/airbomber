@@ -22,9 +22,9 @@
        <img class="player-color" src="resource/icon_white.png">
        <img class="player-color" src="resource/icon_blue.png">
        <img class="player-color" src="resource/icon_green.png">
+       <img class="player-color" src="resource/icon_red.png">
        <img class="player-color" src="resource/icon_lightblue.png">
        <img class="player-color" src="resource/icon_yellow.png">
-       <img class="player-color" src="resource/icon_red.png">
        <img class="player-color" src="resource/icon_purple.png">
       </div>
       <div class="play-button">
@@ -73,8 +73,6 @@
 <script type="text/javascript" src="controller/rate-limiter/rate-limiter.js"></script>
 <script type="text/javascript">
   /* global AirConsole, DPad, Button, GyroNorm, RateLimiter */
-  
-  console.log('TEST', Date.now());
   
     navigator.vibrate = (navigator.vibrate ||
                          navigator.webkitVibrate ||
@@ -297,11 +295,9 @@
     
     new Button("button-bomb-gyro", {
         "down": function() {
-          console.log('bomb gyro true');
           bomb('setting');
         },
         "up": function() {
-          console.log('bomb gyro false');
           bomb(!'setting');
         }
       });
@@ -375,7 +371,6 @@
       acTools.addListener('vibrator', function(from, data) {
         if (from == AirConsole.SCREEN && data.vibrate) {
           navigator.vibrate(data.vibrate);
-          console.log("Vibrating: " + data.vibrate);
         }
       });
       
@@ -386,7 +381,6 @@
   	  	  clickedElement.className += ' selected';
   	  	}
 	    });
-      console.log('BEFORE afterInit', controller);
 	    
 	    // timeout to get chance gyro/accelerators to fire tilt() function and so tell controller to use gyro functiuonality
       setTimeout(afterInit, 500);
@@ -453,7 +447,6 @@
   }
   
   function afterInit(){
-    console.log('afterInit', controller);
      if(controller === 'DPad'){
         transitView("name-and-color");
       }else{
@@ -472,8 +465,6 @@
     
     color = getColor();
     nickname = getName();
-    
-    console.log(color, nickname);
     
     if(color && nickname){
       

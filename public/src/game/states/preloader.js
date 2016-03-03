@@ -61,9 +61,11 @@ Preloader.prototype = {
         this.load.image("bomberman_head_white", "resource/icon_white.png");
         this.load.image("bomberman_head_blue", "resource/icon_blue.png");
         this.load.image("bomberman_head_green", "resource/icon_green.png");
-        this.load.image("bomberman_head_purple", "resource/bomberman_head_purple.png");
-        this.load.image("bomberman_head_red", "resource/bomberman_head_red.png");
+        this.load.image("bomberman_head_purple", "resource/icon_purple.png");
+        this.load.image("bomberman_head_red", "resource/icon_red.png");
         this.load.image("bomberman_head_black", "resource/icon_black.png");
+        this.load.image("bomberman_head_lightblue", "resource/icon_lightblue.png");
+        this.load.image("bomberman_head_yellow", "resource/icon_yellow.png");
         this.load.image("bomb_count_powerup", "resource/BombPowerup.png");
         this.load.image("bomb_strength_powerup", "resource/FlamePowerup.png");
         this.load.image("speed_powerup", "resource/SpeedPowerup.png");
