@@ -29,6 +29,10 @@ Preloader.prototype = {
         this.load.spritesheet("bomberman_black", "resource/bomberman_black.png", 32, 64);
         this.load.spritesheet("bomberman_blue", "resource/bomberman_blue.png", 32, 64);
         this.load.spritesheet("bomberman_red", "resource/bomberman_red.png", 32, 64);
+        this.load.spritesheet("bomberman_lightblue", "resource/bomberman_lightblue.png", 32, 64);
+	    this.load.spritesheet("bomberman_yellow", "resource/bomberman_yellow.png", 32, 64);
+	    this.load.spritesheet("bomberman_purple", "resource/bomberman_purple.png", 32, 64);
+	    this.load.spritesheet("bomberman_green", "resource/bomberman_green.png", 32, 64);
         this.load.spritesheet("bomb", "resource/bomb.png", 35, 35);
         this.load.spritesheet("explosion_top", "resource/explosion_top.png", 30, 40);
         this.load.spritesheet("explosion_bottom", "resource/explosion_bottom.png", 30, 40);
@@ -45,7 +49,7 @@ Preloader.prototype = {
         this.load.spritesheet("leave_game_button", "resource/leave_game_button.png", 202, 43);
         this.load.spritesheet("game_slot", "resource/game_slot.png", 522, 48);
         this.load.tilemap("First", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
-        this.load.tilemap("Second", "assets/levels/level_one.json", null, Phaser.Tilemap.TILED_JSON);
+        this.load.tilemap("Second", "assets/levels/Arena_map_2.json", null, Phaser.Tilemap.TILED_JSON);
         this.load.tilemap("Third", "assets/levels/level_two.json", null, Phaser.Tilemap.TILED_JSON);
         // this.load.tilemap("levelTwo", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
         this.load.image("tiles", "resource/tileset.png");
