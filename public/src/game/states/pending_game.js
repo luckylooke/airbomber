@@ -82,17 +82,19 @@ airconsole.onMessage = acTools.onMessage;
 
 // debug info
 acTools.addListener(undefined, function(from, data){
-	console.log('on screen: ', from, data);
+	if(!data.listener || data.listener !== 'movePlayer'){
+		console.log('on screen: ', from, data);
+	}
 });
 
 acTools.addListener('ready', function(from, data){
 	if(screen.isReady){
-	  airconsole.message(from, {listener: 'ready'});
+	  airconsole.message(from, {listener: 'ready', gameState: 'pending_game'});
 	}
 });
 
 function newPlayer(device_id, player){
-	console.log('newPlayer game.slotId', game.slotId);
+	console.log('newPlayer game.slotId', {slotId: game.slotId});
   	if(player.nick){
   		player.slotId = game.slotId;
   		player.screenId = game.screenId;
@@ -164,6 +166,7 @@ PendingGame.prototype = {
 		socket.on("player joined", this.playerJoined.bind(this));
 		socket.on("players left", this.playersLeft.bind(this));
 		socket.on("start game on client", this.startGame);
+		airconsole.broadcast({listener: 'gameState', gameState: 'pending_game'});
 	},
 
 	update: function() {
@@ -249,12 +252,12 @@ PendingGame.prototype = {
 
 	startGameAction: function() {
 		this.leavingPendingGame();
-		socket.emit("start game on server", game.slotId);
+		socket.emit("start game on server", {slotId: game.slotId});
 	},
 
 	leaveGameAction: function() {
 		this.leavingPendingGame();
-		socket.emit("leave pending game", game.slotId);
+		socket.emit("leave pending game", {slotId: game.slotId});
 		socket.removeAllListeners();
         game.state.start("Lobby");
 	},

@@ -35,8 +35,8 @@ setInterval(broadcastingLoop, updateInterval);
 
 function setEventHandlers () {
     io.on("connection", function(socket) {
-        // socket === client !!!
-        console.log("New socket has connected: " + socket.id);
+        // socket === client === screen !!!
+        console.log("New screen has connected: " + socket.id);
         socket.on("move player", onMovePlayer);
         socket.on("disconnect", onSocketDisconnect);
         socket.on("place bomb", onPlaceBomb);
@@ -96,14 +96,14 @@ function terminateExistingGame(socket) {
     lobby.broadcastSlotStateUpdate(socket, slotId, "empty");
 };
 
-function onStartGame(slotId) {
-    this.slotId = slotId;
+function onStartGame(data) {
+    this.slotId = data.slotId;
     var lobbySlots = lobby.getlobbySlots();
-    var game = new Game(slotId);
-    games[slotId] = game;
-    var pendingGame = lobbySlots[slotId];
+    var game = new Game(data.slotId);
+    games[data.slotId] = game;
+    var pendingGame = lobbySlots[data.slotId];
     pendingGame.state = "inprogress";
-    lobby.broadcastSlotStateUpdate(this, slotId, "inprogress");
+    lobby.broadcastSlotStateUpdate(this, data.slotId, "inprogress");
     var nicks = pendingGame.getPlayersNicks();
     for(var i = 0; i < nicks.length; i++) {
         var nick = nicks[i];
@@ -114,7 +114,7 @@ function onStartGame(slotId) {
         game.players[nick] = newPlayer;
     }
     game.numPlayersAlive = nicks.length;
-    io.in(slotId).emit("start game on client", {mapName: pendingGame.mapName, players: game.players});
+    io.in(data.slotId).emit("start game on client", {mapName: pendingGame.mapName, players: game.players});
 };
 
 function onRegisterMap(data) {
@@ -139,6 +139,9 @@ function onPlaceBomb(data) {
     var socket = this;
     var slotId = this.slotId;
     var game = games[slotId];
+    if(!game){
+        return;
+    }
     var player = game.players[data.nick];
     if (game === undefined || game.awaiting || player.numBombsAlive >= player.bombCapacity) {
         return;

@@ -29,6 +29,7 @@
     "bootstrap": "^3.3.6",
     "bootstrap.native": "^1.0.1",
     "express": "~4.12.3",
+    "gyronorm": "^2.0.4",
     "path": "~0.4.*",
     "socket.io": "~1.3.5",
     "socket.io-logger": "~0.0.2",

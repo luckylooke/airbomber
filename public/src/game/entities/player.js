@@ -39,42 +39,67 @@ Player.prototype = Object.create(Phaser.Sprite.prototype);
 
 Player.prototype.nicks = [];
 
-Player.prototype.handleInput = function (controller) {
-    if(controller){
-        this.handleCtrlInput(controller);
-    }else{
+Player.prototype.handleInput = function (ctrl) {
+    if(ctrl.type === 'keyboard'){
         this.handleKeysInput();
         this.handleBombInput();
+    }else{
+        this.handleCtrlInput(ctrl);
     }
 };
 
-Player.prototype.handleCtrlInput = function (data) {
+Player.prototype.handleCtrlInput = function (ctrl) {
+    
     // COLLISINONS
     game.physics.arcade.collide(this, level.blockLayer);
     game.physics.arcade.collide(this, level.bombs);
 
     
     // MOVEMENT
-    data.x = data.x > 1 ? 1 : data.x;
-    data.x = data.x < -1 ? -1 : data.x;
-    data.y = data.y > 1 ? 1 : data.y;
-    data.y = data.y < -1 ? -1 : data.y;
-
-    if (data.x < 0) {
-        this.facing = "left";
-    } else if (data.x > 0) {
+    ctrl.x = ctrl.x > 1 ? 1 : ctrl.x;
+    ctrl.x = ctrl.x < -1 ? -1 : ctrl.x;
+    ctrl.y = ctrl.y > 1 ? 1 : ctrl.y;
+    ctrl.y = ctrl.y < -1 ? -1 : ctrl.y;
+    
+    if(ctrl.type === 'DPad'){
+        this.body.velocity.x = ctrl.x * this.speed;
+        this.body.velocity.y = ctrl.y * this.speed;
+    }
+    
+    // gyroscope/accelerators movement
+    if(ctrl.type === 'Gyro'){
+      
+        if (ctrl.x < 0.1 && ctrl.x > -0.1) {
+          this.body.velocity.x = 0;
+        }else {
+          this.body.velocity.x = ctrl.x * this.speed;
+        }
+      
+        if (ctrl.y < 0.1 && ctrl.y > -0.1) {
+          this.body.velocity.y = 0;
+        }else {
+          this.body.velocity.y = ctrl.y * this.speed;
+        }
+    }
+    
+    // FACING
+    if(Math.abs(ctrl.x) > Math.abs(ctrl.y)){
+      if (ctrl.x > 0) {
         this.facing = "right";
-    }
-    this.body.velocity.x = data.x * this.speed;
-
-    if (data.y < 0) {
-        this.facing = "up";
-    } else if (data.y > 0) {
+      }
+      else {
+        this.facing = "left";
+      }
+    }else{
+      if (ctrl.y > 0) {
         this.facing = "down";
+      }
+      else {
+        this.facing = "up";
+      }
     }
-    this.body.velocity.y = data.y * this.speed;
-
-    if (data.x || data.y) {
+    
+    if (ctrl.x || ctrl.y) {
         this.animations.play(this.facing);
         socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing, nick: this.nick});
     }else{
@@ -82,48 +107,50 @@ Player.prototype.handleCtrlInput = function (data) {
     }
     
     // BOMBS
-    if (!game.physics.arcade.overlap(this, level.bombs) && data.bomb) {
+    if (!game.physics.arcade.overlap(this, level.bombs) && ctrl.bomb) {
         socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, slotId: game.slotId});
     }
+    
+    // console.log('handleCtrlInput', this.body.velocity.x, this.body.velocity.y, ctrl);
 };
 
-// Player.prototype.handleKeysInput = function () {
-//     var moving = false;
+Player.prototype.handleKeysInput = function () {
+    var moving = false;
 
-//     game.physics.arcade.collide(this, level.blockLayer);
-//     game.physics.arcade.collide(this, level.bombs);
+    game.physics.arcade.collide(this, level.blockLayer);
+    game.physics.arcade.collide(this, level.bombs);
 
-//     if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-//         this.body.velocity.x = -this.speed;
-//         this.facing = "left";
-//         moving = true;
-//     } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-//         this.body.velocity.x = this.speed;
-//         this.facing = "right";
-//         moving = true;
-//     } else {
-//         this.body.velocity.x = 0;
-//     }
+    if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+        this.body.velocity.x = -this.speed;
+        this.facing = "left";
+        moving = true;
+    } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+        this.body.velocity.x = this.speed;
+        this.facing = "right";
+        moving = true;
+    } else {
+        this.body.velocity.x = 0;
+    }
     
-//     if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
-//         this.body.velocity.y = this.speed;
-//         this.facing = "up";
-//         moving = true;
-//     } else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
-//         this.body.velocity.y = -this.speed;
-//         this.facing = "down";
-//         moving = true;
-//     } else {
-//         this.body.velocity.y = 0;
-//     }
+    if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+        this.body.velocity.y = this.speed;
+        this.facing = "up";
+        moving = true;
+    } else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+        this.body.velocity.y = -this.speed;
+        this.facing = "down";
+        moving = true;
+    } else {
+        this.body.velocity.y = 0;
+    }
 
-//     if (moving) {
-//         this.animations.play(this.facing);
-//         socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing});
-//     } else {
-//         this.freeze();
-//     }
-// };
+    if (moving) {
+        this.animations.play(this.facing);
+        socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing});
+    } else {
+        this.freeze();
+    }
+};
 
 Player.prototype.handleBombInput = function () {
     if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && !game.physics.arcade.overlap(this, level.bombs) && !this.bombButtonJustPressed) {
