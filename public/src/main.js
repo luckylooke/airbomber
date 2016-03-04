@@ -8,7 +8,8 @@ bomberman.height = bomberman.bomberElm.clientHeight;
 
 var game = bomberman.game = new Phaser.Game(bomberman.width, bomberman.height, Phaser.AUTO, 'bomber');
 bomberman.screen = {};
-bomberman.socket = io();
+// bomberman.socket = io(); // cloud9
+bomberman.socket = io('http://airbomber-luckylooke.rhcloud.com:8000'); // openshift
 bomberman.level = null;
 
 game.state.add("Boot", require("./game/states/boot"));

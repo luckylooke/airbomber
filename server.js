@@ -1,8 +1,16 @@
 var express = require("express");
 var app = express();
-var server = require("http").Server(app),
+var http = require("http"),
     fs = require('fs'),
     path = require('path');
+
+app.set('port', process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 3000);
+app.set('ip', process.env.OPENSHIFT_NODEJS_IP || process.env.IP || "127.0.0.1");
+
+var server = http.Server(app);
+server.listen(app.get('port') ,app.get('ip'), function () {
+    console.log("✔ Express server listening at %s:%d ", app.get('ip'),app.get('port'));
+});
 
 app.use(express.static(path.join( __dirname, 'public')));
 
@@ -25,8 +33,7 @@ var PowerupIDs = require("./public/src/game/common/powerup_ids");
 var games = {};
 
 var UPDATE_INTERVAL = 100;
-// app.use(express.static("client"));
-server.listen(process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 3000);
+
 
 lobby.initialize();
 setEventHandlers();

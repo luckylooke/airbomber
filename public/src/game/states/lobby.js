@@ -69,7 +69,6 @@ Lobby.prototype = {
 	        })(names[i]);
         	
         	var newSlotElm = htmlSlotElm.cloneNode(true);
-        	console.log(settings.text + (slot.numOfPlayers ? "(" + slot.numOfPlayers +")" : ""), settings.text, (slot.numOfPlayers ? "(" + slot.numOfPlayers +")" : ""));
         	newSlotElm.innerHTML = settings.text + (slot.numOfPlayers ? "(" + slot.numOfPlayers +")" : "");
         	newSlotElm.addEventListener("click", callback);
         	htmlSlotsElm.appendChild(newSlotElm);

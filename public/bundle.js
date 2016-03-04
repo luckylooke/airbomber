@@ -54,7 +54,8 @@
 
 	var game = bomberman.game = new Phaser.Game(bomberman.width, bomberman.height, Phaser.AUTO, 'bomber');
 	bomberman.screen = {};
-	bomberman.socket = io();
+	// bomberman.socket = io(); // cloud9
+	bomberman.socket = io('http://airbomber-luckylooke.rhcloud.com:8000'); // openshift
 	bomberman.level = null;
 
 	game.state.add("Boot", __webpack_require__(1));
@@ -320,7 +321,6 @@
 		        })(names[i]);
 	        	
 	        	var newSlotElm = htmlSlotElm.cloneNode(true);
-	        	console.log(settings.text + (slot.numOfPlayers ? "(" + slot.numOfPlayers +")" : ""), settings.text, (slot.numOfPlayers ? "(" + slot.numOfPlayers +")" : ""));
 	        	newSlotElm.innerHTML = settings.text + (slot.numOfPlayers ? "(" + slot.numOfPlayers +")" : "");
 	        	newSlotElm.addEventListener("click", callback);
 	        	htmlSlotsElm.appendChild(newSlotElm);
