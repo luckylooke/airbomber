@@ -13,7 +13,7 @@ module.exports = StageSelect;
 
 var stages = [
 	{name: "Green field", thumbnailFile: "../resource/green_field_thumbnail.png", tilemapName: "First", maxPlayers: 4, size: "Small", background:"../resource/green_field_background.png"},
-	{name: "Desert", thumbnailFile: "../resource/danger_desert_thumbnail.png", tilemapName: "Second", maxPlayers: 4, size: "Small", background:"../resource/danger_desert_background.png"},
+	{name: "Green hell", thumbnailFile: "../resource/green_hell_thumbnail.png", tilemapName: "Second", maxPlayers: 4, size: "Small", background:"../resource/green_hell_background.png"},
 	{name: "Desert2", thumbnailFile: "../resource/danger_desert_thumbnail.png", tilemapName: "Third", maxPlayers: 4, size: "Small", background:"../resource/danger_desert_background.png"},
 ];
 

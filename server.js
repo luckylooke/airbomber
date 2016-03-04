@@ -34,7 +34,6 @@ var games = {};
 
 var UPDATE_INTERVAL = 100;
 
-
 lobby.initialize();
 setEventHandlers();
 setInterval(broadcastingLoop, UPDATE_INTERVAL);

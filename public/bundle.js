@@ -213,6 +213,10 @@
 	        this.load.spritesheet("bomberman_black", "resource/bomberman_black.png", 32, 64);
 	        this.load.spritesheet("bomberman_blue", "resource/bomberman_blue.png", 32, 64);
 	        this.load.spritesheet("bomberman_red", "resource/bomberman_red.png", 32, 64);
+	        this.load.spritesheet("bomberman_lightblue", "resource/bomberman_lightblue.png", 32, 64);
+		    this.load.spritesheet("bomberman_yellow", "resource/bomberman_yellow.png", 32, 64);
+		    this.load.spritesheet("bomberman_purple", "resource/bomberman_purple.png", 32, 64);
+		    this.load.spritesheet("bomberman_green", "resource/bomberman_green.png", 32, 64);
 	        this.load.spritesheet("bomb", "resource/bomb.png", 35, 35);
 	        this.load.spritesheet("explosion_top", "resource/explosion_top.png", 30, 40);
 	        this.load.spritesheet("explosion_bottom", "resource/explosion_bottom.png", 30, 40);
@@ -229,7 +233,7 @@
 	        this.load.spritesheet("leave_game_button", "resource/leave_game_button.png", 202, 43);
 	        this.load.spritesheet("game_slot", "resource/game_slot.png", 522, 48);
 	        this.load.tilemap("First", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
-	        this.load.tilemap("Second", "assets/levels/level_one.json", null, Phaser.Tilemap.TILED_JSON);
+	        this.load.tilemap("Second", "assets/levels/Arena_map_2.json", null, Phaser.Tilemap.TILED_JSON);
 	        this.load.tilemap("Third", "assets/levels/level_two.json", null, Phaser.Tilemap.TILED_JSON);
 	        // this.load.tilemap("levelTwo", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
 	        this.load.image("tiles", "resource/tileset.png");
@@ -241,9 +245,11 @@
 	        this.load.image("bomberman_head_white", "resource/icon_white.png");
 	        this.load.image("bomberman_head_blue", "resource/icon_blue.png");
 	        this.load.image("bomberman_head_green", "resource/icon_green.png");
-	        this.load.image("bomberman_head_purple", "resource/bomberman_head_purple.png");
-	        this.load.image("bomberman_head_red", "resource/bomberman_head_red.png");
+	        this.load.image("bomberman_head_purple", "resource/icon_purple.png");
+	        this.load.image("bomberman_head_red", "resource/icon_red.png");
 	        this.load.image("bomberman_head_black", "resource/icon_black.png");
+	        this.load.image("bomberman_head_lightblue", "resource/icon_lightblue.png");
+	        this.load.image("bomberman_head_yellow", "resource/icon_yellow.png");
 	        this.load.image("bomb_count_powerup", "resource/BombPowerup.png");
 	        this.load.image("bomb_strength_powerup", "resource/FlamePowerup.png");
 	        this.load.image("speed_powerup", "resource/SpeedPowerup.png");
@@ -381,7 +387,7 @@
 
 	var stages = [
 		{name: "Green field", thumbnailFile: "../resource/green_field_thumbnail.png", tilemapName: "First", maxPlayers: 4, size: "Small", background:"../resource/green_field_background.png"},
-		{name: "Desert", thumbnailFile: "../resource/danger_desert_thumbnail.png", tilemapName: "Second", maxPlayers: 4, size: "Small", background:"../resource/danger_desert_background.png"},
+		{name: "Green hell", thumbnailFile: "../resource/green_hell_thumbnail.png", tilemapName: "Second", maxPlayers: 4, size: "Small", background:"../resource/green_hell_background.png"},
 		{name: "Desert2", thumbnailFile: "../resource/danger_desert_thumbnail.png", tilemapName: "Third", maxPlayers: 4, size: "Small", background:"../resource/danger_desert_background.png"},
 	];
 
@@ -1154,7 +1160,7 @@
 
 	var MapInfo = {
 		First: {
-			spawnLocations: [{x: 8, y: 1}, {x: 23, y: 1}, {x: 3, y: 1}, {x: 12, y: 6}],
+			spawnLocations: [{x: 1, y: 1}, {x: 23, y: 1}, {x: 1, y: 4}, {x: 23, y: 4}],
 			collisionTiles: [3, 4],
 			groundLayer: "Ground",
 			blockLayer: "Blocks",
@@ -1163,13 +1169,13 @@
 			destructibleTileId: 4
 		},
 		Second: {
-			spawnLocations: [{x: 2, y: 1}, {x: 13, y: 1}, {x: 2, y: 13}, {x: 13, y: 13}],
-			collisionTiles: [169, 191],
+			spawnLocations: [{x: 1, y: 1}, {x: 23, y: 1}, {x: 1, y: 4}, {x: 23, y: 4}],
+			collisionTiles: [3, 4],
 			groundLayer: "Ground",
 			blockLayer: "Blocks",
 			tilesetName: "tiles",
 			tilesetImage: "tiles",
-			destructibleTileId: 191
+			destructibleTileId: 4
 		}
 	};
 
