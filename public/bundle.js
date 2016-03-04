@@ -54,8 +54,33 @@
 
 	var game = bomberman.game = new Phaser.Game(bomberman.width, bomberman.height, Phaser.AUTO, 'bomber');
 	bomberman.screen = {};
-	// bomberman.socket = io(); // cloud9
-	bomberman.socket = io('http://airbomber-luckylooke.rhcloud.com:8000'); // openshift
+
+	function getURLParameter(name) {
+	  return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+	}
+
+	var once = false;
+	var socketServer;
+	if(getURLParameter('cloud9')){
+	    socketServer = 'cloud9';
+	    bomberman.socket = io(); // cloud9
+	}else{
+	    socketServer = 'openshift';
+	    bomberman.socket = io('http://airbomber-luckylooke.rhcloud.com:8000'); // openshift
+	}
+	bomberman.socket.on('connect_error', function(err){
+	    if(!once){ // try once fallback to cloud9
+	        bomberman.socket = io(); // cloud9
+	        socketServer = 'cloud9';
+	        once = true;
+	    }else{
+	        console.log('SOCKET CANNOT CONNECT', err);
+	    }
+	});
+	bomberman.socket.on('connect', function(){
+	    console.log('socket server: ', socketServer);
+	    game.state.start('Boot');
+	});
 	bomberman.level = null;
 
 	game.state.add("Boot", __webpack_require__(1));
@@ -65,8 +90,6 @@
 	game.state.add("PendingGame", __webpack_require__(7));
 	game.state.add("Level", __webpack_require__(8));
 	game.state.add("GameOver", __webpack_require__(17));
-
-	game.state.start('Boot');
 
 	__webpack_require__(18);undefined
 
