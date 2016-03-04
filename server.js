@@ -25,8 +25,8 @@ var PowerupIDs = require("./public/src/game/common/powerup_ids");
 var games = {};
 
 var UPDATE_INTERVAL = 100;
-app.use(express.static("client"));
-server.listen(process.env.PORT || 3000);
+// app.use(express.static("client"));
+server.listen(process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 3000);
 
 lobby.initialize();
 setEventHandlers();
