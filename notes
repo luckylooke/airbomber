@@ -3,7 +3,7 @@ TODO:
 - status bar on controller (including nick color score(killed vs deaths) etc..)
 - local player (keyboard)
 - burnable powerups?
-- missing resources (bomberman_green.png missing... etc.)
+- fire detonates bombs
 - bigger level (generated?)
 - Nickname over players
 - https://github.com/AirConsole/airconsole-view-manager
