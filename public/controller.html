@@ -93,6 +93,7 @@
     var acInterval;
     var controller = 'DPad'; // DPad, Gyro
     var transitFrom = 'welcome';
+    var dpad = {};
     var STILL_SNAP = 10; // [%] of movement to be considered as still player
     var TILT_LIMITER_RATE = 200; // [ms] of minimal time between tilt function executions
     var gyroActual;
@@ -249,19 +250,20 @@
         if(controller === 'DPad'){
           switch(key) {
             case 'right':
-                pressed ? moveDPad({x:1}) : moveDPad({x: 0});
+                dpad.x = pressed ? 1 : 0;
                 break;
             case 'left':
-                pressed ? moveDPad({x:-1}) : moveDPad({x: 0});
+                dpad.x = pressed ? -1 : 0;
                 break;
             case 'up':
-                pressed ? moveDPad({y:-1}) : moveDPad({y: 0});
+                dpad.y = pressed ? -1 : 0;
                 break;
             case 'down':
-                pressed ? moveDPad({y:1}) : moveDPad({y: 0});
+                dpad.y = pressed ? 1 : 0;
                 break;
           }
         }
+        moveDPad();
       },
 
       // // Gets called when the DPad is touched.
@@ -530,13 +532,13 @@
      * Tells the screen to move the paddle of this player.
      * @param amount
      */
-    function moveDPad(amount) {
+    function moveDPad() {
       rateLimiter.message(AirConsole.SCREEN, {
         type: 'DPad',
         listener: 'movePlayer',
         nick: nickname,
-        x: amount.x,
-        y: amount.y
+        x: dpad.x,
+        y: dpad.y
       });
     }
     function moveGyro(data) {
