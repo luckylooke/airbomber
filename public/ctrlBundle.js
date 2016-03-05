@@ -64,18 +64,10 @@
 	// viewMan -> https://github.com/AirConsole/airconsole-view-manager                    
 	var viewMan = new AirConsoleViewManager(airconsole);
 	var acTools = __webpack_require__(2)(airconsole);
-
 	var storage = localStorage || {};
 	var colors = ['black','white','blue','green','red','lightblue','yellow','purple'];
 	var gameState;
 	var autoCheckGyro = true;
-	var orientationDefault;
-	var orientationOpposite = {
-	"-90": 90,
-	"90": -90,
-	"landscape-secondary": 'landscape-primary',
-	"landscape-primary": 'landscape-secondary'
-	};
 	var acInterval;
 	var controller = 'DPad'; // DPad, Gyro
 	var dpad = {};
@@ -185,22 +177,6 @@
 	    // secondary listeners for some devices (e.g. Iphone)
 	    airconsole.onDeviceMotion =  getDoListener('onDeviceMotion');
 	    
-	    window.addEventListener("orientationchange", function() {
-	      if(!orientationDefault){
-	        return;
-	      }
-	      
-	      var currentOrientation = getOrientation();
-	      if(currentOrientation === orientationOpposite[orientationDefault]){
-	        document.body.classList.add('upside-down');
-	        gyro.flipCor = -1;
-	        
-	      }else{
-	        document.body.classList.remove('upside-down');
-	        gyro.flipCor = 1;
-	      }
-	    });
-	    
 	    document.getElementById('addPlayer').addEventListener('click', addPlayer);
 	    document.getElementById('calibrateBtn').addEventListener('click', calibrate);
 	    document.getElementById('calStartOverBtn').addEventListener('click', gyro.startOver);
@@ -257,16 +233,12 @@
 	}
 
 	function calibrate(){
-	    if(!orientationDefault){
-	      orientationDefault = getOrientation();
+	    if(!gyro.orientationDefault){
+	      gyro.orientationDefault = gyro.getOrientation();
 	    }
 	    gyro.calibrate(function(){
 	      viewMan.show("name-and-color");
 	    });
-	}
-
-	function getOrientation(){
-	    return screen.orientation || screen.mozOrientation || screen.msOrientation || window.orientation;
 	}
 
 	function getDoListener(source){
@@ -282,12 +254,12 @@
 	      return;
 	    }
 	    if(gyro.calibrated){
-	      // if(gameState === 'level'){
-	      var mov = process('beta', {x: 0, y:0});
-	      mov = process('gamma', mov);
-	      // console.log(mov.x + " - " + mov.y, mov);
-	      moveGyro(mov);
-	    // }
+	       if(gameState === 'level'){
+	          var mov = process('beta', {x: 0, y:0});
+	          mov = process('gamma', mov);
+	          // console.log(mov.x + " - " + mov.y, mov);
+	          moveGyro(mov);
+	        }
 	    }else{
 	      controller = autoCheckGyro ? 'Gyro' : controller;
 	      gyro.actual = data;
@@ -329,6 +301,7 @@
 	 if(controller === 'DPad'){
 	    viewMan.show("name-and-color");
 	  }else{
+	    gyro.init();
 	    viewMan.show("gyro-calibration");
 	  }
 	  autoCheckGyro = false;
@@ -619,6 +592,9 @@
 /***/ function(module, exports) {
 
 	module.exports = {
+	    init: function(){
+	      this.overTiltProtection();
+	    },
 	    actual:{
 	      beta: 0,
 	      gamma: 0
@@ -645,6 +621,33 @@
 	      RIGHT: +1,
 	      UP: -1,
 	      DOWN: +1
+	    },
+	    getOrientation:function(){
+	      return screen.orientation || screen.mozOrientation || screen.msOrientation || window.orientation;
+	    },
+	    overTiltProtection: function(){
+	      var self = this;
+	      var orientationOpposite = {
+	        "-90": 90,
+	        "90": -90,
+	        "landscape-secondary": 'landscape-primary',
+	        "landscape-primary": 'landscape-secondary'
+	      };
+	      window.addEventListener("orientationchange", function() {
+	        if(!self.orientationDefault){
+	          return;
+	        }
+	        
+	        var currentOrientation = self.getOrientation();
+	        if(currentOrientation === orientationOpposite[self.orientationDefault]){
+	          document.body.classList.add('upside-down');
+	          self.flipCor = -1;
+	          
+	        }else{
+	          document.body.classList.remove('upside-down');
+	          self.flipCor = 1;
+	        }
+	      });
 	    },
 	    calibrate: function(cb){
 	      var self = this;

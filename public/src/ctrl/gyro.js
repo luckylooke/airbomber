@@ -1,4 +1,7 @@
 module.exports = {
+    init: function(){
+      this.overTiltProtection();
+    },
     actual:{
       beta: 0,
       gamma: 0
@@ -25,6 +28,33 @@ module.exports = {
       RIGHT: +1,
       UP: -1,
       DOWN: +1
+    },
+    getOrientation:function(){
+      return screen.orientation || screen.mozOrientation || screen.msOrientation || window.orientation;
+    },
+    overTiltProtection: function(){
+      var self = this;
+      var orientationOpposite = {
+        "-90": 90,
+        "90": -90,
+        "landscape-secondary": 'landscape-primary',
+        "landscape-primary": 'landscape-secondary'
+      };
+      window.addEventListener("orientationchange", function() {
+        if(!self.orientationDefault){
+          return;
+        }
+        
+        var currentOrientation = self.getOrientation();
+        if(currentOrientation === orientationOpposite[self.orientationDefault]){
+          document.body.classList.add('upside-down');
+          self.flipCor = -1;
+          
+        }else{
+          document.body.classList.remove('upside-down');
+          self.flipCor = 1;
+        }
+      });
     },
     calibrate: function(cb){
       var self = this;

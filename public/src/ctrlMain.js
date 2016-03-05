@@ -17,18 +17,10 @@ var rateLimiter = new RateLimiter(airconsole);
 // viewMan -> https://github.com/AirConsole/airconsole-view-manager                    
 var viewMan = new AirConsoleViewManager(airconsole);
 var acTools = require('./main/airconsoleSetup')(airconsole);
-
 var storage = localStorage || {};
 var colors = ['black','white','blue','green','red','lightblue','yellow','purple'];
 var gameState;
 var autoCheckGyro = true;
-var orientationDefault;
-var orientationOpposite = {
-"-90": 90,
-"90": -90,
-"landscape-secondary": 'landscape-primary',
-"landscape-primary": 'landscape-secondary'
-};
 var acInterval;
 var controller = 'DPad'; // DPad, Gyro
 var dpad = {};
@@ -138,22 +130,6 @@ function init() {
     // secondary listeners for some devices (e.g. Iphone)
     airconsole.onDeviceMotion =  getDoListener('onDeviceMotion');
     
-    window.addEventListener("orientationchange", function() {
-      if(!orientationDefault){
-        return;
-      }
-      
-      var currentOrientation = getOrientation();
-      if(currentOrientation === orientationOpposite[orientationDefault]){
-        document.body.classList.add('upside-down');
-        gyro.flipCor = -1;
-        
-      }else{
-        document.body.classList.remove('upside-down');
-        gyro.flipCor = 1;
-      }
-    });
-    
     document.getElementById('addPlayer').addEventListener('click', addPlayer);
     document.getElementById('calibrateBtn').addEventListener('click', calibrate);
     document.getElementById('calStartOverBtn').addEventListener('click', gyro.startOver);
@@ -210,16 +186,12 @@ function init() {
 }
 
 function calibrate(){
-    if(!orientationDefault){
-      orientationDefault = getOrientation();
+    if(!gyro.orientationDefault){
+      gyro.orientationDefault = gyro.getOrientation();
     }
     gyro.calibrate(function(){
       viewMan.show("name-and-color");
     });
-}
-
-function getOrientation(){
-    return screen.orientation || screen.mozOrientation || screen.msOrientation || window.orientation;
 }
 
 function getDoListener(source){
@@ -235,12 +207,12 @@ function tilt(data){
       return;
     }
     if(gyro.calibrated){
-      // if(gameState === 'level'){
-      var mov = process('beta', {x: 0, y:0});
-      mov = process('gamma', mov);
-      // console.log(mov.x + " - " + mov.y, mov);
-      moveGyro(mov);
-    // }
+       if(gameState === 'level'){
+          var mov = process('beta', {x: 0, y:0});
+          mov = process('gamma', mov);
+          // console.log(mov.x + " - " + mov.y, mov);
+          moveGyro(mov);
+        }
     }else{
       controller = autoCheckGyro ? 'Gyro' : controller;
       gyro.actual = data;
@@ -282,6 +254,7 @@ function afterInit(){
  if(controller === 'DPad'){
     viewMan.show("name-and-color");
   }else{
+    gyro.init();
     viewMan.show("gyro-calibration");
   }
   autoCheckGyro = false;
