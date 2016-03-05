@@ -14,63 +14,65 @@ var airconsole = new AirConsole({
                     });
 // rateLimiter -> https://github.com/AirConsole/airconsole-controls/tree/master/rate-limiter                      
 var rateLimiter = new RateLimiter(airconsole);
-// viewMan -> https://github.com/AirConsole/airconsole-view-manager                    
+// viewMan -> https://github.com/AirConsole/airconsole-view-manager
 var viewMan = new AirConsoleViewManager(airconsole);
-var acTools = require('./main/airconsoleSetup')(airconsole);
+var vmTools = require('./ctrl/vmTools')(viewMan);
+var acTools = require('./main/acTools')(airconsole);
 var storage = localStorage || {};
+    storage.controller = storage.controller || 'DPad'; // DPad, Gyro
+
 var colors = ['black','white','blue','green','red','lightblue','yellow','purple'];
 var gameState;
 var autoCheckGyro = true;
 var acInterval;
-var controller = 'DPad'; // DPad, Gyro
 var dpad = {};
 var STILL_SNAP = 10; // [%] of movement to be considered as still player
 var TILT_LIMITER_RATE = 200; // [ms] of minimal time between tilt function executions
 
 new DPad("my-DPad", {
-// Set to true if you want to have a relative swipe dpad
-"relative": false,
-// Gets called when the dpad direction changes.
-// Key is one of: DPad.UP, DPad.DOWN, DPad.LEFT, DPad.RIGHT.
-// Pressed is a boolean, true if the direction is active.
-"directionchange": function(key, pressed) {
-  if(controller === 'DPad'){
-    switch(key) {
-      case 'right':
-          dpad.x = pressed ? 1 : 0;
-          break;
-      case 'left':
-          dpad.x = pressed ? -1 : 0;
-          break;
-      case 'up':
-          dpad.y = pressed ? -1 : 0;
-          break;
-      case 'down':
-          dpad.y = pressed ? 1 : 0;
-          break;
+  // Set to true if you want to have a relative swipe dpad
+  "relative": false,
+  // Gets called when the dpad direction changes.
+  // Key is one of: DPad.UP, DPad.DOWN, DPad.LEFT, DPad.RIGHT.
+  // Pressed is a boolean, true if the direction is active.
+  "directionchange": function(key, pressed) {
+    if(storage.controller === 'DPad'){
+      switch(key) {
+        case 'right':
+            dpad.x = pressed ? 1 : 0;
+            break;
+        case 'left':
+            dpad.x = pressed ? -1 : 0;
+            break;
+        case 'up':
+            dpad.y = pressed ? -1 : 0;
+            break;
+        case 'down':
+            dpad.y = pressed ? 1 : 0;
+            break;
+      }
+      moveDPad();
     }
-  }
-  moveDPad();
-},
+  },
 
-// // Gets called when the DPad is touched.
-// "touchstart": function() {
-//   console.log('touch start');
-// },
+  // // Gets called when the DPad is touched.
+  // "touchstart": function() {
+  //   console.log('touch start');
+  // },
+  
+  // // Gets called when the DPad is released.
+  // // had_direction is a boolean that tells you if at lease one direction was active.
+  // //               can be used to determine if it was just a "tap" on the DPad.
+  // "touchend": function(had_direction) {
+  //   console.log('touch end', had_direction);
+  // },
 
-// // Gets called when the DPad is released.
-// // had_direction is a boolean that tells you if at lease one direction was active.
-// //               can be used to determine if it was just a "tap" on the DPad.
-// "touchend": function(had_direction) {
-//   console.log('touch end', had_direction);
-// },
-
-// (Optional) distance which the user needs to move before triggering a direction.
-"distance": {x: 10, y:10},
-
-// (Optional) diagonal: If true, diagonal movement are possible and it becomes a 8-way DPad:
-//                      For exmaple UP and RIGHT at the same time.
-"diagonal": true
+  // (Optional) distance which the user needs to move before triggering a direction.
+  "distance": {x: 10, y:10},
+  
+  // (Optional) diagonal: If true, diagonal movement are possible and it becomes a 8-way DPad:
+  //                      For exmaple UP and RIGHT at the same time.
+  "diagonal": true
 });
 
 new Button("button-bomb", {
@@ -136,6 +138,12 @@ function init() {
     
     airconsole.onMessage = acTools.onMessage;
     
+      airconsole.onCustomDeviceStateChange = function(device_id, data) {
+        viewMan.onViewChange(data, function(view_id) {
+          console.log('view_id', view_id);
+        });
+      };
+    
     acInterval = setInterval(function(){
       airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
     }, 3000);
@@ -181,6 +189,15 @@ function init() {
       	}
     });
     
+    vmTools.cbs['name-and-color'] = {
+      from: function(){
+        console.log('TEST name-and-color from');
+      },
+      to: function(){
+        console.log('TEST name-and-color to');
+      }
+    };
+    
     // timeout to get chance gyro/accelerators to fire tilt() function and so tell controller to use gyro functiuonality
     setTimeout(afterInit, 500);
 }
@@ -190,7 +207,7 @@ function calibrate(){
       gyro.orientationDefault = gyro.getOrientation();
     }
     gyro.calibrate(function(){
-      viewMan.show("name-and-color");
+      vmTools.showWithCbs("name-and-color");
     });
 }
 
@@ -214,7 +231,7 @@ function tilt(data){
           moveGyro(mov);
         }
     }else{
-      controller = autoCheckGyro ? 'Gyro' : controller;
+      storage.controller = autoCheckGyro ? 'Gyro' : storage.controller;
       gyro.actual = data;
     }
     
@@ -251,11 +268,11 @@ function tiltLimiter(){
 }
 
 function afterInit(){
- if(controller === 'DPad'){
-    viewMan.show("name-and-color");
+ if(storage.controller === 'DPad'){
+    vmTools.showWithCbs("name-and-color");
   }else{
     gyro.init();
-    viewMan.show("gyro-calibration");
+    vmTools.showWithCbs("gyro-calibration");
   }
   autoCheckGyro = false;
 }
@@ -263,10 +280,10 @@ function afterInit(){
 function addPlayer(){
     getPlayerInfo();
     if(storage.color && storage.nickname){
-      if(controller === 'Gyro'){
-        viewMan.show("gyro-pad");
+      if(storage.controller === 'Gyro'){
+        vmTools.showWithCbs("gyro-pad");
       }else{
-        viewMan.show("gamepad-container");
+        vmTools.showWithCbs("gamepad-container");
       }
     }
     acTools.addListener('ready', function(from, data){
@@ -276,7 +293,7 @@ function addPlayer(){
           listener: 'newPlayer',
           nick: storage.nickname,
           color: storage.color,
-          controller: controller
+          controller: storage.controller
         });
       }
       if(data.gameState){

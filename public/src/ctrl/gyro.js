@@ -1,4 +1,4 @@
-module.exports = {
+var gyro = {
     init: function(){
       this.overTiltProtection();
     },
@@ -119,8 +119,10 @@ module.exports = {
       this.MAX_GAMMA -= this.CENTER.gamma;
     },
     startOver: function(){
-      this.message.innerHTML = 'Tap "Begin" button to start calibration!';
-      this.button.innerHTML = 'Begin';
-      this.step = 1;
+      gyro.message.innerHTML = 'Tap "Begin" button to start calibration!';
+      gyro.button.innerHTML = 'Begin';
+      gyro.step = 1;
     }
 };
+
+module.exports = gyro;

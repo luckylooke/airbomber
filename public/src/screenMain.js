@@ -12,7 +12,7 @@ bomberman.screen = {};
 bomberman.level = null;
 bomberman.airconsole = new AirConsole();
 bomberman.socket = require('./main/socketSetup')(io, game);
-bomberman.acTools = require('./main/airconsoleSetup')(bomberman.airconsole, 'screen');
+bomberman.acTools = require('./main/acTools')(bomberman.airconsole, 'screen');
 
 game.state.add("Boot", require("./game/states/boot"));
 game.state.add("Preloader", require("./game/states/preloader"));

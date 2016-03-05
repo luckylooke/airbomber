@@ -57,57 +57,25 @@
 	bomberman.screen = {};
 	bomberman.level = null;
 	bomberman.airconsole = new AirConsole();
-	bomberman.socket = __webpack_require__(1)(io, game);
-	bomberman.acTools = __webpack_require__(2)(bomberman.airconsole, 'screen');
+	bomberman.socket = __webpack_require__(5)(io, game);
+	bomberman.acTools = __webpack_require__(4)(bomberman.airconsole, 'screen');
 
-	game.state.add("Boot", __webpack_require__(3));
-	game.state.add("Preloader", __webpack_require__(6));
-	game.state.add("Lobby", __webpack_require__(7));
-	game.state.add("StageSelect", __webpack_require__(8));
-	game.state.add("PendingGame", __webpack_require__(10));
-	game.state.add("Level", __webpack_require__(11));
-	game.state.add("GameOver", __webpack_require__(19));
+	game.state.add("Boot", __webpack_require__(6));
+	game.state.add("Preloader", __webpack_require__(9));
+	game.state.add("Lobby", __webpack_require__(10));
+	game.state.add("StageSelect", __webpack_require__(11));
+	game.state.add("PendingGame", __webpack_require__(13));
+	game.state.add("Level", __webpack_require__(14));
+	game.state.add("GameOver", __webpack_require__(22));
 
-	__webpack_require__(20);
+	__webpack_require__(23);
 
-
-/***/ },
-/* 1 */
-/***/ function(module, exports) {
-
-	module.exports = function(io, game){
-	  function getURLParameter(name) {
-	    return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
-	  }
-	  
-	  var once = false;
-	  var socketServer;
-	  var socket;
-	  if(getURLParameter('cloud9')){
-	      socketServer = 'cloud9';
-	      socket = io(); // cloud9
-	  }else{
-	      socketServer = 'openshift';
-	      socket = io('http://airbomber-luckylooke.rhcloud.com:8000'); // openshift
-	  }
-	  socket.on('connect_error', function(err){
-	      if(!once){ // try once fallback to cloud9
-	          socket = io(); // cloud9
-	          socketServer = 'cloud9';
-	          once = true;
-	      }else{
-	          console.log('SOCKET CANNOT CONNECT', err);
-	      }
-	  });
-	  socket.on('connect', function(){
-	      console.log('socket server: ', socketServer);
-	      game.state.start('Boot');
-	  });
-	  return socket;
-	};
 
 /***/ },
-/* 2 */
+/* 1 */,
+/* 2 */,
+/* 3 */,
+/* 4 */
 /***/ function(module, exports) {
 
 	module.exports = function(airconsole, devType){
@@ -190,12 +158,47 @@
 	}
 
 /***/ },
-/* 3 */
+/* 5 */
+/***/ function(module, exports) {
+
+	module.exports = function(io, game){
+	  function getURLParameter(name) {
+	    return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+	  }
+	  
+	  var once = false;
+	  var socketServer;
+	  var socket;
+	  if(getURLParameter('cloud9')){
+	      socketServer = 'cloud9';
+	      socket = io(); // cloud9
+	  }else{
+	      socketServer = 'openshift';
+	      socket = io('http://airbomber-luckylooke.rhcloud.com:8000'); // openshift
+	  }
+	  socket.on('connect_error', function(err){
+	      if(!once){ // try once fallback to cloud9
+	          socket = io(); // cloud9
+	          socketServer = 'cloud9';
+	          once = true;
+	      }else{
+	          console.log('SOCKET CANNOT CONNECT', err);
+	      }
+	  });
+	  socket.on('connect', function(){
+	      console.log('socket server: ', socketServer);
+	      game.state.start('Boot');
+	  });
+	  return socket;
+	};
+
+/***/ },
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global bomberman */
-	var AudioPlayer = __webpack_require__(4);
-	var TextConfigurer = __webpack_require__(5);
+	var AudioPlayer = __webpack_require__(7);
+	var TextConfigurer = __webpack_require__(8);
 	var game = bomberman.game;
 
 	var textXOffset = 420;
@@ -231,7 +234,7 @@
 
 
 /***/ },
-/* 4 */
+/* 7 */
 /***/ function(module, exports) {
 
 	/* global bomberman */
@@ -264,7 +267,7 @@
 	};
 
 /***/ },
-/* 5 */
+/* 8 */
 /***/ function(module, exports) {
 
 	exports.configureText = function(text, color, size) {
@@ -274,7 +277,7 @@
 	};
 
 /***/ },
-/* 6 */
+/* 9 */
 /***/ function(module, exports) {
 
 	/* global Phaser, bomberman*/
@@ -361,7 +364,7 @@
 
 
 /***/ },
-/* 7 */
+/* 10 */
 /***/ function(module, exports) {
 
 	/* global bomberman */
@@ -454,11 +457,11 @@
 	};
 
 /***/ },
-/* 8 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global bomberman */
-	var MapInfo = __webpack_require__(9);
+	var MapInfo = __webpack_require__(12);
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var StageSelect = function() {};
@@ -545,7 +548,7 @@
 
 
 /***/ },
-/* 9 */
+/* 12 */
 /***/ function(module, exports) {
 
 	var MapInfo = {
@@ -599,7 +602,7 @@
 	module.exports = MapInfo;
 
 /***/ },
-/* 10 */
+/* 13 */
 /***/ function(module, exports) {
 
 	/* global bomberman */
@@ -751,22 +754,22 @@
 	};
 
 /***/ },
-/* 11 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
 	var BLACK_HEX_CODE = "#000000";
 	var TILE_SIZE = 35;
 
-	var PowerupIDs = __webpack_require__(12);
-	var MapInfo = __webpack_require__(9);
-	var AudioPlayer = __webpack_require__(4);
-	var Player = __webpack_require__(13);
-	var RemotePlayer = __webpack_require__(15);
-	var Bomb = __webpack_require__(14);
-	var RoundEndAnimation = __webpack_require__(16);
-	var PowerupImageKeys = __webpack_require__(17);
-	var PowerupNotificationPlayer = __webpack_require__(18);
+	var PowerupIDs = __webpack_require__(15);
+	var MapInfo = __webpack_require__(12);
+	var AudioPlayer = __webpack_require__(7);
+	var Player = __webpack_require__(16);
+	var RemotePlayer = __webpack_require__(18);
+	var Bomb = __webpack_require__(17);
+	var RoundEndAnimation = __webpack_require__(19);
+	var PowerupImageKeys = __webpack_require__(20);
+	var PowerupNotificationPlayer = __webpack_require__(21);
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var level = bomberman.level;
@@ -1120,7 +1123,7 @@
 
 
 /***/ },
-/* 12 */
+/* 15 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -1136,12 +1139,12 @@
 	};
 
 /***/ },
-/* 13 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
 
-	var Bomb = __webpack_require__(14);
+	var Bomb = __webpack_require__(17);
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var level; // cannot be assigned now because level isnt initialized yet
@@ -1328,12 +1331,12 @@
 	module.exports = Player;
 
 /***/ },
-/* 14 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
 
-	var AudioPlayer = __webpack_require__(4);
+	var AudioPlayer = __webpack_require__(7);
 	var game = bomberman.game;
 	var level;
 
@@ -1381,7 +1384,7 @@
 	module.exports = Bomb;
 
 /***/ },
-/* 15 */
+/* 18 */
 /***/ function(module, exports) {
 
 	/* global Phaser, bomberman */
@@ -1445,11 +1448,11 @@
 	module.exports = RemotePlayer;
 
 /***/ },
-/* 16 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
-	var TextConfigurer = __webpack_require__(5);
+	var TextConfigurer = __webpack_require__(8);
 	var game = bomberman.game;
 
 	var screenWidth = game.width;
@@ -1553,10 +1556,10 @@
 	module.exports = RoundEndAnimation;
 
 /***/ },
-/* 17 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var PowerupIDs = __webpack_require__(12);
+	var PowerupIDs = __webpack_require__(15);
 
 	var powerupImageKeys = {};
 
@@ -1567,12 +1570,12 @@
 	module.exports = powerupImageKeys;
 
 /***/ },
-/* 18 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
 
-	var PowerupIds = __webpack_require__(12);
+	var PowerupIds = __webpack_require__(15);
 	var game = bomberman.game;
 
 	var notificationImageMap = {};
@@ -1598,11 +1601,11 @@
 	};
 
 /***/ },
-/* 19 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
-	var TextConfigurer = __webpack_require__(5);
+	var TextConfigurer = __webpack_require__(8);
 	var game = bomberman.game,
 		airconsole = bomberman.airconsole;
 
@@ -1640,27 +1643,27 @@
 	module.exports = GameOver;
 
 /***/ },
-/* 20 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var map = {
-		"./common/map_info.js": 9,
-		"./common/powerup_ids.js": 12,
-		"./entities/bomb.js": 14,
-		"./entities/player.js": 13,
-		"./entities/remoteplayer.js": 15,
-		"./entities/round_end_animation.js": 16,
-		"./states/boot.js": 3,
-		"./states/game_over.js": 19,
-		"./states/level.js": 11,
-		"./states/lobby.js": 7,
-		"./states/pending_game.js": 10,
-		"./states/preloader.js": 6,
-		"./states/stage_select.js": 8,
-		"./util/audio_player.js": 4,
-		"./util/powerup_image_keys.js": 17,
-		"./util/powerup_notification_player.js": 18,
-		"./util/text_configurer.js": 5
+		"./common/map_info.js": 12,
+		"./common/powerup_ids.js": 15,
+		"./entities/bomb.js": 17,
+		"./entities/player.js": 16,
+		"./entities/remoteplayer.js": 18,
+		"./entities/round_end_animation.js": 19,
+		"./states/boot.js": 6,
+		"./states/game_over.js": 22,
+		"./states/level.js": 14,
+		"./states/lobby.js": 10,
+		"./states/pending_game.js": 13,
+		"./states/preloader.js": 9,
+		"./states/stage_select.js": 11,
+		"./util/audio_player.js": 7,
+		"./util/powerup_image_keys.js": 20,
+		"./util/powerup_notification_player.js": 21,
+		"./util/text_configurer.js": 8
 	};
 	function webpackContext(req) {
 		return __webpack_require__(webpackContextResolve(req));
@@ -1673,7 +1676,7 @@
 	};
 	webpackContext.resolve = webpackContextResolve;
 	module.exports = webpackContext;
-	webpackContext.id = 20;
+	webpackContext.id = 23;
 
 
 /***/ }
