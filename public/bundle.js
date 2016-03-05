@@ -505,10 +505,9 @@
 
 /***/ },
 /* 8 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	/* global bomberman, AirConsole */
-	var TextConfigurer = __webpack_require__(3);
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var screen = bomberman.screen;
@@ -520,23 +519,6 @@
 	var PendingGame = function() {};
 
 	module.exports = PendingGame;
-
-	var xOffset = 180;
-	var yOffset = 25;
-	var buttonXOffset = 345;
-	var startGameButtonYOffset = 320;
-	var leaveButtonYOffset = 370;
-	var characterSquareStartingX = 345;
-	var characterSquareStartingY = 80;
-	var characterSquareXDistance = 105;
-	var characterSquareYDistance = 100;
-	var characterOffsetX = 4.5;
-	var characterOffsetY = 4.5;
-	var minPlayerMessageOffsetX = 330;
-	var minPlayerMessageOffsetY = 425;
-	var numCharacterSquares = 4;
-
-
 
 	var airconsole = bomberman.airconsole = new AirConsole();
 	var acTools = bomberman.acTools = {};
@@ -660,18 +642,7 @@
 			this.htmlPlayersElm = document.getElementById('players');
 			this.htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
 			this.htmlPlayersElm.innerHTML = '';
-	        // game.add.sprite(0, 0, 'background_s');
 			socket.emit("enter pending game", {slotId: game.slotId});
-			// var backdrop = game.add.image(xOffset, yOffset, "pending_game_backdrop");
-			// this.startGameButton = game.add.button(buttonXOffset, startGameButtonYOffset, "start_game_button", null, this,
-			// 	2, 2);
-			// this.leaveGameButton = game.add.button(buttonXOffset, leaveButtonYOffset, "leave_game_button", this.leaveGameAction, null, 1, 0);
-			// this.characterSquares = this.drawCharacterSquares(4);
-			// this.characterImages = [];
-			// this.numPlayersInGame = 0;
-			// this.minPlayerMessage = game.add.text(minPlayerMessageOffsetX, minPlayerMessageOffsetY, "Cannot start game without\nat least 2 players.")
-			// TextConfigurer.configureText(this.minPlayerMessage, "red", 17);
-			// this.minPlayerMessage.visible = false;
 			socket.on("show current players", this.populateCharacterSquares.bind(this));
 			socket.on("player joined", this.playerJoined.bind(this));
 			socket.on("players left", this.playersLeft.bind(this));
@@ -681,23 +652,6 @@
 
 		update: function() {
 		},
-
-		// drawCharacterSquares: function(numOpenings) {
-		// 	var characterSquares = [];
-		// 	var yOffset = characterSquareStartingY;
-		// 	var xOffset = characterSquareStartingX;
-		// 	for(var i = 0; i < numCharacterSquares; i++) {
-		// 		var frame = i < numOpenings ? 0 : 1;
-		// 		characterSquares[i] = game.add.sprite(xOffset, yOffset, "character_square", frame);
-		// 		if(i % 2 == 0) {
-		// 			xOffset += characterSquareXDistance;
-		// 		} else {
-		// 			xOffset = characterSquareStartingX;
-		// 			yOffset += characterSquareYDistance;
-		// 		}
-		// 	}
-		// 	return characterSquares;
-		// },
 
 		populateCharacterSquares: function(data) {
 			screen.isReady = true;
@@ -725,8 +679,6 @@
 
 		playerJoined: function(data) {
 			this.numPlayersInGame++;
-			// var index = this.numPlayersInGame - 1;
-			// this.characterImages[data.id] = game.add.image(this.characterSquares[index].position.x + characterOffsetX, this.characterSquares[index].position.y + characterOffsetY, "bomberman_head_" +  data.color);
 			if(this.numPlayersInGame == 2) {
 				this.activateStartGameButton();
 			}
@@ -737,26 +689,16 @@
 			if(this.numPlayersInGame == 1) {
 				this.deactivateStartGameButton();
 			}
-			// for(var playerId in this.characterImages) {
-			// 	this.characterImages[playerId].destroy();
-			// }
 			this.populateCharacterSquares(data);
 		},
 
 		activateStartGameButton: function() {
-			// this.minPlayerMessage.visible = false;
 			this.minPlayersMessage.classList.add('hidden');
-			// this.startGameButton.setFrames(1, 0);
-			// this.startGameButton.onInputUp.removeAll();
-			// this.startGameButton.onInputUp.add(this.startGameAction, this);
 			this.startGameBtn.removeAttribute('disabled');
 		},
 
 		deactivateStartGameButton: function() {
 			this.minPlayersMessage.classList.remove('hidden');
-			// this.minPlayerMessage.visible = true;
-			// this.startGameButton.setFrames(2, 2);
-			// this.startGameButton.onInputUp.removeAll();
 			this.startGameBtn.setAttribute('disabled', 'disabled');
 		},
 
@@ -767,7 +709,7 @@
 
 		leaveGameAction: function() {
 			this.leavingPendingGame();
-			socket.emit("leave pending game", {slotId: game.slotId});
+			socket.emit("leave pending game", {slotId: game.slotId, screenId: game.screenId});
 			socket.removeAllListeners();
 	        game.state.start("Lobby");
 		},

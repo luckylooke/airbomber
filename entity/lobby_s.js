@@ -84,7 +84,7 @@ var lobby = {
     },
 
     onLeavePendingGame: function (data) {
-        if(!data){
+        if(!data || !data.screenId){
             return;
         }
         var lobbySlot = lobbySlots[data.slotId];
