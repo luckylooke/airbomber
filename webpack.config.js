@@ -2,14 +2,18 @@ var webpack = require("webpack");
 var path = require("path");
 
 module.exports = {
-    entry: "./public/src/main.js",
+    entry: {
+        screenBundle: "./public/src/screenMain.js",
+        ctrlBundle: "./public/src/ctrlMain.js"
+    },
     resolve: {
         modulesDirectories: [
-            "./public/src/"
+            "src"
         ]
     },
     output: {
         path: path.join(__dirname, "public"),
-        filename: "bundle.js"
-    }
+        filename: "[name].js"
+    }, 
+    watch: true
 };
