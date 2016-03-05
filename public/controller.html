@@ -8,11 +8,11 @@
 </head>
 <body onload='init()'>
   
-  <div id="welcome">
+  <div id="welcome" class="view default-view">
     <span style="color:white, font-size:200%">Welcome!</span>
   </div>
   
-  <div id="name-and-color">
+  <div id="name-and-color" class="view">
     <form>
       <div class="name-container">
         Player name: <input type="text" name="player_name" id="player_name">
@@ -26,7 +26,7 @@
     </form>
   </div>
 
-  <div id="gamepad-container">
+  <div id="gamepad-container" class="view">
     <div id="left" class="left">
       <div id="my-DPad">
         <div>
@@ -43,12 +43,12 @@
     </div>
   </div>
 
-  <div id="gyro-pad">
+  <div id="gyro-pad" class="view">
     GYROPAD
     <div id="button-bomb-gyro" class="button-300-300"><div class="button-text">BOMB</div></div>
   </div>
 
-  <div id="gyro-calibration">
+  <div id="gyro-calibration" class="view">
     <form>
       <div class="calibre-button">
         <div id="debugMessage"></div>
@@ -60,12 +60,13 @@
   </div>
   
 <script type="text/javascript" src="https://www.airconsole.com/api/airconsole-1.3.0.js"></script>
+<script src="airconsole-view-manager/airconsole-view-manager.js"></script>
 <script type="text/javascript" src="controller/rate-limiter/rate-limiter.js"></script>
 <script type="text/javascript" src="controller/dpad/dpad.js"></script>
 <script type="text/javascript" src="controller/button/button.js"></script>
 <script type="text/javascript" src="controller/rate-limiter/rate-limiter.js"></script>
 <script type="text/javascript">
-  /* global AirConsole, DPad, Button, GyroNorm, RateLimiter */
+  /* global AirConsole, DPad, Button, GyroNorm, RateLimiter, AirConsoleViewManager */
   
   navigator.vibrate = (navigator.vibrate ||
                        navigator.webkitVibrate ||
@@ -86,7 +87,6 @@
   var acTools = {};
   var acInterval;
   var controller = 'DPad'; // DPad, Gyro
-  var transitFrom = 'welcome';
   var dpad = {};
   var STILL_SNAP = 10; // [%] of movement to be considered as still player
   var TILT_LIMITER_RATE = 200; // [ms] of minimal time between tilt function executions
@@ -135,7 +135,7 @@
         setMessages(steps[++this.step]);
         this.calculateLimits();
         this.calibrated = true;
-        transitView("name-and-color");
+        viewMan.show("name-and-color");
       }else{
         this[steps[this.step]] = {beta: gyroActual.beta, gamma: gyroActual.gamma};
         setMessages(steps[++this.step]);
@@ -233,6 +233,9 @@
                         });
   // rateLimiter -> https://github.com/AirConsole/airconsole-controls/tree/master/rate-limiter                      
   var rateLimiter = new RateLimiter(airconsole);
+
+  // viewMan -> https://github.com/AirConsole/airconsole-view-manager                    
+  var viewMan = new AirConsoleViewManager(airconsole);
     
   new DPad("my-DPad", {
     // Set to true if you want to have a relative swipe dpad
@@ -466,27 +469,21 @@
   
   function afterInit(){
      if(controller === 'DPad'){
-        transitView("name-and-color");
+        viewMan.show("name-and-color");
       }else{
         gyro.init();
-        transitView("gyro-calibration");
+        viewMan.show("gyro-calibration");
       }
       autoCheckGyro = false;
-  }
-    
-  function transitView(to){
-      document.getElementById(transitFrom).style.display = "none";
-      document.getElementById(to).style.display = "block";
-      transitFrom = to;
   }
   
   function addPlayer(){
     getPlayerInfo();
     if(storage.color && storage.nickname){
       if(controller === 'Gyro'){
-        transitView("gyro-pad");
+        viewMan.show("gyro-pad");
       }else{
-        transitView("gamepad-container");
+        viewMan.show("gamepad-container");
       }
     }
     acTools.addListener('ready', function(from, data){

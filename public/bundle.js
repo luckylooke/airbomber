@@ -44,63 +44,156 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* global Phaser, bomberman, io */
-	if(!bomberman) {
-	    bomberman = {};
-	}
+	/* global Phaser */
+
+	var bomberman = window.bomberman = {}; // namespace in global
+	bomberman.device = 'screen';
+	bomberman.bomberElm = document.getElementById('bomber');
+	bomberman.guiElm = document.getElementById('gui');
 
 	bomberman.width = bomberman.bomberElm.clientWidth;
 	bomberman.height = bomberman.bomberElm.clientHeight;
 
 	var game = bomberman.game = new Phaser.Game(bomberman.width, bomberman.height, Phaser.AUTO, 'bomber');
 	bomberman.screen = {};
-
-	function getURLParameter(name) {
-	  return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
-	}
-
-	var once = false;
-	var socketServer;
-	if(getURLParameter('cloud9')){
-	    socketServer = 'cloud9';
-	    bomberman.socket = io(); // cloud9
-	}else{
-	    socketServer = 'openshift';
-	    bomberman.socket = io('http://airbomber-luckylooke.rhcloud.com:8000'); // openshift
-	}
-	bomberman.socket.on('connect_error', function(err){
-	    if(!once){ // try once fallback to cloud9
-	        bomberman.socket = io(); // cloud9
-	        socketServer = 'cloud9';
-	        once = true;
-	    }else{
-	        console.log('SOCKET CANNOT CONNECT', err);
-	    }
-	});
-	bomberman.socket.on('connect', function(){
-	    console.log('socket server: ', socketServer);
-	    game.state.start('Boot');
-	});
 	bomberman.level = null;
 
-	game.state.add("Boot", __webpack_require__(1));
-	game.state.add("Preloader", __webpack_require__(4));
-	game.state.add("Lobby", __webpack_require__(5));
-	game.state.add("StageSelect", __webpack_require__(6));
-	game.state.add("PendingGame", __webpack_require__(8));
-	game.state.add("Level", __webpack_require__(9));
-	game.state.add("GameOver", __webpack_require__(17));
+	__webpack_require__(1)(bomberman); // dependency global io
+	__webpack_require__(2)(bomberman); // dependency global AirConsole
 
-	__webpack_require__(18);undefined
+	game.state.add("Boot", __webpack_require__(3));
+	game.state.add("Preloader", __webpack_require__(6));
+	game.state.add("Lobby", __webpack_require__(7));
+	game.state.add("StageSelect", __webpack_require__(8));
+	game.state.add("PendingGame", __webpack_require__(10));
+	game.state.add("Level", __webpack_require__(11));
+	game.state.add("GameOver", __webpack_require__(19));
+
+	__webpack_require__(20);
 
 
 /***/ },
 /* 1 */
+/***/ function(module, exports) {
+
+	/* global io */
+	module.exports = function(bomberman){
+	  function getURLParameter(name) {
+	    return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+	  }
+	  
+	  var once = false;
+	  var socketServer;
+	  if(getURLParameter('cloud9')){
+	      socketServer = 'cloud9';
+	      bomberman.socket = io(); // cloud9
+	  }else{
+	      socketServer = 'openshift';
+	      bomberman.socket = io('http://airbomber-luckylooke.rhcloud.com:8000'); // openshift
+	  }
+	  bomberman.socket.on('connect_error', function(err){
+	      if(!once){ // try once fallback to cloud9
+	          bomberman.socket = io(); // cloud9
+	          socketServer = 'cloud9';
+	          once = true;
+	      }else{
+	          console.log('SOCKET CANNOT CONNECT', err);
+	      }
+	  });
+	  bomberman.socket.on('connect', function(){
+	      console.log('socket server: ', socketServer);
+	      bomberman.game.state.start('Boot');
+	  });
+	};
+
+/***/ },
+/* 2 */
+/***/ function(module, exports) {
+
+	/* global AirConsole */
+	module.exports = function(bomberman){
+	    var airconsole = bomberman.airconsole = new AirConsole();
+	    var acTools = bomberman.acTools = {};
+	    
+	    acTools.listeners = {};
+	    acTools.uniListeners = [];
+	    acTools.addListener = function(name, fn){
+	    	if(!fn){
+	    		return;
+	    	}else if(typeof name !== 'string'){
+	    		if(typeof name === 'undefined'){
+	    			acTools.uniListeners.push(fn);
+	    		}
+	    		return;
+	    	}
+	    	acTools.listeners[name] = fn;	
+	    };
+	    acTools.rmListener = function(name, fn){
+	    	if(fn && typeof name === 'undefined'){
+	    		var index = acTools.uniListeners.indexOf(fn);
+	    		acTools.uniListeners.splice(index, 1);
+	    	}else{
+	    		delete acTools.listeners[name];
+	    	}
+	    };
+	    acTools.onMessage = function(device_id, data) {
+	    	if(data.listener && acTools.listeners[data.listener]){
+	    		acTools.listeners[data.listener](device_id, data);
+	    	}
+	    	for (var i = 0; i < acTools.uniListeners.length; i++) {
+	    		acTools.uniListeners[i](device_id, data);
+	    	}
+	    };
+	    
+	    airconsole.onConnect = function(device_id) {
+	      	// deviceConnectionChange();
+	      	airconsole.setActivePlayers(20);
+	    	console.log('connected: ', arguments);
+	    };
+	    
+	    airconsole.onDisconnect = function(device_id) {
+	      //var player = airconsole.convertDeviceIdToPlayerNumber(device_id);
+	      //if (player != undefined) {
+	      //  // Player that was in game left the game.
+	      //  // Setting active players to length 0.
+	      //  // airconsole.setActivePlayers(0);
+	      //}
+	      //deviceConnectionChange();
+	    };
+	    
+	    // function deviceConnectionChange() {
+	    //     var active_players = airconsole.getActivePlayerDeviceIds();
+	    //     var connected_controllers = airconsole.getControllerDeviceIds();
+	    //     // Only update if the game didn't have active players.
+	    //     if (active_players.length == 0) {
+	    //       if (connected_controllers.length >= 2) {
+	    //         // Enough controller devices connected to start the game.
+	    //         // Setting the first 2 controllers to active players.
+	    //         airconsole.setActivePlayers(20);
+	    //     //     resetBall(50, 0);
+	    //     //     score = [0, 0];
+	    //     //     score_el.innerHTML = score.join(":");
+	    //     //     document.getElementById("wait").innerHTML = "";
+	    //     //   } else if (connected_controllers.length == 1) {
+	    //     //     document.getElementById("wait").innerHTML = "Need 1 more player!";
+	    //     //     resetBall(0, 0);
+	    //     //   } else if (connected_controllers.length == 0) {
+	    //     //     document.getElementById("wait").innerHTML = "Need 2 more players!";
+	    //     //     resetBall(0, 0);
+	    //       }
+	    //     }
+	    //   }
+
+	    airconsole.onMessage = acTools.onMessage;
+	}
+
+/***/ },
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global bomberman */
-	var AudioPlayer = __webpack_require__(2);
-	var TextConfigurer = __webpack_require__(3);
+	var AudioPlayer = __webpack_require__(4);
+	var TextConfigurer = __webpack_require__(5);
 	var game = bomberman.game;
 
 	var textXOffset = 420;
@@ -136,7 +229,7 @@
 
 
 /***/ },
-/* 2 */
+/* 4 */
 /***/ function(module, exports) {
 
 	/* global bomberman */
@@ -169,7 +262,7 @@
 	};
 
 /***/ },
-/* 3 */
+/* 5 */
 /***/ function(module, exports) {
 
 	exports.configureText = function(text, color, size) {
@@ -179,7 +272,7 @@
 	};
 
 /***/ },
-/* 4 */
+/* 6 */
 /***/ function(module, exports) {
 
 	/* global Phaser, bomberman*/
@@ -266,7 +359,7 @@
 
 
 /***/ },
-/* 5 */
+/* 7 */
 /***/ function(module, exports) {
 
 	/* global bomberman */
@@ -359,11 +452,11 @@
 	};
 
 /***/ },
-/* 6 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global bomberman */
-	var MapInfo = __webpack_require__(7);
+	var MapInfo = __webpack_require__(9);
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var StageSelect = function() {};
@@ -450,7 +543,7 @@
 
 
 /***/ },
-/* 7 */
+/* 9 */
 /***/ function(module, exports) {
 
 	var MapInfo = {
@@ -504,10 +597,10 @@
 	module.exports = MapInfo;
 
 /***/ },
-/* 8 */
+/* 10 */
 /***/ function(module, exports) {
 
-	/* global bomberman, AirConsole */
+	/* global bomberman */
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var screen = bomberman.screen;
@@ -516,60 +609,8 @@
 	screen.isReady = false;
 	screen.players = {};
 
-	var PendingGame = function() {};
-
-	module.exports = PendingGame;
-
-	var airconsole = bomberman.airconsole = new AirConsole();
-	var acTools = bomberman.acTools = {};
-
-	acTools.listeners = {};
-	acTools.uniListeners = [];
-	acTools.addListener = function(name, fn){
-		if(!fn){
-			return;
-		}else if(typeof name !== 'string'){
-			if(typeof name === 'undefined'){
-				acTools.uniListeners.push(fn);
-			}
-			return;
-		}
-		acTools.listeners[name] = fn;	
-	};
-	acTools.rmListener = function(name, fn){
-		if(fn && typeof name === 'undefined'){
-			var index = acTools.uniListeners.indexOf(fn);
-			acTools.uniListeners.splice(index, 1);
-		}else{
-			delete acTools.listeners[name];
-		}
-	};
-	acTools.onMessage = function(device_id, data) {
-		if(data.listener && acTools.listeners[data.listener]){
-			acTools.listeners[data.listener](device_id, data);
-		}
-		for (var i = 0; i < acTools.uniListeners.length; i++) {
-			acTools.uniListeners[i](device_id, data);
-		}
-	};
-
-	airconsole.onConnect = function(device_id) {
-	  	// deviceConnectionChange();
-	  	airconsole.setActivePlayers(20);
-		console.log('connected: ', arguments);
-	};
-
-	airconsole.onDisconnect = function(device_id) {
-	  //var player = airconsole.convertDeviceIdToPlayerNumber(device_id);
-	  //if (player != undefined) {
-	  //  // Player that was in game left the game.
-	  //  // Setting active players to length 0.
-	  //  // airconsole.setActivePlayers(0);
-	  //}
-	  //deviceConnectionChange();
-	};
-
-	airconsole.onMessage = acTools.onMessage;
+	var airconsole = bomberman.airconsole;
+	var acTools = bomberman.acTools;
 
 	// debug info
 	acTools.addListener(undefined, function(from, data){
@@ -597,28 +638,9 @@
 	}
 	acTools.addListener('newPlayer', newPlayer);
 
-	function deviceConnectionChange() {
-	    var active_players = airconsole.getActivePlayerDeviceIds();
-	    var connected_controllers = airconsole.getControllerDeviceIds();
-	    // Only update if the game didn't have active players.
-	    if (active_players.length == 0) {
-	      if (connected_controllers.length >= 2) {
-	        // Enough controller devices connected to start the game.
-	        // Setting the first 2 controllers to active players.
-	        airconsole.setActivePlayers(20);
-	    //     resetBall(50, 0);
-	    //     score = [0, 0];
-	    //     score_el.innerHTML = score.join(":");
-	    //     document.getElementById("wait").innerHTML = "";
-	    //   } else if (connected_controllers.length == 1) {
-	    //     document.getElementById("wait").innerHTML = "Need 1 more player!";
-	    //     resetBall(0, 0);
-	    //   } else if (connected_controllers.length == 0) {
-	    //     document.getElementById("wait").innerHTML = "Need 2 more players!";
-	    //     resetBall(0, 0);
-	      }
-	    }
-	  }
+	var PendingGame = function() {};
+
+	module.exports = PendingGame;
 
 	PendingGame.prototype = {
 	    init: function (tilemapName, slotId) {
@@ -727,22 +749,22 @@
 	};
 
 /***/ },
-/* 9 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
 	var BLACK_HEX_CODE = "#000000";
 	var TILE_SIZE = 35;
 
-	var PowerupIDs = __webpack_require__(10);
-	var MapInfo = __webpack_require__(7);
-	var AudioPlayer = __webpack_require__(2);
-	var Player = __webpack_require__(11);
-	var RemotePlayer = __webpack_require__(13);
-	var Bomb = __webpack_require__(12);
-	var RoundEndAnimation = __webpack_require__(14);
-	var PowerupImageKeys = __webpack_require__(15);
-	var PowerupNotificationPlayer = __webpack_require__(16);
+	var PowerupIDs = __webpack_require__(12);
+	var MapInfo = __webpack_require__(9);
+	var AudioPlayer = __webpack_require__(4);
+	var Player = __webpack_require__(13);
+	var RemotePlayer = __webpack_require__(15);
+	var Bomb = __webpack_require__(14);
+	var RoundEndAnimation = __webpack_require__(16);
+	var PowerupImageKeys = __webpack_require__(17);
+	var PowerupNotificationPlayer = __webpack_require__(18);
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var level = bomberman.level;
@@ -1096,7 +1118,7 @@
 
 
 /***/ },
-/* 10 */
+/* 12 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -1112,12 +1134,12 @@
 	};
 
 /***/ },
-/* 11 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
 
-	var Bomb = __webpack_require__(12);
+	var Bomb = __webpack_require__(14);
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var level; // cannot be assigned now because level isnt initialized yet
@@ -1304,12 +1326,12 @@
 	module.exports = Player;
 
 /***/ },
-/* 12 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
 
-	var AudioPlayer = __webpack_require__(2);
+	var AudioPlayer = __webpack_require__(4);
 	var game = bomberman.game;
 	var level;
 
@@ -1357,7 +1379,7 @@
 	module.exports = Bomb;
 
 /***/ },
-/* 13 */
+/* 15 */
 /***/ function(module, exports) {
 
 	/* global Phaser, bomberman */
@@ -1421,11 +1443,11 @@
 	module.exports = RemotePlayer;
 
 /***/ },
-/* 14 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
-	var TextConfigurer = __webpack_require__(3);
+	var TextConfigurer = __webpack_require__(5);
 	var game = bomberman.game;
 
 	var screenWidth = game.width;
@@ -1529,10 +1551,10 @@
 	module.exports = RoundEndAnimation;
 
 /***/ },
-/* 15 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var PowerupIDs = __webpack_require__(10);
+	var PowerupIDs = __webpack_require__(12);
 
 	var powerupImageKeys = {};
 
@@ -1543,12 +1565,12 @@
 	module.exports = powerupImageKeys;
 
 /***/ },
-/* 16 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
 
-	var PowerupIds = __webpack_require__(10);
+	var PowerupIds = __webpack_require__(12);
 	var game = bomberman.game;
 
 	var notificationImageMap = {};
@@ -1574,11 +1596,11 @@
 	};
 
 /***/ },
-/* 17 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
-	var TextConfigurer = __webpack_require__(3);
+	var TextConfigurer = __webpack_require__(5);
 	var game = bomberman.game,
 		airconsole = bomberman.airconsole;
 
@@ -1616,27 +1638,27 @@
 	module.exports = GameOver;
 
 /***/ },
-/* 18 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var map = {
-		"./common/map_info.js": 7,
-		"./common/powerup_ids.js": 10,
-		"./entities/bomb.js": 12,
-		"./entities/player.js": 11,
-		"./entities/remoteplayer.js": 13,
-		"./entities/round_end_animation.js": 14,
-		"./states/boot.js": 1,
-		"./states/game_over.js": 17,
-		"./states/level.js": 9,
-		"./states/lobby.js": 5,
-		"./states/pending_game.js": 8,
-		"./states/preloader.js": 4,
-		"./states/stage_select.js": 6,
-		"./util/audio_player.js": 2,
-		"./util/powerup_image_keys.js": 15,
-		"./util/powerup_notification_player.js": 16,
-		"./util/text_configurer.js": 3
+		"./common/map_info.js": 9,
+		"./common/powerup_ids.js": 12,
+		"./entities/bomb.js": 14,
+		"./entities/player.js": 13,
+		"./entities/remoteplayer.js": 15,
+		"./entities/round_end_animation.js": 16,
+		"./states/boot.js": 3,
+		"./states/game_over.js": 19,
+		"./states/level.js": 11,
+		"./states/lobby.js": 7,
+		"./states/pending_game.js": 10,
+		"./states/preloader.js": 6,
+		"./states/stage_select.js": 8,
+		"./util/audio_player.js": 4,
+		"./util/powerup_image_keys.js": 17,
+		"./util/powerup_notification_player.js": 18,
+		"./util/text_configurer.js": 5
 	};
 	function webpackContext(req) {
 		return __webpack_require__(webpackContextResolve(req));
@@ -1649,7 +1671,7 @@
 	};
 	webpackContext.resolve = webpackContextResolve;
 	module.exports = webpackContext;
-	webpackContext.id = 18;
+	webpackContext.id = 20;
 
 
 /***/ }

@@ -15,7 +15,7 @@ server.listen(app.get('port') ,app.get('ip'), function () {
 app.use(express.static(path.join( __dirname, 'public')));
 
 app.get('/', function (req, res) {
-    res.sendfile(__dirname + '/index.html');
+    res.sendfile(__dirname + '/screen.html');
 });
 
 var io = require("socket.io").listen(server);
