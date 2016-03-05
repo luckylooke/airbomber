@@ -19,11 +19,11 @@ var viewMan = new AirConsoleViewManager(airconsole);
 var vmTools = require('./ctrl/vmTools')(viewMan);
 var acTools = require('./main/acTools')(airconsole);
 var storage = localStorage || {};
-    storage.controller = storage.controller || 'DPad'; // DPad, Gyro
+
+require('./ctrl/views/welcome')(vmTools, storage, gyro);
 
 var colors = ['black','white','blue','green','red','lightblue','yellow','purple'];
 var gameState;
-var autoCheckGyro = true;
 var acInterval;
 var dpad = {};
 var STILL_SNAP = 10; // [%] of movement to be considered as still player
@@ -98,6 +98,7 @@ new Button("button-bomb-gyro", {
 // FUNCTION DEFINITIONS: ***********************************************************************************************************************************************************************************
 
 function init() {
+    storage.autoCheckGyro = storage.autoCheckGyro === undefined ? true : storage.autoCheckGyro;
     // standard listeners for some devices (e.g. Samsung Galaxy S4 mini)
     if (window.DeviceOrientationEvent) {
       window.addEventListener("deviceorientation", getDoListener('deviceorientation'), true);
@@ -113,6 +114,7 @@ function init() {
       }, true);
     }
     
+    storage.controller = storage.controller || 'DPad'; // DPad, Gyro
     document.getElementById('player_name').value = storage.nickname || '';
     var colorsElm = document.getElementById('colors');
     var colorElm = colorsElm.children[0];
@@ -197,9 +199,6 @@ function init() {
         console.log('TEST name-and-color to');
       }
     };
-    
-    // timeout to get chance gyro/accelerators to fire tilt() function and so tell controller to use gyro functiuonality
-    setTimeout(afterInit, 500);
 }
 
 function calibrate(){
@@ -231,7 +230,9 @@ function tilt(data){
           moveGyro(mov);
         }
     }else{
-      storage.controller = autoCheckGyro ? 'Gyro' : storage.controller;
+      if(storage.controller !== 'Gyro' && (data.gamma || data.beta)){
+        storage.controller = storage.autoCheckGyro ? 'Gyro' : storage.controller;
+      }
       gyro.actual = data;
     }
     
@@ -265,16 +266,6 @@ function tiltLimiter(){
       }, TILT_LIMITER_RATE);
       return false;
     }
-}
-
-function afterInit(){
- if(storage.controller === 'DPad'){
-    vmTools.showWithCbs("name-and-color");
-  }else{
-    gyro.init();
-    vmTools.showWithCbs("gyro-calibration");
-  }
-  autoCheckGyro = false;
 }
 
 function addPlayer(){

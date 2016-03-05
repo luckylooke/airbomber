@@ -65,11 +65,11 @@
 	var vmTools = __webpack_require__(3)(viewMan);
 	var acTools = __webpack_require__(4)(airconsole);
 	var storage = localStorage || {};
-	    storage.controller = storage.controller || 'DPad'; // DPad, Gyro
+
+	__webpack_require__(5)(vmTools, storage, gyro);
 
 	var colors = ['black','white','blue','green','red','lightblue','yellow','purple'];
 	var gameState;
-	var autoCheckGyro = true;
 	var acInterval;
 	var dpad = {};
 	var STILL_SNAP = 10; // [%] of movement to be considered as still player
@@ -144,6 +144,7 @@
 	// FUNCTION DEFINITIONS: ***********************************************************************************************************************************************************************************
 
 	function init() {
+	    storage.autoCheckGyro = storage.autoCheckGyro === undefined ? true : storage.autoCheckGyro;
 	    // standard listeners for some devices (e.g. Samsung Galaxy S4 mini)
 	    if (window.DeviceOrientationEvent) {
 	      window.addEventListener("deviceorientation", getDoListener('deviceorientation'), true);
@@ -159,6 +160,7 @@
 	      }, true);
 	    }
 	    
+	    storage.controller = storage.controller || 'DPad'; // DPad, Gyro
 	    document.getElementById('player_name').value = storage.nickname || '';
 	    var colorsElm = document.getElementById('colors');
 	    var colorElm = colorsElm.children[0];
@@ -243,9 +245,6 @@
 	        console.log('TEST name-and-color to');
 	      }
 	    };
-	    
-	    // timeout to get chance gyro/accelerators to fire tilt() function and so tell controller to use gyro functiuonality
-	    setTimeout(afterInit, 500);
 	}
 
 	function calibrate(){
@@ -277,7 +276,9 @@
 	          moveGyro(mov);
 	        }
 	    }else{
-	      storage.controller = autoCheckGyro ? 'Gyro' : storage.controller;
+	      if(storage.controller !== 'Gyro' && (data.gamma || data.beta)){
+	        storage.controller = storage.autoCheckGyro ? 'Gyro' : storage.controller;
+	      }
 	      gyro.actual = data;
 	    }
 	    
@@ -311,16 +312,6 @@
 	      }, TILT_LIMITER_RATE);
 	      return false;
 	    }
-	}
-
-	function afterInit(){
-	 if(storage.controller === 'DPad'){
-	    vmTools.showWithCbs("name-and-color");
-	  }else{
-	    gyro.init();
-	    vmTools.showWithCbs("gyro-calibration");
-	  }
-	  autoCheckGyro = false;
 	}
 
 	function addPlayer(){
@@ -757,6 +748,37 @@
 	    airconsole.onMessage = acTools.onMessage;
 	    return acTools;
 	}
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	module.exports = function (vmTools, storage, gyro) {
+	    var timeOutEnded = false,
+	        welcomeClicked = false;
+	    // timeout to get chance gyro/accelerators to fire tilt() function and so tell controller to use gyro functiuonality
+	    setTimeout(function(){
+	        timeOutEnded = true;
+	        goNext();
+	    }, 1000);
+	    document.getElementById('welcome').addEventListener('click', function welcomeClick() {
+	       welcomeClicked = true;
+	       goNext();
+	    });
+	    
+	    function goNext(){
+	      if(!timeOutEnded || !welcomeClicked){
+	          return;
+	      }
+	      if(storage.controller === 'Gyro'){
+	        gyro.init();
+	        vmTools.showWithCbs("gyro-calibration");
+	      }else{
+	        vmTools.showWithCbs("name-and-color");
+	      }
+	      storage.autoCheckGyro = false;
+	    }
+	};
 
 /***/ }
 /******/ ]);

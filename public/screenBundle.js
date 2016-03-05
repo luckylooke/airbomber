@@ -57,18 +57,18 @@
 	bomberman.screen = {};
 	bomberman.level = null;
 	bomberman.airconsole = new AirConsole();
-	bomberman.socket = __webpack_require__(5)(io, game);
+	bomberman.socket = __webpack_require__(6)(io, game);
 	bomberman.acTools = __webpack_require__(4)(bomberman.airconsole, 'screen');
 
-	game.state.add("Boot", __webpack_require__(6));
-	game.state.add("Preloader", __webpack_require__(9));
-	game.state.add("Lobby", __webpack_require__(10));
-	game.state.add("StageSelect", __webpack_require__(11));
-	game.state.add("PendingGame", __webpack_require__(13));
-	game.state.add("Level", __webpack_require__(14));
-	game.state.add("GameOver", __webpack_require__(22));
+	game.state.add("Boot", __webpack_require__(7));
+	game.state.add("Preloader", __webpack_require__(10));
+	game.state.add("Lobby", __webpack_require__(11));
+	game.state.add("StageSelect", __webpack_require__(12));
+	game.state.add("PendingGame", __webpack_require__(14));
+	game.state.add("Level", __webpack_require__(15));
+	game.state.add("GameOver", __webpack_require__(23));
 
-	__webpack_require__(23);
+	__webpack_require__(24);
 
 
 /***/ },
@@ -158,7 +158,8 @@
 	}
 
 /***/ },
-/* 5 */
+/* 5 */,
+/* 6 */
 /***/ function(module, exports) {
 
 	module.exports = function(io, game){
@@ -193,12 +194,12 @@
 	};
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global bomberman */
-	var AudioPlayer = __webpack_require__(7);
-	var TextConfigurer = __webpack_require__(8);
+	var AudioPlayer = __webpack_require__(8);
+	var TextConfigurer = __webpack_require__(9);
 	var game = bomberman.game;
 
 	var textXOffset = 420;
@@ -234,7 +235,7 @@
 
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports) {
 
 	/* global bomberman */
@@ -267,7 +268,7 @@
 	};
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports) {
 
 	exports.configureText = function(text, color, size) {
@@ -277,7 +278,7 @@
 	};
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports) {
 
 	/* global Phaser, bomberman*/
@@ -364,7 +365,7 @@
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports) {
 
 	/* global bomberman */
@@ -457,11 +458,11 @@
 	};
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global bomberman */
-	var MapInfo = __webpack_require__(12);
+	var MapInfo = __webpack_require__(13);
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var StageSelect = function() {};
@@ -548,7 +549,7 @@
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports) {
 
 	var MapInfo = {
@@ -602,7 +603,7 @@
 	module.exports = MapInfo;
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports) {
 
 	/* global bomberman */
@@ -754,22 +755,22 @@
 	};
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
 	var BLACK_HEX_CODE = "#000000";
 	var TILE_SIZE = 35;
 
-	var PowerupIDs = __webpack_require__(15);
-	var MapInfo = __webpack_require__(12);
-	var AudioPlayer = __webpack_require__(7);
-	var Player = __webpack_require__(16);
-	var RemotePlayer = __webpack_require__(18);
-	var Bomb = __webpack_require__(17);
-	var RoundEndAnimation = __webpack_require__(19);
-	var PowerupImageKeys = __webpack_require__(20);
-	var PowerupNotificationPlayer = __webpack_require__(21);
+	var PowerupIDs = __webpack_require__(16);
+	var MapInfo = __webpack_require__(13);
+	var AudioPlayer = __webpack_require__(8);
+	var Player = __webpack_require__(17);
+	var RemotePlayer = __webpack_require__(19);
+	var Bomb = __webpack_require__(18);
+	var RoundEndAnimation = __webpack_require__(20);
+	var PowerupImageKeys = __webpack_require__(21);
+	var PowerupNotificationPlayer = __webpack_require__(22);
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var level = bomberman.level;
@@ -1123,7 +1124,7 @@
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -1139,12 +1140,12 @@
 	};
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
 
-	var Bomb = __webpack_require__(17);
+	var Bomb = __webpack_require__(18);
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var level; // cannot be assigned now because level isnt initialized yet
@@ -1331,12 +1332,12 @@
 	module.exports = Player;
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
 
-	var AudioPlayer = __webpack_require__(7);
+	var AudioPlayer = __webpack_require__(8);
 	var game = bomberman.game;
 	var level;
 
@@ -1384,7 +1385,7 @@
 	module.exports = Bomb;
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports) {
 
 	/* global Phaser, bomberman */
@@ -1448,11 +1449,11 @@
 	module.exports = RemotePlayer;
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
-	var TextConfigurer = __webpack_require__(8);
+	var TextConfigurer = __webpack_require__(9);
 	var game = bomberman.game;
 
 	var screenWidth = game.width;
@@ -1556,10 +1557,10 @@
 	module.exports = RoundEndAnimation;
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var PowerupIDs = __webpack_require__(15);
+	var PowerupIDs = __webpack_require__(16);
 
 	var powerupImageKeys = {};
 
@@ -1570,12 +1571,12 @@
 	module.exports = powerupImageKeys;
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
 
-	var PowerupIds = __webpack_require__(15);
+	var PowerupIds = __webpack_require__(16);
 	var game = bomberman.game;
 
 	var notificationImageMap = {};
@@ -1601,11 +1602,11 @@
 	};
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
-	var TextConfigurer = __webpack_require__(8);
+	var TextConfigurer = __webpack_require__(9);
 	var game = bomberman.game,
 		airconsole = bomberman.airconsole;
 
@@ -1643,27 +1644,27 @@
 	module.exports = GameOver;
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var map = {
-		"./common/map_info.js": 12,
-		"./common/powerup_ids.js": 15,
-		"./entities/bomb.js": 17,
-		"./entities/player.js": 16,
-		"./entities/remoteplayer.js": 18,
-		"./entities/round_end_animation.js": 19,
-		"./states/boot.js": 6,
-		"./states/game_over.js": 22,
-		"./states/level.js": 14,
-		"./states/lobby.js": 10,
-		"./states/pending_game.js": 13,
-		"./states/preloader.js": 9,
-		"./states/stage_select.js": 11,
-		"./util/audio_player.js": 7,
-		"./util/powerup_image_keys.js": 20,
-		"./util/powerup_notification_player.js": 21,
-		"./util/text_configurer.js": 8
+		"./common/map_info.js": 13,
+		"./common/powerup_ids.js": 16,
+		"./entities/bomb.js": 18,
+		"./entities/player.js": 17,
+		"./entities/remoteplayer.js": 19,
+		"./entities/round_end_animation.js": 20,
+		"./states/boot.js": 7,
+		"./states/game_over.js": 23,
+		"./states/level.js": 15,
+		"./states/lobby.js": 11,
+		"./states/pending_game.js": 14,
+		"./states/preloader.js": 10,
+		"./states/stage_select.js": 12,
+		"./util/audio_player.js": 8,
+		"./util/powerup_image_keys.js": 21,
+		"./util/powerup_notification_player.js": 22,
+		"./util/text_configurer.js": 9
 	};
 	function webpackContext(req) {
 		return __webpack_require__(webpackContextResolve(req));
@@ -1676,7 +1677,7 @@
 	};
 	webpackContext.resolve = webpackContextResolve;
 	module.exports = webpackContext;
-	webpackContext.id = 23;
+	webpackContext.id = 24;
 
 
 /***/ }
