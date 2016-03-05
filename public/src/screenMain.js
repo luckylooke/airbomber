@@ -1,7 +1,6 @@
-/* global Phaser */
+/* global Phaser, AirConsole, io */
 
 var bomberman = window.bomberman = {}; // namespace in global
-bomberman.device = 'screen';
 bomberman.bomberElm = document.getElementById('bomber');
 bomberman.guiElm = document.getElementById('gui');
 
@@ -11,9 +10,9 @@ bomberman.height = bomberman.bomberElm.clientHeight;
 var game = bomberman.game = new Phaser.Game(bomberman.width, bomberman.height, Phaser.AUTO, 'bomber');
 bomberman.screen = {};
 bomberman.level = null;
-
-require('./main/socketSetup')(bomberman); // dependency global io
-require('./main/airconsoleSetup')(bomberman); // dependency global AirConsole
+bomberman.airconsole = new AirConsole();
+bomberman.socket = require('./main/socketSetup')(io, game);
+bomberman.acTools = require('./main/airconsoleSetup')(bomberman.airconsole, 'screen');
 
 game.state.add("Boot", require("./game/states/boot"));
 game.state.add("Preloader", require("./game/states/preloader"));

@@ -44,10 +44,9 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* global Phaser */
+	/* global Phaser, AirConsole, io */
 
 	var bomberman = window.bomberman = {}; // namespace in global
-	bomberman.device = 'screen';
 	bomberman.bomberElm = document.getElementById('bomber');
 	bomberman.guiElm = document.getElementById('gui');
 
@@ -57,9 +56,9 @@
 	var game = bomberman.game = new Phaser.Game(bomberman.width, bomberman.height, Phaser.AUTO, 'bomber');
 	bomberman.screen = {};
 	bomberman.level = null;
-
-	__webpack_require__(1)(bomberman); // dependency global io
-	__webpack_require__(2)(bomberman); // dependency global AirConsole
+	bomberman.airconsole = new AirConsole();
+	bomberman.socket = __webpack_require__(1)(io, game);
+	bomberman.acTools = __webpack_require__(2)(bomberman.airconsole, 'screen');
 
 	game.state.add("Boot", __webpack_require__(3));
 	game.state.add("Preloader", __webpack_require__(6));
@@ -76,44 +75,43 @@
 /* 1 */
 /***/ function(module, exports) {
 
-	/* global io */
-	module.exports = function(bomberman){
+	module.exports = function(io, game){
 	  function getURLParameter(name) {
 	    return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
 	  }
 	  
 	  var once = false;
 	  var socketServer;
+	  var socket;
 	  if(getURLParameter('cloud9')){
 	      socketServer = 'cloud9';
-	      bomberman.socket = io(); // cloud9
+	      socket = io(); // cloud9
 	  }else{
 	      socketServer = 'openshift';
-	      bomberman.socket = io('http://airbomber-luckylooke.rhcloud.com:8000'); // openshift
+	      socket = io('http://airbomber-luckylooke.rhcloud.com:8000'); // openshift
 	  }
-	  bomberman.socket.on('connect_error', function(err){
+	  socket.on('connect_error', function(err){
 	      if(!once){ // try once fallback to cloud9
-	          bomberman.socket = io(); // cloud9
+	          socket = io(); // cloud9
 	          socketServer = 'cloud9';
 	          once = true;
 	      }else{
 	          console.log('SOCKET CANNOT CONNECT', err);
 	      }
 	  });
-	  bomberman.socket.on('connect', function(){
+	  socket.on('connect', function(){
 	      console.log('socket server: ', socketServer);
-	      bomberman.game.state.start('Boot');
+	      game.state.start('Boot');
 	  });
+	  return socket;
 	};
 
 /***/ },
 /* 2 */
 /***/ function(module, exports) {
 
-	/* global AirConsole */
-	module.exports = function(bomberman){
-	    var airconsole = bomberman.airconsole = new AirConsole();
-	    var acTools = bomberman.acTools = {};
+	module.exports = function(airconsole, devType){
+	    var acTools = {};
 	    
 	    acTools.listeners = {};
 	    acTools.uniListeners = [];
@@ -145,46 +143,50 @@
 	    	}
 	    };
 	    
-	    airconsole.onConnect = function(device_id) {
+	    if(devType === 'screen'){
+	      airconsole.onConnect = function(device_id) {
 	      	// deviceConnectionChange();
 	      	airconsole.setActivePlayers(20);
-	    	console.log('connected: ', arguments);
-	    };
-	    
-	    airconsole.onDisconnect = function(device_id) {
-	      //var player = airconsole.convertDeviceIdToPlayerNumber(device_id);
-	      //if (player != undefined) {
-	      //  // Player that was in game left the game.
-	      //  // Setting active players to length 0.
-	      //  // airconsole.setActivePlayers(0);
-	      //}
-	      //deviceConnectionChange();
-	    };
-	    
-	    // function deviceConnectionChange() {
-	    //     var active_players = airconsole.getActivePlayerDeviceIds();
-	    //     var connected_controllers = airconsole.getControllerDeviceIds();
-	    //     // Only update if the game didn't have active players.
-	    //     if (active_players.length == 0) {
-	    //       if (connected_controllers.length >= 2) {
-	    //         // Enough controller devices connected to start the game.
-	    //         // Setting the first 2 controllers to active players.
-	    //         airconsole.setActivePlayers(20);
-	    //     //     resetBall(50, 0);
-	    //     //     score = [0, 0];
-	    //     //     score_el.innerHTML = score.join(":");
-	    //     //     document.getElementById("wait").innerHTML = "";
-	    //     //   } else if (connected_controllers.length == 1) {
-	    //     //     document.getElementById("wait").innerHTML = "Need 1 more player!";
-	    //     //     resetBall(0, 0);
-	    //     //   } else if (connected_controllers.length == 0) {
-	    //     //     document.getElementById("wait").innerHTML = "Need 2 more players!";
-	    //     //     resetBall(0, 0);
-	    //       }
-	    //     }
-	    //   }
+	      	console.log('connected: ', arguments);
+	      };
+	      
+	      airconsole.onDisconnect = function(device_id) {
+	        //var player = airconsole.convertDeviceIdToPlayerNumber(device_id);
+	        //if (player != undefined) {
+	        //  // Player that was in game left the game.
+	        //  // Setting active players to length 0.
+	        //  // airconsole.setActivePlayers(0);
+	        //}
+	        //deviceConnectionChange();
+	      };
+	      
+	      // function deviceConnectionChange() {
+	      //     var active_players = airconsole.getActivePlayerDeviceIds();
+	      //     var connected_controllers = airconsole.getControllerDeviceIds();
+	      //     // Only update if the game didn't have active players.
+	      //     if (active_players.length == 0) {
+	      //       if (connected_controllers.length >= 2) {
+	      //         // Enough controller devices connected to start the game.
+	      //         // Setting the first 2 controllers to active players.
+	      //         airconsole.setActivePlayers(20);
+	      //     //     resetBall(50, 0);
+	      //     //     score = [0, 0];
+	      //     //     score_el.innerHTML = score.join(":");
+	      //     //     document.getElementById("wait").innerHTML = "";
+	      //     //   } else if (connected_controllers.length == 1) {
+	      //     //     document.getElementById("wait").innerHTML = "Need 1 more player!";
+	      //     //     resetBall(0, 0);
+	      //     //   } else if (connected_controllers.length == 0) {
+	      //     //     document.getElementById("wait").innerHTML = "Need 2 more players!";
+	      //     //     resetBall(0, 0);
+	      //       }
+	      //     }
+	      //   }
 
+	    }
+	    
 	    airconsole.onMessage = acTools.onMessage;
+	    return acTools;
 	}
 
 /***/ },
