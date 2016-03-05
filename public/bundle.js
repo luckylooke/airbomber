@@ -87,8 +87,8 @@
 	game.state.add("Preloader", __webpack_require__(4));
 	game.state.add("Lobby", __webpack_require__(5));
 	game.state.add("StageSelect", __webpack_require__(6));
-	game.state.add("PendingGame", __webpack_require__(7));
-	game.state.add("Level", __webpack_require__(8));
+	game.state.add("PendingGame", __webpack_require__(8));
+	game.state.add("Level", __webpack_require__(9));
 	game.state.add("GameOver", __webpack_require__(17));
 
 	__webpack_require__(18);undefined
@@ -198,16 +198,6 @@
 	        game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 	        game.scale.setMinMax(480, 260, 10240, 7680);
 	        game.scale.pageAlignHorizontally = true;
-	        // game.scale.pageAlignVertically = true;
-	        
-	        // var gameRatio = 800/600,
-	        //     scaleRatio = 1;
-	        // if(bomberman.height/bomberman.width > gameRatio){
-	        //     scaleRatio = bomberman.height/600;
-	        // }else{
-	        //     scaleRatio = bomberman.width/800;
-	        // }
-	        // game.world.scale = {x:scaleRatio,y:scaleRatio};
 
 	        this.load.spritesheet("bomberman_white", "resource/bomberman.png", 32, 64);
 	        this.load.spritesheet("bomberman_black", "resource/bomberman_black.png", 32, 64);
@@ -370,31 +360,21 @@
 
 /***/ },
 /* 6 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	/* global bomberman */
+	var MapInfo = __webpack_require__(7);
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var StageSelect = function() {};
 
 	module.exports = StageSelect;
 
-	// var xOffset = 180;
-	// var yOffset = 25;
-	// var thumbnailXOffset = 396;
-	// var thumbnailYOffset = 125;
-	// var stageNameYOffset = 320;
-
-	var stages = [
-		{name: "Green field", thumbnailFile: "../resource/green_field_thumbnail.png", tilemapName: "First", maxPlayers: 4, size: "Small", background:"../resource/green_field_background.png"},
-		{name: "Green hell", thumbnailFile: "../resource/green_hell_thumbnail.png", tilemapName: "Second", maxPlayers: 4, size: "Small", background:"../resource/green_hell_background.png"},
-		{name: "Desert2", thumbnailFile: "../resource/danger_desert_thumbnail.png", tilemapName: "Third", maxPlayers: 4, size: "Small", background:"../resource/danger_desert_background.png"},
-	];
+	var stages = MapInfo;
 
 	StageSelect.prototype = {
 	    init: function () {
 	    	document.getElementById('stage-select').classList.remove("hidden");
-	    	
 		},
 
 		create: function() {
@@ -411,7 +391,7 @@
 			var stage,
 				newStageElm;
 	        
-	        for (var i = 0; i < stages.length; i++) {
+	        for (var i in stages) {
 	        	stage = stages[i];
 	        	newStageElm = htmlStageElm.cloneNode(true);
 	        	newStageElm.children[0].innerHTML = stage.name;
@@ -428,19 +408,6 @@
 	        stageSelectElement.style.backgroundImage = "url(" + completeStages[0].background + ")";
 	        pendingGameElement.style.backgroundImage = "url(" + completeStages[0].background + ")";	
 	        completeStages[0].classList.remove("hidden");
-	        // game.add.sprite(0, 0, 'background_s');
-			// var selectionWindow = game.add.image(xOffset, yOffset, "select_stage");
-	        // this.okButton = game.add.button(625, 425, "ok_button", this.confirmStageSelection, this, 1, 0);
-	        // this.thumbnail = game.add.image(thumbnailXOffset, thumbnailYOffset, stage.thumbnailKey);
-	        // this.text = game.add.text(game.camera.width / 2, stageNameYOffset, stage.name);
-			// this.configureText(this.text, "white", 28);
-			// this.text.anchor.setTo(.5, .5);
-	  //      this.numPlayersText = game.add.text(360, 380, "Max # of players:   " + stage.maxPlayers);
-			// this.configureText(this.numPlayersText, "white", 18);
-	  //      this.stageSizeText = game.add.text(360, 410, "Map size:   " + stage.size);
-			// this.configureText(this.stageSizeText, "white", 18);
-			
-			
 			
 			arrow_left.addEventListener('click',function(f){
 			completeStages[currentStage].classList.add("hidden");
@@ -471,12 +438,6 @@
 		update: function() {
 		},
 
-		// configureText: function(text, color, size) {
-		// 	text.font = "Carter One";
-		// 	text.fill = color;
-		// 	text.fontSize = size;
-		// },
-
 		getHandler: function(index) {
 			return function confirmStageSelection(){
 				document.getElementById('stage-select').classList.add("hidden");
@@ -490,6 +451,60 @@
 
 /***/ },
 /* 7 */
+/***/ function(module, exports) {
+
+	var MapInfo = {
+		First: {
+			name: "Green field",
+			thumbnailFile: "../resource/green_field_thumbnail.png",
+			tilemapName: "First",
+			maxPlayers: 4,
+			size: "Small",
+			background:"../resource/green_field_background.png",
+			spawnLocations: [{x: 1, y: 1}, {x: 23, y: 1}, {x: 1, y: 4}, {x: 23, y: 4}],
+			collisionTiles: [3, 4],
+			groundLayer: "Ground",
+			blockLayer: "Blocks",
+			tilesetName: "tiles",
+			tilesetImage: "tiles",
+			destructibleTileId: 4
+		},
+		Second: {
+			name: "Green hell",
+			thumbnailFile: "../resource/green_hell_thumbnail.png",
+			tilemapName: "Second",
+			maxPlayers: 4,
+			size: "Small",
+			background:"../resource/green_hell_background.png",
+			spawnLocations: [{x: 1, y: 1}, {x: 23, y: 1}, {x: 1, y: 4}, {x: 23, y: 4}],
+			collisionTiles: [3, 4],
+			groundLayer: "Ground",
+			blockLayer: "Blocks",
+			tilesetName: "tiles",
+			tilesetImage: "tiles",
+			destructibleTileId: 4
+		},
+		Third: {
+			name: "Desert2",
+			thumbnailFile: "../resource/danger_desert_thumbnail.png",
+			tilemapName: "Third",
+			maxPlayers: 4,
+			size: "Small",
+			background:"../resource/danger_desert_background.png",
+			spawnLocations: [{x: 1, y: 1}, {x: 23, y: 1}, {x: 1, y: 4}, {x: 23, y: 4}],
+			collisionTiles: [3, 4],
+			groundLayer: "Ground",
+			blockLayer: "Blocks",
+			tilesetName: "tiles",
+			tilesetImage: "tiles",
+			destructibleTileId: 4
+		}
+	};
+
+	module.exports = MapInfo;
+
+/***/ },
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global bomberman, AirConsole */
@@ -770,15 +785,15 @@
 	};
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
 	var BLACK_HEX_CODE = "#000000";
 	var TILE_SIZE = 35;
 
-	var PowerupIDs = __webpack_require__(9);
-	var MapInfo = __webpack_require__(10);
+	var PowerupIDs = __webpack_require__(10);
+	var MapInfo = __webpack_require__(7);
 	var AudioPlayer = __webpack_require__(2);
 	var Player = __webpack_require__(11);
 	var RemotePlayer = __webpack_require__(13);
@@ -1139,7 +1154,7 @@
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -1153,33 +1168,6 @@
 			return id === this.BOMB_STRENGTH || id === this.BOMB_CAPACITY || id === this.SPEED;
 		}
 	};
-
-/***/ },
-/* 10 */
-/***/ function(module, exports) {
-
-	var MapInfo = {
-		First: {
-			spawnLocations: [{x: 1, y: 1}, {x: 23, y: 1}, {x: 1, y: 4}, {x: 23, y: 4}],
-			collisionTiles: [3, 4],
-			groundLayer: "Ground",
-			blockLayer: "Blocks",
-			tilesetName: "tiles",
-			tilesetImage: "tiles",
-			destructibleTileId: 4
-		},
-		Second: {
-			spawnLocations: [{x: 1, y: 1}, {x: 23, y: 1}, {x: 1, y: 4}, {x: 23, y: 4}],
-			collisionTiles: [3, 4],
-			groundLayer: "Ground",
-			blockLayer: "Blocks",
-			tilesetName: "tiles",
-			tilesetImage: "tiles",
-			destructibleTileId: 4
-		}
-	};
-
-	module.exports = MapInfo;
 
 /***/ },
 /* 11 */
@@ -1602,7 +1590,7 @@
 /* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var PowerupIDs = __webpack_require__(9);
+	var PowerupIDs = __webpack_require__(10);
 
 	var powerupImageKeys = {};
 
@@ -1618,7 +1606,7 @@
 
 	/* global Phaser, bomberman */
 
-	var PowerupIds = __webpack_require__(9);
+	var PowerupIds = __webpack_require__(10);
 	var game = bomberman.game;
 
 	var notificationImageMap = {};
@@ -1690,17 +1678,17 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var map = {
-		"./common/map_info.js": 10,
-		"./common/powerup_ids.js": 9,
+		"./common/map_info.js": 7,
+		"./common/powerup_ids.js": 10,
 		"./entities/bomb.js": 12,
 		"./entities/player.js": 11,
 		"./entities/remoteplayer.js": 13,
 		"./entities/round_end_animation.js": 14,
 		"./states/boot.js": 1,
 		"./states/game_over.js": 17,
-		"./states/level.js": 8,
+		"./states/level.js": 9,
 		"./states/lobby.js": 5,
-		"./states/pending_game.js": 7,
+		"./states/pending_game.js": 8,
 		"./states/preloader.js": 4,
 		"./states/stage_select.js": 6,
 		"./util/audio_player.js": 2,

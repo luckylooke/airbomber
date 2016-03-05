@@ -7,7 +7,6 @@ TODO:
 - bigger level (generated?)
 - Nickname over players
 - https://github.com/AirConsole/airconsole-view-manager
-- move data about maps from stages in stage_select.js to map_info.js and load it from there
 
 Useful links:
 https://gitlab.com/luckylooke/airconsole
