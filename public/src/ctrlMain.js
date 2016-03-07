@@ -21,10 +21,8 @@ var acTools = require('./main/acTools')(airconsole);
 var storage = localStorage || {};
 
 require('./ctrl/views/welcome')(vmTools, storage, gyro);
+require('./ctrl/views/name_and_color')(vmTools, storage, acTools, AirConsole, airconsole);
 
-var colors = ['black','white','blue','green','red','lightblue','yellow','purple'];
-var gameState;
-var acInterval;
 var dpad = {};
 var STILL_SNAP = 10; // [%] of movement to be considered as still player
 var TILT_LIMITER_RATE = 200; // [ms] of minimal time between tilt function executions
@@ -115,26 +113,10 @@ function init() {
     }
     
     storage.controller = storage.controller || 'DPad'; // DPad, Gyro
-    document.getElementById('player_name').value = storage.nickname || '';
-    var colorsElm = document.getElementById('colors');
-    var colorElm = colorsElm.children[0];
-    var newColorElm;
-    colorsElm.innerHTML = '';
-    console.log('storage.color', storage.color);
-    for (var i = 0; i < colors.length; i++) {
-    	var color = colors[i];
-    	newColorElm = colorElm.cloneNode(true);
-    	newColorElm.setAttribute('src', 'resource/icon_' + color + '.png');
-    	if(storage.color === color){
-    	  newColorElm.classList.add('selected');
-    	}
-    	colorsElm.appendChild(newColorElm);
-    }
     
     // secondary listeners for some devices (e.g. Iphone)
     airconsole.onDeviceMotion =  getDoListener('onDeviceMotion');
     
-    document.getElementById('addPlayer').addEventListener('click', addPlayer);
     document.getElementById('calibrateBtn').addEventListener('click', calibrate);
     document.getElementById('calStartOverBtn').addEventListener('click', gyro.startOver);
     
@@ -146,7 +128,7 @@ function init() {
         });
       };
     
-    acInterval = setInterval(function(){
+    storage.acInterval = setInterval(function(){
       airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
     }, 3000);
     
@@ -157,7 +139,7 @@ function init() {
         
     acTools.addListener('gameState', function(from, data){
       if(from == AirConsole.SCREEN && data.gameState){
-        gameState = data.gameState;
+        storage.gameState = data.gameState;
       }
     });
     
@@ -183,22 +165,9 @@ function init() {
       }
     });
     
-    document.addEventListener('click',function(e){
-      	var clickedElement = e.target;
-      	if (clickedElement.classList.contains('player-color')){
-      	  unselectAll(clickedElement);
-      	  clickedElement.classList.add('selected');
-      	}
-    });
     
-    vmTools.cbs['name-and-color'] = {
-      from: function(){
-        console.log('TEST name-and-color from');
-      },
-      to: function(){
-        console.log('TEST name-and-color to');
-      }
-    };
+    
+   
 }
 
 function calibrate(){
@@ -223,7 +192,7 @@ function tilt(data){
       return;
     }
     if(gyro.calibrated){
-       if(gameState === 'level'){
+       if(storage.gameState === 'level'){
           var mov = process('beta', {x: 0, y:0});
           mov = process('gamma', mov);
           // console.log(mov.x + " - " + mov.y, mov);
@@ -266,59 +235,6 @@ function tiltLimiter(){
       }, TILT_LIMITER_RATE);
       return false;
     }
-}
-
-function addPlayer(){
-    getPlayerInfo();
-    if(storage.color && storage.nickname){
-      if(storage.controller === 'Gyro'){
-        vmTools.showWithCbs("gyro-pad");
-      }else{
-        vmTools.showWithCbs("gamepad-container");
-      }
-    }
-    acTools.addListener('ready', function(from, data){
-      if(storage.color && storage.nickname && from == AirConsole.SCREEN && gameState === 'pending_game'){
-        clearInterval(acInterval);
-        airconsole.message(AirConsole.SCREEN, {
-          listener: 'newPlayer',
-          nick: storage.nickname,
-          color: storage.color,
-          controller: storage.controller
-        });
-      }
-      if(data.gameState){
-        gameState = data.gameState;
-      }
-    });
-}
-
-function getPlayerInfo(){
-    storage.color = getColor();
-    storage.nickname = getName();
-}
-
-function getColor(){
-    var el = document.getElementsByClassName('selected');
-    if (el[0]){
-       var reg = /[a-z]+(?=.png)(?!_)/,
-          color;
-       if(el[0].currentSrc)
-         color = reg.exec(el[0].currentSrc);
-       else if (el[0].src)
-         color = reg.exec(el[0].src);
-    }
-    return color ? color[0] : '';
-}
-
-function getName(){
-    return document.getElementById('player_name').value;
-}
-  
-function unselectAll(clickedElement){
-    var allCharacters = document.getElementsByClassName(clickedElement.className);
-    for(var i = 0; i < allCharacters.length; i++)
-      allCharacters[i].classList.remove('selected');
 }
 
 /**
