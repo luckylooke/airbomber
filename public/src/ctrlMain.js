@@ -23,65 +23,13 @@ var storage = localStorage || {};
 require('./ctrl/views/welcome')(vmTools, storage, gyro);
 require('./ctrl/views/name_and_color')(vmTools, storage, acTools, AirConsole, airconsole);
 require('./ctrl/views/gyro_calibration')(vmTools, gyro);
+require('./ctrl/views/dpad')(vmTools, storage, AirConsole, rateLimiter, bomb);
 
-var dpad = {};
+
 var STILL_SNAP = 10; // [%] of movement to be considered as still player
 var TILT_LIMITER_RATE = 200; // [ms] of minimal time between tilt function executions
 
-new DPad("my-DPad", {
-  // Set to true if you want to have a relative swipe dpad
-  "relative": false,
-  // Gets called when the dpad direction changes.
-  // Key is one of: DPad.UP, DPad.DOWN, DPad.LEFT, DPad.RIGHT.
-  // Pressed is a boolean, true if the direction is active.
-  "directionchange": function(key, pressed) {
-    if(storage.controller === 'DPad'){
-      switch(key) {
-        case 'right':
-            dpad.x = pressed ? 1 : 0;
-            break;
-        case 'left':
-            dpad.x = pressed ? -1 : 0;
-            break;
-        case 'up':
-            dpad.y = pressed ? -1 : 0;
-            break;
-        case 'down':
-            dpad.y = pressed ? 1 : 0;
-            break;
-      }
-      moveDPad();
-    }
-  },
 
-  // // Gets called when the DPad is touched.
-  // "touchstart": function() {
-  //   console.log('touch start');
-  // },
-  
-  // // Gets called when the DPad is released.
-  // // had_direction is a boolean that tells you if at lease one direction was active.
-  // //               can be used to determine if it was just a "tap" on the DPad.
-  // "touchend": function(had_direction) {
-  //   console.log('touch end', had_direction);
-  // },
-
-  // (Optional) distance which the user needs to move before triggering a direction.
-  "distance": {x: 10, y:10},
-  
-  // (Optional) diagonal: If true, diagonal movement are possible and it becomes a 8-way DPad:
-  //                      For exmaple UP and RIGHT at the same time.
-  "diagonal": true
-});
-
-new Button("button-bomb", {
-  "down": function() {
-    bomb('setting');
-  },
-  "up": function() {
-    bomb(!'setting');
-  }
-});
 
 new Button("button-bomb-gyro", {
   "down": function() {
@@ -226,26 +174,6 @@ function tiltLimiter(){
     }
 }
 
-/**
- * Tells the screen to move the paddle of this player.
- * @param amount
- */
-function moveDPad() {
-  rateLimiter.message(AirConsole.SCREEN, {
-    type: 'DPad',
-    listener: 'movePlayer',
-    nick: storage.nickname,
-    x: dpad.x,
-    y: dpad.y
-  });
-  console.log({
-    type: 'DPad',
-    listener: 'movePlayer',
-    nick: storage.nickname,
-    x: dpad.x,
-    y: dpad.y
-  });
-}
 function moveGyro(data) {
   data.nick = storage.nickname;
   data.type = 'Gyro';
