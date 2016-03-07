@@ -44,7 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* global AirConsole, DPad, Button, RateLimiter, AirConsoleViewManager */
+	/* global AirConsole, RateLimiter, AirConsoleViewManager */
 
 	window.initController = init;
 	  
@@ -65,6 +65,7 @@
 	var viewMan = new AirConsoleViewManager(airconsole);
 	var vmTools = __webpack_require__(3)(viewMan);
 	var acTools = __webpack_require__(4)(airconsole);
+	var bomb = __webpack_require__(29)(airconsole, AirConsole, storage);
 
 	__webpack_require__(5)(vmTools, storage, gyro);
 	__webpack_require__(25)(vmTools, storage, acTools, AirConsole, airconsole);
@@ -140,10 +141,6 @@
 	        navigator.vibrate(data.vibrate);
 	      }
 	    });
-	    
-	    
-	    
-	   
 	}
 
 	function getDoListener(source){
@@ -153,23 +150,6 @@
 	      }
 	    };
 	}
-
-
-
-	function bomb(setting) {
-	  airconsole.message(AirConsole.SCREEN, {
-	    listener: 'setBomb',
-	    nick: storage.nickname,
-	    setting: setting
-	  });
-	  console.log({
-	    listener: 'setBomb',
-	    nick: storage.nickname,
-	    setting: setting
-	  });
-	}
-
-	// require('./main/socketSetup');
 
 
 /***/ },
@@ -828,6 +808,27 @@
 	      console.log(data);
 	    }
 	};
+
+/***/ },
+/* 29 */
+/***/ function(module, exports) {
+
+	module.exports = function (airconsole, AirConsole, storage) {
+	    function bomb(setting) {
+	      airconsole.message(AirConsole.SCREEN, {
+	        listener: 'setBomb',
+	        nick: storage.nickname,
+	        setting: setting
+	      });
+	      console.log({
+	        listener: 'setBomb',
+	        nick: storage.nickname,
+	        setting: setting
+	      });
+	    }
+	    
+	    return bomb;
+	}
 
 /***/ }
 /******/ ]);

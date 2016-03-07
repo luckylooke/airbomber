@@ -1,4 +1,4 @@
-/* global AirConsole, DPad, Button, RateLimiter, AirConsoleViewManager */
+/* global AirConsole, RateLimiter, AirConsoleViewManager */
 
 window.initController = init;
   
@@ -19,6 +19,7 @@ var rateLimiter = new RateLimiter(airconsole);
 var viewMan = new AirConsoleViewManager(airconsole);
 var vmTools = require('./ctrl/vmTools')(viewMan);
 var acTools = require('./main/acTools')(airconsole);
+var bomb = require('./ctrl/bomb')(airconsole, AirConsole, storage);
 
 require('./ctrl/views/welcome')(vmTools, storage, gyro);
 require('./ctrl/views/name_and_color')(vmTools, storage, acTools, AirConsole, airconsole);
@@ -94,10 +95,6 @@ function init() {
         navigator.vibrate(data.vibrate);
       }
     });
-    
-    
-    
-   
 }
 
 function getDoListener(source){
@@ -107,20 +104,3 @@ function getDoListener(source){
       }
     };
 }
-
-
-
-function bomb(setting) {
-  airconsole.message(AirConsole.SCREEN, {
-    listener: 'setBomb',
-    nick: storage.nickname,
-    setting: setting
-  });
-  console.log({
-    listener: 'setBomb',
-    nick: storage.nickname,
-    setting: setting
-  });
-}
-
-// require('./main/socketSetup');
