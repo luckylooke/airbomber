@@ -1,4 +1,7 @@
-var gyro = {
+module.exports = function(storage){
+  var TILT_LIMITER_RATE = 200; // [ms] of minimal time between tilt function executions
+  var STILL_SNAP = 10; // [%] of movement to be considered as still player
+  var gyro = {
     init: function(){
       this.overTiltProtection();
     },
@@ -122,7 +125,54 @@ var gyro = {
       gyro.message.innerHTML = 'Tap "Begin" button to start calibration!';
       gyro.button.innerHTML = 'Begin';
       gyro.step = 1;
+    },
+    tilt: function(data){
+      if(this.tiltLimiter()){
+        return;
+      }
+      if(gyro.calibrated){
+         if(storage.gameState === 'level'){
+            var mov = process('beta', {x: 0, y:0});
+            mov = process('gamma', mov);
+            // console.log(mov.x + " - " + mov.y, mov);
+            this.output(mov);
+          }
+      }else{
+        if(storage.controller !== 'Gyro' && (data.gamma || data.beta)){
+          storage.controller = storage.autoCheckGyro ? 'Gyro' : storage.controller;
+        }
+        gyro.actual = data;
+      }
+      
+      function process(name, mov){
+        var value = data[name],
+          axis, dir;
+        
+        if(value > gyro.CENTER[name]){
+          dir = gyro['MAX_' + name.toUpperCase() + '_SIDE'];
+          axis = gyro.dirToAxis[dir];
+          mov[axis] = Math.abs(value - gyro.CENTER[name]) / Math.abs(gyro['MAX_' + name.toUpperCase()]);
+        }else{
+          dir = gyro['MIN_' + name.toUpperCase() + '_SIDE'];
+          axis = gyro.dirToAxis[dir];
+          mov[axis] = Math.abs(value - gyro.CENTER[name]) / Math.abs(gyro['MIN_' + name.toUpperCase()]);
+        }
+        
+        mov[axis] *= gyro.dirToSign[dir];
+        mov[axis] *= gyro.flipCor;
+        return mov;
+      }
+    },
+    tiltLimiter: function(){
+      if(this.tiltLimit){
+        return true;
+      }else{
+        this.tiltLimit = true;
+        setTimeout(function(){
+          this.tiltLimit = false;
+        }, TILT_LIMITER_RATE);
+        return false;
+      }
     }
+  };
 };
-
-module.exports = gyro;

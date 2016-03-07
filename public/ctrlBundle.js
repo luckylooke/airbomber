@@ -44,7 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {/* global AirConsole, DPad, Button, RateLimiter, AirConsoleViewManager */
+	/* global AirConsole, DPad, Button, RateLimiter, AirConsoleViewManager */
 
 	window.initController = init;
 	  
@@ -53,7 +53,8 @@
 	                   navigator.mozVibrate ||
 	                   navigator.msVibrate);
 
-	var gyro = __webpack_require__(2);
+	var storage = localStorage || {};
+	var gyro = __webpack_require__(2)(storage);
 	var airconsole = new AirConsole({
 	                      orientation: AirConsole.ORIENTATION_LANDSCAPE,
 	                      device_motion: 100
@@ -64,29 +65,12 @@
 	var viewMan = new AirConsoleViewManager(airconsole);
 	var vmTools = __webpack_require__(3)(viewMan);
 	var acTools = __webpack_require__(4)(airconsole);
-	var storage = localStorage || {};
 
 	__webpack_require__(5)(vmTools, storage, gyro);
 	__webpack_require__(25)(vmTools, storage, acTools, AirConsole, airconsole);
 	__webpack_require__(26)(vmTools, gyro);
 	__webpack_require__(27)(vmTools, storage, AirConsole, rateLimiter, bomb);
-
-
-	var STILL_SNAP = 10; // [%] of movement to be considered as still player
-	var TILT_LIMITER_RATE = 200; // [ms] of minimal time between tilt function executions
-
-
-
-	new Button("button-bomb-gyro", {
-	  "down": function() {
-	    bomb('setting');
-	  },
-	  "up": function() {
-	    bomb(!'setting');
-	  }
-	});
-
-
+	__webpack_require__(28)(vmTools, storage, AirConsole, rateLimiter, bomb);
 
 	// FUNCTION DEFINITIONS: ***********************************************************************************************************************************************************************************
 
@@ -97,13 +81,13 @@
 	      window.addEventListener("deviceorientation", getDoListener('deviceorientation'), true);
 	    } else if (window.DeviceMotionEvent) {
 	      window.addEventListener('devicemotion', function (event) {
-	          tilt({source: 'devicemotion', beta: event.acceleration.x * 2, gamma: event.acceleration.y * 2});
+	          gyro.tilt({source: 'devicemotion', beta: event.acceleration.x * 2, gamma: event.acceleration.y * 2});
 	      }, true);
 	    } else {
 	      window.addEventListener("MozOrientation", function (event) {
 	          event.gamma = -(event.x * (180 / Math.PI));
 	          event.beta = -(event.y * (180 / Math.PI));
-	          tilt({source: 'MozOrientation', beta: event.beta, gamma: event.gamma});
+	          gyro.tilt({source: 'MozOrientation', beta: event.beta, gamma: event.gamma});
 	      }, true);
 	    }
 	    
@@ -165,68 +149,13 @@
 	function getDoListener(source){
 	    return function doListener(data) {
 	      if(data.beta || data.beta === 0){
-	        tilt({source: source, beta: data.beta, gamma: data.gamma});
+	        gyro.tilt({source: source, beta: data.beta, gamma: data.gamma});
 	      }
 	    };
 	}
 
-	function tilt(data){
-	    if(tiltLimiter()){
-	      return;
-	    }
-	    if(gyro.calibrated){
-	       if(storage.gameState === 'level'){
-	          var mov = process('beta', {x: 0, y:0});
-	          mov = process('gamma', mov);
-	          // console.log(mov.x + " - " + mov.y, mov);
-	          moveGyro(mov);
-	        }
-	    }else{
-	      if(storage.controller !== 'Gyro' && (data.gamma || data.beta)){
-	        storage.controller = storage.autoCheckGyro ? 'Gyro' : storage.controller;
-	      }
-	      gyro.actual = data;
-	    }
-	    
-	    function process(name, mov){
-	      var value = data[name],
-	        axis, dir;
-	      
-	      if(value > gyro.CENTER[name]){
-	        dir = gyro['MAX_' + name.toUpperCase() + '_SIDE'];
-	        axis = gyro.dirToAxis[dir];
-	        mov[axis] = Math.abs(value - gyro.CENTER[name]) / Math.abs(gyro['MAX_' + name.toUpperCase()]);
-	      }else{
-	        dir = gyro['MIN_' + name.toUpperCase() + '_SIDE'];
-	        axis = gyro.dirToAxis[dir];
-	        mov[axis] = Math.abs(value - gyro.CENTER[name]) / Math.abs(gyro['MIN_' + name.toUpperCase()]);
-	      }
-	      
-	      mov[axis] *= gyro.dirToSign[dir];
-	      mov[axis] *= gyro.flipCor;
-	      return mov;
-	    }
-	}
 
-	function tiltLimiter(){
-	    if(this.tiltLimit){
-	      return true;
-	    }else{
-	      this.tiltLimit = true;
-	      setTimeout(function(){
-	        this.tiltLimit = false;
-	      }, TILT_LIMITER_RATE);
-	      return false;
-	    }
-	}
 
-	function moveGyro(data) {
-	  data.nick = storage.nickname;
-	  data.type = 'Gyro';
-	  data.listener = 'movePlayer';
-	  rateLimiter.message(AirConsole.SCREEN, data);
-	  console.log(data);
-	}
 	function bomb(setting) {
 	  airconsole.message(AirConsole.SCREEN, {
 	    listener: 'setBomb',
@@ -242,7 +171,6 @@
 
 	// require('./main/socketSetup');
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
 /* 1 */
@@ -343,9 +271,12 @@
 
 /***/ },
 /* 2 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	var gyro = {
+	/* WEBPACK VAR INJECTION */(function(process) {module.exports = function(storage){
+	  var TILT_LIMITER_RATE = 200; // [ms] of minimal time between tilt function executions
+	  var STILL_SNAP = 10; // [%] of movement to be considered as still player
+	  var gyro = {
 	    init: function(){
 	      this.overTiltProtection();
 	    },
@@ -469,10 +400,58 @@
 	      gyro.message.innerHTML = 'Tap "Begin" button to start calibration!';
 	      gyro.button.innerHTML = 'Begin';
 	      gyro.step = 1;
+	    },
+	    tilt: function(data){
+	      if(this.tiltLimiter()){
+	        return;
+	      }
+	      if(gyro.calibrated){
+	         if(storage.gameState === 'level'){
+	            var mov = process('beta', {x: 0, y:0});
+	            mov = process('gamma', mov);
+	            // console.log(mov.x + " - " + mov.y, mov);
+	            this.output(mov);
+	          }
+	      }else{
+	        if(storage.controller !== 'Gyro' && (data.gamma || data.beta)){
+	          storage.controller = storage.autoCheckGyro ? 'Gyro' : storage.controller;
+	        }
+	        gyro.actual = data;
+	      }
+	      
+	      function process(name, mov){
+	        var value = data[name],
+	          axis, dir;
+	        
+	        if(value > gyro.CENTER[name]){
+	          dir = gyro['MAX_' + name.toUpperCase() + '_SIDE'];
+	          axis = gyro.dirToAxis[dir];
+	          mov[axis] = Math.abs(value - gyro.CENTER[name]) / Math.abs(gyro['MAX_' + name.toUpperCase()]);
+	        }else{
+	          dir = gyro['MIN_' + name.toUpperCase() + '_SIDE'];
+	          axis = gyro.dirToAxis[dir];
+	          mov[axis] = Math.abs(value - gyro.CENTER[name]) / Math.abs(gyro['MIN_' + name.toUpperCase()]);
+	        }
+	        
+	        mov[axis] *= gyro.dirToSign[dir];
+	        mov[axis] *= gyro.flipCor;
+	        return mov;
+	      }
+	    },
+	    tiltLimiter: function(){
+	      if(this.tiltLimit){
+	        return true;
+	      }else{
+	        this.tiltLimit = true;
+	        setTimeout(function(){
+	          this.tiltLimit = false;
+	        }, TILT_LIMITER_RATE);
+	        return false;
+	      }
 	    }
+	  };
 	};
-
-	module.exports = gyro;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
 /* 3 */
@@ -822,6 +801,32 @@
 	      y: dpad.y
 	    });
 	  }
+	};
+
+/***/ },
+/* 28 */
+/***/ function(module, exports) {
+
+	/* global Button*/
+	module.exports = function (gyro, storage, AirConsole, rateLimiter, bomb) {
+	    gyro.output = moveGyro;
+	    
+	    new Button("button-bomb-gyro", {
+	      "down": function() {
+	        bomb('setting');
+	      },
+	      "up": function() {
+	        bomb(!'setting');
+	      }
+	    });
+	    
+	    function moveGyro(data) {
+	      data.nick = storage.nickname;
+	      data.type = 'Gyro';
+	      data.listener = 'movePlayer';
+	      rateLimiter.message(AirConsole.SCREEN, data);
+	      console.log(data);
+	    }
 	};
 
 /***/ }
