@@ -69,6 +69,7 @@
 
 	__webpack_require__(5)(vmTools, storage, gyro);
 	__webpack_require__(25)(vmTools, storage, acTools, AirConsole, airconsole);
+	__webpack_require__(26)(vmTools, gyro);
 
 	var dpad = {};
 	var STILL_SNAP = 10; // [%] of movement to be considered as still player
@@ -164,9 +165,6 @@
 	    // secondary listeners for some devices (e.g. Iphone)
 	    airconsole.onDeviceMotion =  getDoListener('onDeviceMotion');
 	    
-	    document.getElementById('calibrateBtn').addEventListener('click', calibrate);
-	    document.getElementById('calStartOverBtn').addEventListener('click', gyro.startOver);
-	    
 	    airconsole.onMessage = acTools.onMessage;
 	    
 	      airconsole.onCustomDeviceStateChange = function(device_id, data) {
@@ -215,15 +213,6 @@
 	    
 	    
 	   
-	}
-
-	function calibrate(){
-	    if(!gyro.orientationDefault){
-	      gyro.orientationDefault = gyro.getOrientation();
-	    }
-	    gyro.calibrate(function(){
-	      vmTools.showWithCbs("name-and-color");
-	    });
 	}
 
 	function getDoListener(source){
@@ -794,6 +783,25 @@
 	        var allCharacters = document.getElementsByClassName(clickedElement.className);
 	        for(var i = 0; i < allCharacters.length; i++)
 	          allCharacters[i].classList.remove('selected');
+	    }
+	};
+
+/***/ },
+
+/***/ 26:
+/***/ function(module, exports) {
+
+	module.exports = function (vmTools, gyro) {
+	    document.getElementById('calibrateBtn').addEventListener('click', calibrate);
+	    document.getElementById('calStartOverBtn').addEventListener('click', gyro.startOver);
+	    
+	    function calibrate(){
+	        if(!gyro.orientationDefault){
+	          gyro.orientationDefault = gyro.getOrientation();
+	        }
+	        gyro.calibrate(function(){
+	          vmTools.showWithCbs("name-and-color");
+	        });
 	    }
 	};
 

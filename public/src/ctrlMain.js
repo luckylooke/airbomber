@@ -22,6 +22,7 @@ var storage = localStorage || {};
 
 require('./ctrl/views/welcome')(vmTools, storage, gyro);
 require('./ctrl/views/name_and_color')(vmTools, storage, acTools, AirConsole, airconsole);
+require('./ctrl/views/gyro_calibration')(vmTools, gyro);
 
 var dpad = {};
 var STILL_SNAP = 10; // [%] of movement to be considered as still player
@@ -117,9 +118,6 @@ function init() {
     // secondary listeners for some devices (e.g. Iphone)
     airconsole.onDeviceMotion =  getDoListener('onDeviceMotion');
     
-    document.getElementById('calibrateBtn').addEventListener('click', calibrate);
-    document.getElementById('calStartOverBtn').addEventListener('click', gyro.startOver);
-    
     airconsole.onMessage = acTools.onMessage;
     
       airconsole.onCustomDeviceStateChange = function(device_id, data) {
@@ -168,15 +166,6 @@ function init() {
     
     
    
-}
-
-function calibrate(){
-    if(!gyro.orientationDefault){
-      gyro.orientationDefault = gyro.getOrientation();
-    }
-    gyro.calibrate(function(){
-      vmTools.showWithCbs("name-and-color");
-    });
 }
 
 function getDoListener(source){
