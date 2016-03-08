@@ -19,13 +19,13 @@ var viewMan = new AirConsoleViewManager(airconsole);
 var gyro = require('./ctrl/gyro.js')(storage);
 var vmTools = require('./ctrl/vmTools')(viewMan);
 var acTools = require('./main/acTools')(airconsole);
-var bomb = require('./ctrl/bomb')(airconsole, AirConsole, storage);
+var bomb = require('./ctrl/bomb')(airconsole, storage);
 
 require('./ctrl/views/welcome')(vmTools, storage, gyro);
-require('./ctrl/views/name_and_color')(vmTools, storage, acTools, AirConsole, airconsole);
+require('./ctrl/views/name_and_color')(vmTools, storage, acTools, airconsole);
 require('./ctrl/views/gyro_calibration')(vmTools, gyro);
-require('./ctrl/views/dpad')(vmTools, storage, AirConsole, rateLimiter, bomb);
-require('./ctrl/views/gyro_pad')(gyro, storage, AirConsole, rateLimiter, bomb);
+require('./ctrl/views/dpad')(vmTools, storage, rateLimiter, bomb);
+require('./ctrl/views/gyro_pad')(gyro, storage, rateLimiter, bomb);
 
 // FUNCTION DEFINITIONS: ***********************************************************************************************************************************************************************************
 

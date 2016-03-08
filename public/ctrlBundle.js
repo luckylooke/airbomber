@@ -65,13 +65,13 @@
 	var gyro = __webpack_require__(1)(storage);
 	var vmTools = __webpack_require__(3)(viewMan);
 	var acTools = __webpack_require__(4)(airconsole);
-	var bomb = __webpack_require__(5)(airconsole, AirConsole, storage);
+	var bomb = __webpack_require__(5)(airconsole, storage);
 
 	__webpack_require__(6)(vmTools, storage, gyro);
-	__webpack_require__(7)(vmTools, storage, acTools, AirConsole, airconsole);
+	__webpack_require__(7)(vmTools, storage, acTools, airconsole);
 	__webpack_require__(8)(vmTools, gyro);
-	__webpack_require__(9)(vmTools, storage, AirConsole, rateLimiter, bomb);
-	__webpack_require__(10)(gyro, storage, AirConsole, rateLimiter, bomb);
+	__webpack_require__(9)(vmTools, storage, rateLimiter, bomb);
+	__webpack_require__(10)(gyro, storage, rateLimiter, bomb);
 
 	// FUNCTION DEFINITIONS: ***********************************************************************************************************************************************************************************
 
@@ -550,7 +550,8 @@
 /* 5 */
 /***/ function(module, exports) {
 
-	module.exports = function (airconsole, AirConsole, storage) {
+	/* global AirConsole */
+	module.exports = function (airconsole, storage) {
 	    function bomb(setting) {
 	      airconsole.message(AirConsole.SCREEN, {
 	        listener: 'setBomb',
@@ -602,7 +603,8 @@
 /* 7 */
 /***/ function(module, exports) {
 
-	module.exports = function (vmTools, storage, acTools, AirConsole, airconsole) {
+	/* global AirConsole */
+	module.exports = function (vmTools, storage, acTools, airconsole) {
 	    var colors = ['black','white','blue','green','red','lightblue','yellow','purple'];
 	    var colorsElm = document.getElementById('colors');
 	    var colorElm = colorsElm.children[0];
@@ -714,8 +716,8 @@
 /* 9 */
 /***/ function(module, exports) {
 
-	/* global DPad, Button*/
-	module.exports = function (vmTools, storage, AirConsole, rateLimiter, bomb) {
+	/* global DPad, Button, AirConsole */
+	module.exports = function (vmTools, storage, rateLimiter, bomb) {
 	  var dpad = {};
 	  new DPad("my-DPad", {
 	    // Set to true if you want to have a relative swipe dpad
@@ -794,8 +796,8 @@
 /* 10 */
 /***/ function(module, exports) {
 
-	/* global Button*/
-	module.exports = function (gyro, storage, AirConsole, rateLimiter, bomb) {
+	/* global Button, AirConsole  */
+	module.exports = function (gyro, storage, rateLimiter, bomb) {
 	    gyro.output = moveGyro;
 	    
 	    new Button("button-bomb-gyro", {

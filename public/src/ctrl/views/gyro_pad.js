@@ -1,5 +1,5 @@
-/* global Button*/
-module.exports = function (gyro, storage, AirConsole, rateLimiter, bomb) {
+/* global Button, AirConsole  */
+module.exports = function (gyro, storage, rateLimiter, bomb) {
     gyro.output = moveGyro;
     
     new Button("button-bomb-gyro", {

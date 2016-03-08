@@ -1,5 +1,5 @@
-/* global DPad, Button*/
-module.exports = function (vmTools, storage, AirConsole, rateLimiter, bomb) {
+/* global DPad, Button, AirConsole */
+module.exports = function (vmTools, storage, rateLimiter, bomb) {
   var dpad = {};
   new DPad("my-DPad", {
     // Set to true if you want to have a relative swipe dpad
