@@ -1,6 +1,4 @@
 TODO:
-- BUG: gyro not recognized
-- do not pass AirConsole as argument it is global in controllers
 - test all disconnection scenarios
   - BUG: disconnection of controller does not remove player from screen in pending game
 - BUG: creator screen pending game players disappear on remote player addition

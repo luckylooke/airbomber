@@ -1,4 +1,5 @@
-module.exports = function (vmTools, storage, acTools, AirConsole, airconsole) {
+/* global AirConsole */
+module.exports = function (vmTools, storage, acTools, airconsole) {
     var colors = ['black','white','blue','green','red','lightblue','yellow','purple'];
     var colorsElm = document.getElementById('colors');
     var colorElm = colorsElm.children[0];

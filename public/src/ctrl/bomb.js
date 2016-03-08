@@ -1,4 +1,5 @@
-module.exports = function (airconsole, AirConsole, storage) {
+/* global AirConsole */
+module.exports = function (airconsole, storage) {
     function bomb(setting) {
       airconsole.message(AirConsole.SCREEN, {
         listener: 'setBomb',

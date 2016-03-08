@@ -63,20 +63,25 @@
 	// viewMan -> https://github.com/AirConsole/airconsole-view-manager
 	var viewMan = new AirConsoleViewManager(airconsole);
 	var gyro = __webpack_require__(1)(storage);
-	var vmTools = __webpack_require__(3)(viewMan);
+	var vmTools = __webpack_require__(3)(viewMan, storage);
 	var acTools = __webpack_require__(4)(airconsole);
-	var bomb = __webpack_require__(5)(airconsole, AirConsole, storage);
+	var bomb = __webpack_require__(5)(airconsole, storage);
 
 	__webpack_require__(6)(vmTools, storage, gyro);
-	__webpack_require__(7)(vmTools, storage, acTools, AirConsole, airconsole);
+	__webpack_require__(7)(vmTools, storage, acTools, airconsole);
 	__webpack_require__(8)(vmTools, gyro);
-	__webpack_require__(9)(vmTools, storage, AirConsole, rateLimiter, bomb);
-	__webpack_require__(10)(gyro, storage, AirConsole, rateLimiter, bomb);
+	__webpack_require__(9)(vmTools, storage, rateLimiter, bomb);
+	__webpack_require__(10)(gyro, storage, rateLimiter, bomb);
 
 	// FUNCTION DEFINITIONS: ***********************************************************************************************************************************************************************************
 
 	function init() {
 	    storage.autoCheckGyro = storage.autoCheckGyro === undefined ? true : storage.autoCheckGyro;
+	    storage.controller = storage.controller || 'DPad'; // DPad, Gyro
+	    if(storage.current_view){
+	      vmTools.showWithCbs(storage.current_view);
+	    }
+	    
 	    // standard listeners for some devices (e.g. Samsung Galaxy S4 mini)
 	    if (window.DeviceOrientationEvent) {
 	      window.addEventListener("deviceorientation", getDoListener('deviceorientation'), true);
@@ -91,34 +96,15 @@
 	          gyro.tilt({source: 'MozOrientation', beta: event.beta, gamma: event.gamma});
 	      }, true);
 	    }
-	    
-	    storage.controller = storage.controller || 'DPad'; // DPad, Gyro
-	    
 	    // secondary listeners for some devices (e.g. Iphone)
 	    airconsole.onDeviceMotion =  getDoListener('onDeviceMotion');
 	    
-	    airconsole.onMessage = acTools.onMessage;
-	    
-	      airconsole.onCustomDeviceStateChange = function(device_id, data) {
-	        viewMan.onViewChange(data, function(view_id) {
-	          console.log('view_id', view_id);
-	        });
-	      };
-	    
-	    storage.acInterval = setInterval(function(){
-	      airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
-	    }, 3000);
-	    
-	    // debug info
-	    acTools.addListener(undefined, function(from, data){
-	      console.log('on ctrl: ', from, data);
-	    });
-	        
-	    acTools.addListener('gameState', function(from, data){
-	      if(from == AirConsole.SCREEN && data.gameState){
-	        storage.gameState = data.gameState;
-	      }
-	    });
+	    // listen to forced states from screen
+	    airconsole.onCustomDeviceStateChange = function(device_id, data) {
+	      viewMan.onViewChange(data, function(view_id) {
+	        console.log('view_id', view_id);
+	      });
+	    };
 	    
 	    /*
 	     * Checks if this device is part of the active game.
@@ -132,6 +118,12 @@
 	      // }
 	    };
 	    
+	    // screen state notifications
+	    acTools.addListener('gameState', function(from, data){
+	      if(from == AirConsole.SCREEN && data.gameState){
+	        storage.gameState = data.gameState;
+	      }
+	    });
 	    
 	    /*
 	     * Makes the device vibrate if the screen says so.
@@ -140,6 +132,16 @@
 	      if (from == AirConsole.SCREEN && data.vibrate) {
 	        navigator.vibrate(data.vibrate);
 	      }
+	    });
+	    
+	    // start contacting screen
+	    storage.acInterval = setInterval(function(){
+	      airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
+	    }, 3000);
+	    
+	    // debug info
+	    acTools.addListener(undefined, function(from, data){
+	      console.log('on ctrl: ', from, data);
 	    });
 	}
 
@@ -442,7 +444,7 @@
 /* 3 */
 /***/ function(module, exports) {
 
-	module.exports = function(viewMan){
+	module.exports = function(viewMan, storage){
 	  var vmTools = {};
 	  vmTools.cbs = {}; // callbacks
 	  
@@ -452,6 +454,7 @@
 	      fromViewCb = vmTools.cbs[fromView],
 	      toViewCb = vmTools.cbs[toView];
 	    viewMan.show(toView);
+	    storage.current_view = toView;
 	    if(fromViewCb && fromViewCb.from){
 	      fromViewCb.from(toView);
 	    }
@@ -544,13 +547,14 @@
 	    
 	    airconsole.onMessage = acTools.onMessage;
 	    return acTools;
-	}
+	};
 
 /***/ },
 /* 5 */
 /***/ function(module, exports) {
 
-	module.exports = function (airconsole, AirConsole, storage) {
+	/* global AirConsole */
+	module.exports = function (airconsole, storage) {
 	    function bomb(setting) {
 	      airconsole.message(AirConsole.SCREEN, {
 	        listener: 'setBomb',
@@ -602,7 +606,8 @@
 /* 7 */
 /***/ function(module, exports) {
 
-	module.exports = function (vmTools, storage, acTools, AirConsole, airconsole) {
+	/* global AirConsole */
+	module.exports = function (vmTools, storage, acTools, airconsole) {
 	    var colors = ['black','white','blue','green','red','lightblue','yellow','purple'];
 	    var colorsElm = document.getElementById('colors');
 	    var colorElm = colorsElm.children[0];
@@ -714,8 +719,8 @@
 /* 9 */
 /***/ function(module, exports) {
 
-	/* global DPad, Button*/
-	module.exports = function (vmTools, storage, AirConsole, rateLimiter, bomb) {
+	/* global DPad, Button, AirConsole */
+	module.exports = function (vmTools, storage, rateLimiter, bomb) {
 	  var dpad = {};
 	  new DPad("my-DPad", {
 	    // Set to true if you want to have a relative swipe dpad
@@ -794,8 +799,8 @@
 /* 10 */
 /***/ function(module, exports) {
 
-	/* global Button*/
-	module.exports = function (gyro, storage, AirConsole, rateLimiter, bomb) {
+	/* global Button, AirConsole  */
+	module.exports = function (gyro, storage, rateLimiter, bomb) {
 	    gyro.output = moveGyro;
 	    
 	    new Button("button-bomb-gyro", {
