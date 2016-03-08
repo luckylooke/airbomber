@@ -141,7 +141,7 @@ module.exports = function(storage){
         if(storage.controller !== 'Gyro' && (data.gamma || data.beta)){
           storage.controller = storage.autoCheckGyro ? 'Gyro' : storage.controller;
         }
-        gyro.actual = data;
+        gyro.actual = data; // for calibration
       }
       
       function process(name, mov){
@@ -167,12 +167,17 @@ module.exports = function(storage){
       if(this.tiltLimit){
         return true;
       }else{
+        var self = this;
         this.tiltLimit = true;
         setTimeout(function(){
-          this.tiltLimit = false;
+          self.tiltLimit = false;
         }, TILT_LIMITER_RATE);
         return false;
       }
+    },
+    output:function output(mov) {
+      console.log('output ', mov);
     }
   };
+  return gyro;
 };

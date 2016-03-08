@@ -54,7 +54,6 @@
 	                   navigator.msVibrate);
 
 	var storage = localStorage || {};
-	var gyro = __webpack_require__(2)(storage);
 	var airconsole = new AirConsole({
 	                      orientation: AirConsole.ORIENTATION_LANDSCAPE,
 	                      device_motion: 100
@@ -63,15 +62,16 @@
 	var rateLimiter = new RateLimiter(airconsole);
 	// viewMan -> https://github.com/AirConsole/airconsole-view-manager
 	var viewMan = new AirConsoleViewManager(airconsole);
+	var gyro = __webpack_require__(1)(storage);
 	var vmTools = __webpack_require__(3)(viewMan);
 	var acTools = __webpack_require__(4)(airconsole);
-	var bomb = __webpack_require__(29)(airconsole, AirConsole, storage);
+	var bomb = __webpack_require__(5)(airconsole, AirConsole, storage);
 
-	__webpack_require__(5)(vmTools, storage, gyro);
-	__webpack_require__(25)(vmTools, storage, acTools, AirConsole, airconsole);
-	__webpack_require__(26)(vmTools, gyro);
-	__webpack_require__(27)(vmTools, storage, AirConsole, rateLimiter, bomb);
-	__webpack_require__(28)(vmTools, storage, AirConsole, rateLimiter, bomb);
+	__webpack_require__(6)(vmTools, storage, gyro);
+	__webpack_require__(7)(vmTools, storage, acTools, AirConsole, airconsole);
+	__webpack_require__(8)(vmTools, gyro);
+	__webpack_require__(9)(vmTools, storage, AirConsole, rateLimiter, bomb);
+	__webpack_require__(10)(gyro, storage, AirConsole, rateLimiter, bomb);
 
 	// FUNCTION DEFINITIONS: ***********************************************************************************************************************************************************************************
 
@@ -154,103 +154,6 @@
 
 /***/ },
 /* 1 */
-/***/ function(module, exports) {
-
-	// shim for using process in browser
-
-	var process = module.exports = {};
-	var queue = [];
-	var draining = false;
-	var currentQueue;
-	var queueIndex = -1;
-
-	function cleanUpNextTick() {
-	    draining = false;
-	    if (currentQueue.length) {
-	        queue = currentQueue.concat(queue);
-	    } else {
-	        queueIndex = -1;
-	    }
-	    if (queue.length) {
-	        drainQueue();
-	    }
-	}
-
-	function drainQueue() {
-	    if (draining) {
-	        return;
-	    }
-	    var timeout = setTimeout(cleanUpNextTick);
-	    draining = true;
-
-	    var len = queue.length;
-	    while(len) {
-	        currentQueue = queue;
-	        queue = [];
-	        while (++queueIndex < len) {
-	            if (currentQueue) {
-	                currentQueue[queueIndex].run();
-	            }
-	        }
-	        queueIndex = -1;
-	        len = queue.length;
-	    }
-	    currentQueue = null;
-	    draining = false;
-	    clearTimeout(timeout);
-	}
-
-	process.nextTick = function (fun) {
-	    var args = new Array(arguments.length - 1);
-	    if (arguments.length > 1) {
-	        for (var i = 1; i < arguments.length; i++) {
-	            args[i - 1] = arguments[i];
-	        }
-	    }
-	    queue.push(new Item(fun, args));
-	    if (queue.length === 1 && !draining) {
-	        setTimeout(drainQueue, 0);
-	    }
-	};
-
-	// v8 likes predictible objects
-	function Item(fun, array) {
-	    this.fun = fun;
-	    this.array = array;
-	}
-	Item.prototype.run = function () {
-	    this.fun.apply(null, this.array);
-	};
-	process.title = 'browser';
-	process.browser = true;
-	process.env = {};
-	process.argv = [];
-	process.version = ''; // empty string to avoid regexp issues
-	process.versions = {};
-
-	function noop() {}
-
-	process.on = noop;
-	process.addListener = noop;
-	process.once = noop;
-	process.off = noop;
-	process.removeListener = noop;
-	process.removeAllListeners = noop;
-	process.emit = noop;
-
-	process.binding = function (name) {
-	    throw new Error('process.binding is not supported');
-	};
-
-	process.cwd = function () { return '/' };
-	process.chdir = function (dir) {
-	    throw new Error('process.chdir is not supported');
-	};
-	process.umask = function() { return 0; };
-
-
-/***/ },
-/* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {module.exports = function(storage){
@@ -396,7 +299,7 @@
 	        if(storage.controller !== 'Gyro' && (data.gamma || data.beta)){
 	          storage.controller = storage.autoCheckGyro ? 'Gyro' : storage.controller;
 	        }
-	        gyro.actual = data;
+	        gyro.actual = data; // for calibration
 	      }
 	      
 	      function process(name, mov){
@@ -422,16 +325,118 @@
 	      if(this.tiltLimit){
 	        return true;
 	      }else{
+	        var self = this;
 	        this.tiltLimit = true;
 	        setTimeout(function(){
-	          this.tiltLimit = false;
+	          self.tiltLimit = false;
 	        }, TILT_LIMITER_RATE);
 	        return false;
 	      }
+	    },
+	    output:function output(mov) {
+	      console.log('output ', mov);
 	    }
 	  };
+	  return gyro;
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+
+/***/ },
+/* 2 */
+/***/ function(module, exports) {
+
+	// shim for using process in browser
+
+	var process = module.exports = {};
+	var queue = [];
+	var draining = false;
+	var currentQueue;
+	var queueIndex = -1;
+
+	function cleanUpNextTick() {
+	    draining = false;
+	    if (currentQueue.length) {
+	        queue = currentQueue.concat(queue);
+	    } else {
+	        queueIndex = -1;
+	    }
+	    if (queue.length) {
+	        drainQueue();
+	    }
+	}
+
+	function drainQueue() {
+	    if (draining) {
+	        return;
+	    }
+	    var timeout = setTimeout(cleanUpNextTick);
+	    draining = true;
+
+	    var len = queue.length;
+	    while(len) {
+	        currentQueue = queue;
+	        queue = [];
+	        while (++queueIndex < len) {
+	            if (currentQueue) {
+	                currentQueue[queueIndex].run();
+	            }
+	        }
+	        queueIndex = -1;
+	        len = queue.length;
+	    }
+	    currentQueue = null;
+	    draining = false;
+	    clearTimeout(timeout);
+	}
+
+	process.nextTick = function (fun) {
+	    var args = new Array(arguments.length - 1);
+	    if (arguments.length > 1) {
+	        for (var i = 1; i < arguments.length; i++) {
+	            args[i - 1] = arguments[i];
+	        }
+	    }
+	    queue.push(new Item(fun, args));
+	    if (queue.length === 1 && !draining) {
+	        setTimeout(drainQueue, 0);
+	    }
+	};
+
+	// v8 likes predictible objects
+	function Item(fun, array) {
+	    this.fun = fun;
+	    this.array = array;
+	}
+	Item.prototype.run = function () {
+	    this.fun.apply(null, this.array);
+	};
+	process.title = 'browser';
+	process.browser = true;
+	process.env = {};
+	process.argv = [];
+	process.version = ''; // empty string to avoid regexp issues
+	process.versions = {};
+
+	function noop() {}
+
+	process.on = noop;
+	process.addListener = noop;
+	process.once = noop;
+	process.off = noop;
+	process.removeListener = noop;
+	process.removeAllListeners = noop;
+	process.emit = noop;
+
+	process.binding = function (name) {
+	    throw new Error('process.binding is not supported');
+	};
+
+	process.cwd = function () { return '/' };
+	process.chdir = function (dir) {
+	    throw new Error('process.chdir is not supported');
+	};
+	process.umask = function() { return 0; };
+
 
 /***/ },
 /* 3 */
@@ -545,6 +550,27 @@
 /* 5 */
 /***/ function(module, exports) {
 
+	module.exports = function (airconsole, AirConsole, storage) {
+	    function bomb(setting) {
+	      airconsole.message(AirConsole.SCREEN, {
+	        listener: 'setBomb',
+	        nick: storage.nickname,
+	        setting: setting
+	      });
+	      console.log({
+	        listener: 'setBomb',
+	        nick: storage.nickname,
+	        setting: setting
+	      });
+	    }
+	    
+	    return bomb;
+	}
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
 	module.exports = function (vmTools, storage, gyro) {
 	    var timeOutEnded = false,
 	        welcomeClicked = false;
@@ -573,26 +599,7 @@
 	};
 
 /***/ },
-/* 6 */,
-/* 7 */,
-/* 8 */,
-/* 9 */,
-/* 10 */,
-/* 11 */,
-/* 12 */,
-/* 13 */,
-/* 14 */,
-/* 15 */,
-/* 16 */,
-/* 17 */,
-/* 18 */,
-/* 19 */,
-/* 20 */,
-/* 21 */,
-/* 22 */,
-/* 23 */,
-/* 24 */,
-/* 25 */
+/* 7 */
 /***/ function(module, exports) {
 
 	module.exports = function (vmTools, storage, acTools, AirConsole, airconsole) {
@@ -686,7 +693,7 @@
 	};
 
 /***/ },
-/* 26 */
+/* 8 */
 /***/ function(module, exports) {
 
 	module.exports = function (vmTools, gyro) {
@@ -704,7 +711,7 @@
 	};
 
 /***/ },
-/* 27 */
+/* 9 */
 /***/ function(module, exports) {
 
 	/* global DPad, Button*/
@@ -784,7 +791,7 @@
 	};
 
 /***/ },
-/* 28 */
+/* 10 */
 /***/ function(module, exports) {
 
 	/* global Button*/
@@ -808,27 +815,6 @@
 	      console.log(data);
 	    }
 	};
-
-/***/ },
-/* 29 */
-/***/ function(module, exports) {
-
-	module.exports = function (airconsole, AirConsole, storage) {
-	    function bomb(setting) {
-	      airconsole.message(AirConsole.SCREEN, {
-	        listener: 'setBomb',
-	        nick: storage.nickname,
-	        setting: setting
-	      });
-	      console.log({
-	        listener: 'setBomb',
-	        nick: storage.nickname,
-	        setting: setting
-	      });
-	    }
-	    
-	    return bomb;
-	}
 
 /***/ }
 /******/ ]);

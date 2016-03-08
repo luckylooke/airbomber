@@ -24,7 +24,6 @@ acTools.addListener('ready', function(from, data){
 });
 
 function newPlayer(device_id, player){
-	console.log('newPlayer game.slotId', {slotId: game.slotId});
   	if(player.nick){
   		delete player.listener;
   		player.slotId = game.slotId;
