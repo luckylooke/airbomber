@@ -61,7 +61,7 @@ PendingGame.prototype = {
 		this.htmlPlayersElm = document.getElementById('players');
 		this.htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
 		this.htmlPlayersElm.innerHTML = '';
-		socket.emit("enter pending game", {slotId: game.slotId});
+		socket.emit("enter pending game", {slotId: game.slotId, tilemapName: this.tilemapName});
 		socket.on("show current players", this.populateCharacterSquares.bind(this));
 		socket.on("player joined", this.playerJoined.bind(this));
 		socket.on("players left", this.playersLeft.bind(this));

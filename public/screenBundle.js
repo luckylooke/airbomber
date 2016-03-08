@@ -346,9 +346,8 @@
 	        this.load.spritesheet("start_game_button", "resource/start_game_button.png", 202, 43);
 	        this.load.spritesheet("leave_game_button", "resource/leave_game_button.png", 202, 43);
 	        this.load.spritesheet("game_slot", "resource/game_slot.png", 522, 48);
-	        this.load.tilemap("First", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
-	        this.load.tilemap("Second", "assets/levels/Arena_map_2.json", null, Phaser.Tilemap.TILED_JSON);
-	        this.load.tilemap("Third", "assets/levels/level_two.json", null, Phaser.Tilemap.TILED_JSON);
+	        this.load.tilemap("GreenField", "assets/levels/GreenField.json", null, Phaser.Tilemap.TILED_JSON);
+	        this.load.tilemap("GreenHell", "assets/levels/GreenHell.json", null, Phaser.Tilemap.TILED_JSON);
 	        // this.load.tilemap("levelTwo", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
 	        this.load.image("tiles", "resource/tileset.png");
 	        this.load.image("select_stage", "resource/select_stage.png");
@@ -565,7 +564,7 @@
 		getHandler: function(index) {
 			return function confirmStageSelection(){
 				document.getElementById('stage-select').classList.add("hidden");
-		        socket.emit("select stage", {slotId: socket.id, mapName: stages[index].tilemapName});
+		        socket.emit("select stage", {slotId: socket.id, tilemapName: stages[index].tilemapName});
 		        game.state.start("PendingGame", true, false, stages[index].tilemapName, socket.id);
 			};
 		}
@@ -578,14 +577,14 @@
 /***/ function(module, exports) {
 
 	var MapInfo = {
-		First: {
-			name: "Green field",
+		GreenField: {
+			name: "Green Field",
 			thumbnailFile: "../resource/green_field_thumbnail.png",
-			tilemapName: "First",
+			tilemapName: "GreenField",
 			maxPlayers: 4,
 			size: "Small",
 			background:"../resource/green_field_background.png",
-			spawnLocations: [{x: 1, y: 1}, {x: 23, y: 1}, {x: 1, y: 4}, {x: 23, y: 4}],
+			spawnLocations: [{x: 1, y: 1}, {x: 23, y: 1}, {x: 1, y: 13}, {x: 23, y: 13}],
 			collisionTiles: [3, 4],
 			groundLayer: "Ground",
 			blockLayer: "Blocks",
@@ -593,14 +592,14 @@
 			tilesetImage: "tiles",
 			destructibleTileId: 4
 		},
-		Second: {
-			name: "Green hell",
+		GreenHell: {
+			name: "Green Hell",
 			thumbnailFile: "../resource/green_hell_thumbnail.png",
-			tilemapName: "Second",
+			tilemapName: "GreenHell",
 			maxPlayers: 4,
 			size: "Small",
 			background:"../resource/green_hell_background.png",
-			spawnLocations: [{x: 1, y: 1}, {x: 23, y: 1}, {x: 1, y: 4}, {x: 23, y: 4}],
+			spawnLocations: [{x: 1, y: 1}, {x: 23, y: 1}, {x: 1, y: 13}, {x: 23, y: 13}],
 			collisionTiles: [3, 4],
 			groundLayer: "Ground",
 			blockLayer: "Blocks",
@@ -615,7 +614,7 @@
 			maxPlayers: 4,
 			size: "Small",
 			background:"../resource/danger_desert_background.png",
-			spawnLocations: [{x: 1, y: 1}, {x: 23, y: 1}, {x: 1, y: 4}, {x: 23, y: 4}],
+			spawnLocations: [{x: 1, y: 1}, {x: 23, y: 1}, {x: 1, y: 13}, {x: 23, y: 13}],
 			collisionTiles: [3, 4],
 			groundLayer: "Ground",
 			blockLayer: "Blocks",
@@ -694,7 +693,7 @@
 			this.htmlPlayersElm = document.getElementById('players');
 			this.htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
 			this.htmlPlayersElm.innerHTML = '';
-			socket.emit("enter pending game", {slotId: game.slotId});
+			socket.emit("enter pending game", {slotId: game.slotId, tilemapName: this.tilemapName});
 			socket.on("show current players", this.populateCharacterSquares.bind(this));
 			socket.on("player joined", this.playerJoined.bind(this));
 			socket.on("players left", this.playersLeft.bind(this));
@@ -833,7 +832,7 @@
 	    gameFrozen: true,
 
 	    init: function (data) {
-	        this.tilemapName = data.mapName;
+	        this.tilemapName = data.tilemapName;
 	        this.players = data.players;
 	    },
 

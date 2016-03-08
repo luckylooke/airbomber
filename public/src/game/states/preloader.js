@@ -38,9 +38,8 @@ Preloader.prototype = {
         this.load.spritesheet("start_game_button", "resource/start_game_button.png", 202, 43);
         this.load.spritesheet("leave_game_button", "resource/leave_game_button.png", 202, 43);
         this.load.spritesheet("game_slot", "resource/game_slot.png", 522, 48);
-        this.load.tilemap("First", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
-        this.load.tilemap("Second", "assets/levels/Arena_map_2.json", null, Phaser.Tilemap.TILED_JSON);
-        this.load.tilemap("Third", "assets/levels/level_two.json", null, Phaser.Tilemap.TILED_JSON);
+        this.load.tilemap("GreenField", "assets/levels/GreenField.json", null, Phaser.Tilemap.TILED_JSON);
+        this.load.tilemap("GreenHell", "assets/levels/GreenHell.json", null, Phaser.Tilemap.TILED_JSON);
         // this.load.tilemap("levelTwo", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
         this.load.image("tiles", "resource/tileset.png");
         this.load.image("select_stage", "resource/select_stage.png");

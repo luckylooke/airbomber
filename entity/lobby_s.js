@@ -52,7 +52,7 @@ var lobby = {
 
     onStageSelect: function (data) {
         lobbySlots[data.slotId].state = "joinable";
-        lobbySlots[data.slotId].mapName = data.mapName;
+        lobbySlots[data.slotId].tilemapName = data.tilemapName;
         lobby.broadcastSlotStateUpdate(this);
     },
 
@@ -63,10 +63,10 @@ var lobby = {
         this.join(data.slotId); // join io room
         this.emit("show current players", {players: pendingGame.players});
         this.broadcast.to(data.slotId).emit("screen joined", {id: this.id, color: pendingGame.screens[this.id].color});
-        if (pendingGame.getNumScreens() >= MapInfo['First'].spawnLocations.length) {
-            pendingGame.state = "full";
-            lobby.broadcastSlotStateUpdate(this);
-        }
+        // if (pendingGame.getNumScreens() >= MapInfo['First'].spawnLocations.length) {
+        //     pendingGame.state = "full";
+        //     lobby.broadcastSlotStateUpdate(this);
+        // }
     },
 
     onPlayerEnterPendingGame: function (data) {
@@ -77,7 +77,7 @@ var lobby = {
         pendingGame.addPlayer(data);
         this.emit("show current players", {players: pendingGame.players});
         this.broadcast.to(data.slotId).emit("player joined", {nick: data.nick, color: pendingGame.players[data.nick].color});
-        if (pendingGame.getNumScreens() >= MapInfo['First'].spawnLocations.length) {
+        if (pendingGame.getNumScreens() >= MapInfo[pendingGame.tilemapName].spawnLocations.length) {
             pendingGame.state = "full";
             lobby.broadcastSlotStateUpdate(this);
         }

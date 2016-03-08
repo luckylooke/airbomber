@@ -49,7 +49,7 @@ Level.prototype = {
     gameFrozen: true,
 
     init: function (data) {
-        this.tilemapName = data.mapName;
+        this.tilemapName = data.tilemapName;
         this.players = data.players;
     },
 
