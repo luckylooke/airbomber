@@ -19,7 +19,7 @@ acTools.addListener(undefined, function(from, data){
 
 acTools.addListener('ready', function(from, data){
 	if(screen.isReady){
-	  airconsole.message(from, {listener: 'ready', gameState: 'pending_game'});
+	  airconsole.message(from, {listener: 'ready', gameState: 'PendingGame'});
 	}
 });
 
@@ -66,7 +66,7 @@ PendingGame.prototype = {
 		socket.on("player joined", this.playerJoined.bind(this));
 		socket.on("players left", this.playersLeft.bind(this));
 		socket.on("start game on client", this.startGame);
-		airconsole.broadcast({listener: 'gameState', gameState: 'pending_game'});
+		airconsole.broadcast({listener: 'gameState', gameState: 'PendingGame'});
 	},
 
 	update: function() {
@@ -130,6 +130,7 @@ PendingGame.prototype = {
 		this.leavingPendingGame();
 		socket.emit("leave pending game", {slotId: game.slotId, screenId: game.screenId});
 		socket.removeAllListeners();
+      	bomberman.acTools.currentView = 'Lobby';
         game.state.start("Lobby");
 	},
 	
@@ -141,6 +142,7 @@ PendingGame.prototype = {
 
 	startGame: function(data) {
 		socket.removeAllListeners();
+      	acTools.currentView = 'Level';
 		game.state.start("Level", true, false, data);
 	}
 };

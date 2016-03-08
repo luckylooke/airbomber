@@ -44,7 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* global Phaser, AirConsole, io */
+	/* global Phaser, AirConsole, io, AirConsoleViewManager */
 
 	var bomberman = window.bomberman = {}; // namespace in global
 	bomberman.bomberElm = document.getElementById('bomber');
@@ -59,6 +59,7 @@
 	bomberman.airconsole = new AirConsole();
 	bomberman.socket = __webpack_require__(11)(io, game);
 	bomberman.acTools = __webpack_require__(4)(bomberman.airconsole, 'screen');
+	bomberman.viewMan = new AirConsoleViewManager(bomberman.airconsole);
 
 	game.state.add("Boot", __webpack_require__(12));
 	game.state.add("Preloader", __webpack_require__(15));
@@ -187,6 +188,7 @@
 /* 11 */
 /***/ function(module, exports) {
 
+	/* global bomberman */
 	module.exports = function(io, game){
 	  function getURLParameter(name) {
 	    return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
@@ -213,6 +215,7 @@
 	  });
 	  socket.on('connect', function(){
 	      console.log('socket server: ', socketServer);
+	      bomberman.acTools.currentView = 'Boot';
 	      game.state.start('Boot');
 	  });
 	  return socket;
@@ -249,6 +252,7 @@
 	        AudioPlayer.initialize();
 	        // if (game.device.desktop) {
 	        game.stage.scale.pageAlignHorizontally = true;
+	        bomberman.acTools.currentView = 'Preloader';
 	        game.state.start('Preloader');
 	        // } else {
 	        //     var text = game.add.text(textXOffset, textYOffset, 'Please run the game on your computer');
@@ -383,6 +387,7 @@
 	    },
 
 	    create: function () {
+	        bomberman.acTools.currentView = 'Lobby';
 	        game.state.start("Lobby");
 	    }
 	};
@@ -472,11 +477,13 @@
 		hostGameAction: function() {
 			socket.emit("host game", {slotId: socket.id});
 			socket.removeAllListeners();
+	      	bomberman.acTools.currentView = 'StageSelect';
 	        game.state.start("StageSelect", true, false);
 		},
 
 		joinGameAction: function(slotId) {
 			socket.removeAllListeners();
+	      	bomberman.acTools.currentView = 'PendingGame';
 	        game.state.start("PendingGame", true, false, null, slotId);
 		}
 	};
@@ -565,6 +572,7 @@
 			return function confirmStageSelection(){
 				document.getElementById('stage-select').classList.add("hidden");
 		        socket.emit("select stage", {slotId: socket.id, tilemapName: stages[index].tilemapName});
+	      		bomberman.acTools.currentView = 'PendingGame';
 		        game.state.start("PendingGame", true, false, stages[index].tilemapName, socket.id);
 			};
 		}
@@ -651,7 +659,7 @@
 
 	acTools.addListener('ready', function(from, data){
 		if(screen.isReady){
-		  airconsole.message(from, {listener: 'ready', gameState: 'pending_game'});
+		  airconsole.message(from, {listener: 'ready', gameState: 'PendingGame'});
 		}
 	});
 
@@ -698,7 +706,7 @@
 			socket.on("player joined", this.playerJoined.bind(this));
 			socket.on("players left", this.playersLeft.bind(this));
 			socket.on("start game on client", this.startGame);
-			airconsole.broadcast({listener: 'gameState', gameState: 'pending_game'});
+			airconsole.broadcast({listener: 'gameState', gameState: 'PendingGame'});
 		},
 
 		update: function() {
@@ -762,6 +770,7 @@
 			this.leavingPendingGame();
 			socket.emit("leave pending game", {slotId: game.slotId, screenId: game.screenId});
 			socket.removeAllListeners();
+	      	bomberman.acTools.currentView = 'Lobby';
 	        game.state.start("Lobby");
 		},
 		
@@ -773,6 +782,7 @@
 
 		startGame: function(data) {
 			socket.removeAllListeners();
+	      	acTools.currentView = 'Level';
 			game.state.start("Level", true, false, data);
 		}
 	};
@@ -798,6 +808,7 @@
 	var socket = bomberman.socket;
 	var level = bomberman.level;
 	var screen = bomberman.screen;
+	var viewMan = bomberman.viewMan;
 
 	var Level = function () {};
 	var controllers = {}, // keeps state of connected controllers
@@ -868,7 +879,7 @@
 	        this.createDimGraphic();
 	        this.beginRoundAnimation("round_1");
 	        //AudioPlayer.playMusicSound();
-			airconsole.broadcast({listener: 'gameState', gameState: 'level'});
+			airconsole.broadcast({listener: 'gameState', gameState: 'Level'});
 	    },
 
 	    createDimGraphic: function () {
@@ -930,6 +941,7 @@
 	        var animation = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
 	        animation.beginAnimation(function () {
 	            controllers = {};
+	        	bomberman.acTools.currentView = 'GameOver';
 	            game.state.start("GameOver", true, false, data.gameWinnerColor, false);
 	        });
 	        AudioPlayer.stopMusicSound();
@@ -937,6 +949,7 @@
 
 	    onNoOpponentsLeft: function (data) {
 	        controllers = {};
+	      	bomberman.acTools.currentView = 'GameOver';
 	        game.state.start("GameOver", true, false, null, true);
 	    },
 
@@ -1649,7 +1662,7 @@
 			var textObject = game.add.text(game.camera.width / 2, game.camera.height / 2, textToDisplay);
 			textObject.anchor.setTo(0.5, 0.5);
 			TextConfigurer.configureText(textObject, "white", 28);
-			airconsole.broadcast({listener: 'gameState', gameState: 'game_over'});
+			airconsole.broadcast({listener: 'gameState', gameState: 'GameOver'});
 		},
 
 		update: function() {

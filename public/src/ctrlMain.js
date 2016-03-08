@@ -78,7 +78,15 @@ function init() {
     // screen state notifications
     acTools.addListener('gameState', function(from, data){
       if(from == AirConsole.SCREEN && data.gameState){
+        storage.screenView = data.gameState;
         storage.gameState = data.gameState;
+        if(data.gameState === 'Level'){
+          if(storage.controller === 'Gyro'){
+            vmTools.showWithCbs("gyro-pad");
+          }else{
+            vmTools.showWithCbs("d-pad");
+          }
+        }
       }
     });
     

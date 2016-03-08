@@ -124,7 +124,15 @@
 	    // screen state notifications
 	    acTools.addListener('gameState', function(from, data){
 	      if(from == AirConsole.SCREEN && data.gameState){
+	        storage.screenView = data.gameState;
 	        storage.gameState = data.gameState;
+	        if(data.gameState === 'Level'){
+	          if(storage.controller === 'Gyro'){
+	            vmTools.showWithCbs("gyro-pad");
+	          }else{
+	            vmTools.showWithCbs("d-pad");
+	          }
+	        }
 	      }
 	    });
 	    
@@ -668,15 +676,15 @@
 	    
 	    function addPlayer(){
 	        getPlayerInfo();
-	        if(storage.color && storage.nickname){
-	          if(storage.controller === 'Gyro'){
-	            vmTools.showWithCbs("gyro-pad");
-	          }else{
-	            vmTools.showWithCbs("d-pad");
-	          }
-	        }
+	        // if(storage.color && storage.nickname){
+	        //   if(storage.controller === 'Gyro'){
+	        //     vmTools.showWithCbs("gyro-pad");
+	        //   }else{
+	        //     vmTools.showWithCbs("d-pad");
+	        //   }
+	        // }
 	        acTools.addListener('ready', function(from, data){
-	          if(storage.color && storage.nickname && from == AirConsole.SCREEN && storage.gameState === 'pending_game'){
+	          if(storage.color && storage.nickname && from == AirConsole.SCREEN && storage.gameState === 'PendingGame'){
 	            clearInterval(storage.acInterval);
 	            airconsole.message(AirConsole.SCREEN, {
 	              listener: 'newPlayer',
@@ -819,7 +827,7 @@
 	  
 	  vmTools.cbs['d-pad'] = {
 	    to: function(){
-	      if(storage.screenView !== 'level'){
+	      if(storage.screenView !== 'Level'){
 	        vmTools.showWithCbs('welcome');
 	      }
 	    }
@@ -858,7 +866,7 @@
 	  
 	  vmTools.cbs['gyro-pad'] = {
 	    to: function(){
-	      if(storage.screenView !== 'level'){
+	      if(storage.screenView !== 'Level'){
 	        vmTools.showWithCbs('welcome');
 	      }
 	    }

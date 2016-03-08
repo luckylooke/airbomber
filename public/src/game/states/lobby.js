@@ -78,11 +78,13 @@ Lobby.prototype = {
 	hostGameAction: function() {
 		socket.emit("host game", {slotId: socket.id});
 		socket.removeAllListeners();
+      	bomberman.acTools.currentView = 'StageSelect';
         game.state.start("StageSelect", true, false);
 	},
 
 	joinGameAction: function(slotId) {
 		socket.removeAllListeners();
+      	bomberman.acTools.currentView = 'PendingGame';
         game.state.start("PendingGame", true, false, null, slotId);
 	}
 };

@@ -15,6 +15,7 @@ var game = bomberman.game;
 var socket = bomberman.socket;
 var level = bomberman.level;
 var screen = bomberman.screen;
+var viewMan = bomberman.viewMan;
 
 var Level = function () {};
 var controllers = {}, // keeps state of connected controllers
@@ -85,7 +86,7 @@ Level.prototype = {
         this.createDimGraphic();
         this.beginRoundAnimation("round_1");
         //AudioPlayer.playMusicSound();
-		airconsole.broadcast({listener: 'gameState', gameState: 'level'});
+		airconsole.broadcast({listener: 'gameState', gameState: 'Level'});
     },
 
     createDimGraphic: function () {
@@ -147,6 +148,7 @@ Level.prototype = {
         var animation = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
         animation.beginAnimation(function () {
             controllers = {};
+        	bomberman.acTools.currentView = 'GameOver';
             game.state.start("GameOver", true, false, data.gameWinnerColor, false);
         });
         AudioPlayer.stopMusicSound();
@@ -154,6 +156,7 @@ Level.prototype = {
 
     onNoOpponentsLeft: function (data) {
         controllers = {};
+      	bomberman.acTools.currentView = 'GameOver';
         game.state.start("GameOver", true, false, null, true);
     },
 

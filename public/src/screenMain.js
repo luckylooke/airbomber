@@ -1,4 +1,4 @@
-/* global Phaser, AirConsole, io */
+/* global Phaser, AirConsole, io, AirConsoleViewManager */
 
 var bomberman = window.bomberman = {}; // namespace in global
 bomberman.bomberElm = document.getElementById('bomber');
@@ -13,6 +13,7 @@ bomberman.level = null;
 bomberman.airconsole = new AirConsole();
 bomberman.socket = require('./main/socketSetup')(io, game);
 bomberman.acTools = require('./main/acTools')(bomberman.airconsole, 'screen');
+bomberman.viewMan = new AirConsoleViewManager(bomberman.airconsole);
 
 game.state.add("Boot", require("./game/states/boot"));
 game.state.add("Preloader", require("./game/states/preloader"));

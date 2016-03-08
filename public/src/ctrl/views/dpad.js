@@ -75,7 +75,7 @@ module.exports = function (vmTools, storage, rateLimiter, bomb) {
   
   vmTools.cbs['d-pad'] = {
     to: function(){
-      if(storage.screenView !== 'level'){
+      if(storage.screenView !== 'Level'){
         vmTools.showWithCbs('welcome');
       }
     }

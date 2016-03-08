@@ -75,6 +75,7 @@ Preloader.prototype = {
     },
 
     create: function () {
+        bomberman.acTools.currentView = 'Lobby';
         game.state.start("Lobby");
     }
 };

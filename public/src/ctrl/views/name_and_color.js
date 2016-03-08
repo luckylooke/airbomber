@@ -37,15 +37,15 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     
     function addPlayer(){
         getPlayerInfo();
-        if(storage.color && storage.nickname){
-          if(storage.controller === 'Gyro'){
-            vmTools.showWithCbs("gyro-pad");
-          }else{
-            vmTools.showWithCbs("d-pad");
-          }
-        }
+        // if(storage.color && storage.nickname){
+        //   if(storage.controller === 'Gyro'){
+        //     vmTools.showWithCbs("gyro-pad");
+        //   }else{
+        //     vmTools.showWithCbs("d-pad");
+        //   }
+        // }
         acTools.addListener('ready', function(from, data){
-          if(storage.color && storage.nickname && from == AirConsole.SCREEN && storage.gameState === 'pending_game'){
+          if(storage.color && storage.nickname && from == AirConsole.SCREEN && storage.gameState === 'PendingGame'){
             clearInterval(storage.acInterval);
             airconsole.message(AirConsole.SCREEN, {
               listener: 'newPlayer',

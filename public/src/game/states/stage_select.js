@@ -78,6 +78,7 @@ StageSelect.prototype = {
 		return function confirmStageSelection(){
 			document.getElementById('stage-select').classList.add("hidden");
 	        socket.emit("select stage", {slotId: socket.id, tilemapName: stages[index].tilemapName});
+      		bomberman.acTools.currentView = 'PendingGame';
 	        game.state.start("PendingGame", true, false, stages[index].tilemapName, socket.id);
 		};
 	}

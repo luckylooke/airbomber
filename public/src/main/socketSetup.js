@@ -1,3 +1,4 @@
+/* global bomberman */
 module.exports = function(io, game){
   function getURLParameter(name) {
     return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
@@ -24,6 +25,7 @@ module.exports = function(io, game){
   });
   socket.on('connect', function(){
       console.log('socket server: ', socketServer);
+      bomberman.acTools.currentView = 'Boot';
       game.state.start('Boot');
   });
   return socket;

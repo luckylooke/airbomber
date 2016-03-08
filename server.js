@@ -112,7 +112,7 @@ function onStartGame(data) {
     var nicks = pendingGame.getPlayersNicks();
     for(var i = 0; i < nicks.length; i++) {
         var nick = nicks[i];
-        var spawnPoint = MapInfo[data.tilemapName].spawnLocations[i];
+        var spawnPoint = MapInfo[pendingGame.tilemapName].spawnLocations[i];
         var newPlayer = new Player(spawnPoint.x * TILE_SIZE, spawnPoint.y * TILE_SIZE, "down", nick, pendingGame.players[nick].color);
         newPlayer.spawnPoint = spawnPoint;
         newPlayer.controller = pendingGame.players[nick].controller;
