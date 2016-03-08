@@ -25,16 +25,19 @@ require('./ctrl/views/welcome')(vmTools, storage, gyro);
 require('./ctrl/views/name_and_color')(vmTools, storage, acTools, airconsole);
 require('./ctrl/views/gyro_calibration')(vmTools, gyro);
 require('./ctrl/views/dpad')(vmTools, storage, rateLimiter, bomb);
-require('./ctrl/views/gyro_pad')(gyro, storage, rateLimiter, bomb);
+require('./ctrl/views/gyro_pad')(vmTools, gyro, storage, rateLimiter, bomb);
 
 // FUNCTION DEFINITIONS: ***********************************************************************************************************************************************************************************
 
 function init() {
+    acTools.getCurrentView(AirConsole.SCREEN, function(data){
+      storage.screenView = data.currentView;
+      if(storage.currentView){
+        vmTools.showWithCbs(storage.currentView);
+      }
+    });
     storage.autoCheckGyro = storage.autoCheckGyro === undefined ? true : storage.autoCheckGyro;
     storage.controller = storage.controller || 'DPad'; // DPad, Gyro
-    if(storage.current_view){
-      vmTools.showWithCbs(storage.current_view);
-    }
     
     // standard listeners for some devices (e.g. Samsung Galaxy S4 mini)
     if (window.DeviceOrientationEvent) {

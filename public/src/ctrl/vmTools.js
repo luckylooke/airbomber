@@ -8,7 +8,7 @@ module.exports = function(viewMan, storage){
       fromViewCb = vmTools.cbs[fromView],
       toViewCb = vmTools.cbs[toView];
     viewMan.show(toView);
-    storage.current_view = toView;
+    storage.currentView = toView;
     if(fromViewCb && fromViewCb.from){
       fromViewCb.from(toView);
     }

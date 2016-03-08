@@ -71,16 +71,19 @@
 	__webpack_require__(7)(vmTools, storage, acTools, airconsole);
 	__webpack_require__(8)(vmTools, gyro);
 	__webpack_require__(9)(vmTools, storage, rateLimiter, bomb);
-	__webpack_require__(10)(gyro, storage, rateLimiter, bomb);
+	__webpack_require__(10)(vmTools, gyro, storage, rateLimiter, bomb);
 
 	// FUNCTION DEFINITIONS: ***********************************************************************************************************************************************************************************
 
 	function init() {
+	    acTools.getCurrentView(AirConsole.SCREEN, function(data){
+	      storage.screenView = data.currentView;
+	      if(storage.currentView){
+	        vmTools.showWithCbs(storage.currentView);
+	      }
+	    });
 	    storage.autoCheckGyro = storage.autoCheckGyro === undefined ? true : storage.autoCheckGyro;
 	    storage.controller = storage.controller || 'DPad'; // DPad, Gyro
-	    if(storage.current_view){
-	      vmTools.showWithCbs(storage.current_view);
-	    }
 	    
 	    // standard listeners for some devices (e.g. Samsung Galaxy S4 mini)
 	    if (window.DeviceOrientationEvent) {
@@ -454,7 +457,7 @@
 	      fromViewCb = vmTools.cbs[fromView],
 	      toViewCb = vmTools.cbs[toView];
 	    viewMan.show(toView);
-	    storage.current_view = toView;
+	    storage.currentView = toView;
 	    if(fromViewCb && fromViewCb.from){
 	      fromViewCb.from(toView);
 	    }
@@ -470,6 +473,7 @@
 /* 4 */
 /***/ function(module, exports) {
 
+	/* global AirConsole */
 	module.exports = function(airconsole, devType){
 	    var acTools = {};
 	    
@@ -502,6 +506,18 @@
 	    		acTools.uniListeners[i](device_id, data);
 	    	}
 	    };
+	    acTools.getCurrentView = function(device, cb){
+	      if(device === airconsole.getDeviceId()){
+	        return acTools.currentView;
+	      }
+	      airconsole.message(device, {listener: 'currentView'});
+	      if(cb)
+	       acTools.addListener('currentViewAnswer', cbOnce(cb));
+	    };
+	    acTools.addListener('currentView', function(device_id){
+	      var view = acTools.getCurrentView(airconsole.getDeviceId());
+	      airconsole.message(device_id, {listener: 'currentViewAnswer', currentView: view});
+	    });
 	    
 	    if(devType === 'screen'){
 	      airconsole.onConnect = function(device_id) {
@@ -547,6 +563,13 @@
 	    
 	    airconsole.onMessage = acTools.onMessage;
 	    return acTools;
+	    
+	    function cbOnce(cb){
+	      return function(){
+	        cb.apply(this, arguments);
+	        acTools.rmListener('screenCurrentView');
+	      };
+	    }
 	};
 
 /***/ },
@@ -793,6 +816,14 @@
 	      y: dpad.y
 	    });
 	  }
+	  
+	  vmTools.cbs['gamepad-container'] = {
+	    to: function(){
+	      if(storage.screenView !== 'level'){
+	        vmTools.showWithCbs('welcome');
+	      }
+	    }
+	  };
 	};
 
 /***/ },
@@ -800,7 +831,7 @@
 /***/ function(module, exports) {
 
 	/* global Button, AirConsole  */
-	module.exports = function (gyro, storage, rateLimiter, bomb) {
+	module.exports = function (vmTools, gyro, storage, rateLimiter, bomb) {
 	    gyro.output = moveGyro;
 	    
 	    new Button("button-bomb-gyro", {
@@ -819,6 +850,14 @@
 	      rateLimiter.message(AirConsole.SCREEN, data);
 	      console.log(data);
 	    }
+	    
+	    vmTools.cbs['gyro-pad'] = {
+	    to: function(){
+	      if(storage.screenView !== 'level'){
+	        vmTools.showWithCbs('welcome');
+	      }
+	    }
+	  };
 	};
 
 /***/ }

@@ -72,4 +72,12 @@ module.exports = function (vmTools, storage, rateLimiter, bomb) {
       y: dpad.y
     });
   }
+  
+  vmTools.cbs['gamepad-container'] = {
+    to: function(){
+      if(storage.screenView !== 'level'){
+        vmTools.showWithCbs('welcome');
+      }
+    }
+  };
 };

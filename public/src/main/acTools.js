@@ -1,3 +1,4 @@
+/* global AirConsole */
 module.exports = function(airconsole, devType){
     var acTools = {};
     
@@ -30,6 +31,18 @@ module.exports = function(airconsole, devType){
     		acTools.uniListeners[i](device_id, data);
     	}
     };
+    acTools.getCurrentView = function(device, cb){
+      if(device === airconsole.getDeviceId()){
+        return acTools.currentView;
+      }
+      airconsole.message(device, {listener: 'currentView'});
+      if(cb)
+       acTools.addListener('currentViewAnswer', cbOnce(cb));
+    };
+    acTools.addListener('currentView', function(device_id){
+      var view = acTools.getCurrentView(airconsole.getDeviceId());
+      airconsole.message(device_id, {listener: 'currentViewAnswer', currentView: view});
+    });
     
     if(devType === 'screen'){
       airconsole.onConnect = function(device_id) {
@@ -75,4 +88,11 @@ module.exports = function(airconsole, devType){
     
     airconsole.onMessage = acTools.onMessage;
     return acTools;
+    
+    function cbOnce(cb){
+      return function(){
+        cb.apply(this, arguments);
+        acTools.rmListener('screenCurrentView');
+      };
+    }
 };

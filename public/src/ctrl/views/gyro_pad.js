@@ -1,5 +1,5 @@
 /* global Button, AirConsole  */
-module.exports = function (gyro, storage, rateLimiter, bomb) {
+module.exports = function (vmTools, gyro, storage, rateLimiter, bomb) {
     gyro.output = moveGyro;
     
     new Button("button-bomb-gyro", {
@@ -18,4 +18,12 @@ module.exports = function (gyro, storage, rateLimiter, bomb) {
       rateLimiter.message(AirConsole.SCREEN, data);
       console.log(data);
     }
+    
+    vmTools.cbs['gyro-pad'] = {
+    to: function(){
+      if(storage.screenView !== 'level'){
+        vmTools.showWithCbs('welcome');
+      }
+    }
+  };
 };

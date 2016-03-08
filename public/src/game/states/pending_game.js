@@ -81,8 +81,8 @@ PendingGame.prototype = {
 			var newPlayerElm = this.htmlPlayerElm.cloneNode(true);
 			newPlayerElm.children[0].innerHTML = player.nick;
         	newPlayerElm.children[1].setAttribute('src', './resource/icon_' + player.color + '.png');
-        	newPlayerElm.children[2].innerHTML = 'Type: ' + player.type; // Controller, Keyboard, Remote, AI..
-        	newPlayerElm.children[3].innerHTML = 'Screen: ' + player.screenName || game.screenId;
+        	newPlayerElm.children[2].innerHTML = 'Type: ' + player.controller; // Controller, Keyboard, Remote, AI..
+        	newPlayerElm.children[3].innerHTML = 'Screen: ' + (player.screenName || game.screenId);
 			// this.characterImages[playerId] = game.add.image(this.characterSquares[this.numPlayersInGame].position.x + characterOffsetX, 
 			// this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + player.color);
 			this.htmlPlayersElm.appendChild(newPlayerElm);

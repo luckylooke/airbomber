@@ -78,6 +78,7 @@
 /* 4 */
 /***/ function(module, exports) {
 
+	/* global AirConsole */
 	module.exports = function(airconsole, devType){
 	    var acTools = {};
 	    
@@ -110,6 +111,18 @@
 	    		acTools.uniListeners[i](device_id, data);
 	    	}
 	    };
+	    acTools.getCurrentView = function(device, cb){
+	      if(device === airconsole.getDeviceId()){
+	        return acTools.currentView;
+	      }
+	      airconsole.message(device, {listener: 'currentView'});
+	      if(cb)
+	       acTools.addListener('currentViewAnswer', cbOnce(cb));
+	    };
+	    acTools.addListener('currentView', function(device_id){
+	      var view = acTools.getCurrentView(airconsole.getDeviceId());
+	      airconsole.message(device_id, {listener: 'currentViewAnswer', currentView: view});
+	    });
 	    
 	    if(devType === 'screen'){
 	      airconsole.onConnect = function(device_id) {
@@ -155,6 +168,13 @@
 	    
 	    airconsole.onMessage = acTools.onMessage;
 	    return acTools;
+	    
+	    function cbOnce(cb){
+	      return function(){
+	        cb.apply(this, arguments);
+	        acTools.rmListener('screenCurrentView');
+	      };
+	    }
 	};
 
 /***/ },
@@ -694,8 +714,8 @@
 				var newPlayerElm = this.htmlPlayerElm.cloneNode(true);
 				newPlayerElm.children[0].innerHTML = player.nick;
 	        	newPlayerElm.children[1].setAttribute('src', './resource/icon_' + player.color + '.png');
-	        	newPlayerElm.children[2].innerHTML = 'Type: ' + player.type; // Controller, Keyboard, Remote, AI..
-	        	newPlayerElm.children[3].innerHTML = 'Screen: ' + player.screenName || game.screenId;
+	        	newPlayerElm.children[2].innerHTML = 'Type: ' + player.controller; // Controller, Keyboard, Remote, AI..
+	        	newPlayerElm.children[3].innerHTML = 'Screen: ' + (player.screenName || game.screenId);
 				// this.characterImages[playerId] = game.add.image(this.characterSquares[this.numPlayersInGame].position.x + characterOffsetX, 
 				// this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + player.color);
 				this.htmlPlayersElm.appendChild(newPlayerElm);
