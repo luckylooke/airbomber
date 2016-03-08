@@ -1,5 +1,5 @@
 TODO:
-- rename gamepad-container to dpad
+- rename d-pad to dpad
 - test all disconnection scenarios
   - BUG: disconnection of controller does not remove player from screen in pending game
 - BUG: creator screen pending game players disappear on remote player addition

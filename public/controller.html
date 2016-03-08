@@ -26,7 +26,7 @@
     </form>
   </div>
 
-  <div id="gamepad-container" class="view">
+  <div id="d-pad" class="view">
     <div id="left" class="left">
       <div id="my-DPad">
         <div>
@@ -45,7 +45,20 @@
 
   <div id="gyro-pad" class="view">
     GYROPAD
-    <div id="button-bomb-gyro" class="button-300-300"><div class="button-text">BOMB</div></div>
+    <div id="gyro-left" class="left square-box">
+      <div id="gyro-indicator" class="square-content">
+        <div id="triangle-up" class="hidden"></div>
+        <div id="triangle-down" class="hidden"></div>
+        <div id="triangle-left" class="hidden"></div>
+        <div id="triangle-right" class="hidden"></div>
+        <div id="gyro-indicator-pointer"></div>
+      </div>
+    </div>
+    <div id="gyro-right" class="right">
+      <div id="button-bomb-gyro" class="button-300-300">
+        <div class="button-text">BOMB</div>
+      </div>
+    </div>
   </div>
 
   <div id="gyro-calibration" class="view">

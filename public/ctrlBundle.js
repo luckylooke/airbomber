@@ -672,7 +672,7 @@
 	          if(storage.controller === 'Gyro'){
 	            vmTools.showWithCbs("gyro-pad");
 	          }else{
-	            vmTools.showWithCbs("gamepad-container");
+	            vmTools.showWithCbs("d-pad");
 	          }
 	        }
 	        acTools.addListener('ready', function(from, data){
@@ -817,7 +817,7 @@
 	    });
 	  }
 	  
-	  vmTools.cbs['gamepad-container'] = {
+	  vmTools.cbs['d-pad'] = {
 	    to: function(){
 	      if(storage.screenView !== 'level'){
 	        vmTools.showWithCbs('welcome');
@@ -832,26 +832,31 @@
 
 	/* global Button, AirConsole  */
 	module.exports = function (vmTools, gyro, storage, rateLimiter, bomb) {
-	    gyro.output = moveGyro;
-	    
-	    new Button("button-bomb-gyro", {
-	      "down": function() {
-	        bomb('setting');
-	      },
-	      "up": function() {
-	        bomb(!'setting');
-	      }
-	    });
-	    
-	    function moveGyro(data) {
-	      data.nick = storage.nickname;
-	      data.type = 'Gyro';
-	      data.listener = 'movePlayer';
-	      rateLimiter.message(AirConsole.SCREEN, data);
-	      console.log(data);
+	  var pointerStyle = document.getElementById('gyro-indicator-pointer').style;
+
+	  gyro.output = moveGyro;
+	  
+	  new Button("button-bomb-gyro", {
+	    "down": function() {
+	      bomb('setting');
+	    },
+	    "up": function() {
+	      bomb(!'setting');
 	    }
+	  });
+	  
+	  function moveGyro(data) {
+	    pointerStyle.top = 50 - data.y*50 - 4 + '%'; // 4 is pointer radius 
+	    pointerStyle.left = 50 + data.x*50 - 4 + '%';
 	    
-	    vmTools.cbs['gyro-pad'] = {
+	    data.nick = storage.nickname;
+	    data.type = 'Gyro';
+	    data.listener = 'movePlayer';
+	    rateLimiter.message(AirConsole.SCREEN, data);
+	    console.log(data);
+	  }
+	  
+	  vmTools.cbs['gyro-pad'] = {
 	    to: function(){
 	      if(storage.screenView !== 'level'){
 	        vmTools.showWithCbs('welcome');

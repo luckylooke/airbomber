@@ -41,7 +41,7 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
           if(storage.controller === 'Gyro'){
             vmTools.showWithCbs("gyro-pad");
           }else{
-            vmTools.showWithCbs("gamepad-container");
+            vmTools.showWithCbs("d-pad");
           }
         }
         acTools.addListener('ready', function(from, data){
