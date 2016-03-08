@@ -77,7 +77,7 @@ StageSelect.prototype = {
 	getHandler: function(index) {
 		return function confirmStageSelection(){
 			document.getElementById('stage-select').classList.add("hidden");
-	        socket.emit("select stage", {slotId: socket.id, mapName: stages[index].tilemapName});
+	        socket.emit("select stage", {slotId: socket.id, tilemapName: stages[index].tilemapName});
 	        game.state.start("PendingGame", true, false, stages[index].tilemapName, socket.id);
 		};
 	}

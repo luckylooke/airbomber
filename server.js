@@ -119,7 +119,7 @@ function onStartGame(data) {
         game.players[nick] = newPlayer;
     }
     game.numPlayersAlive = nicks.length;
-    io.in(data.slotId).emit("start game on client", {mapName: pendingGame.mapName, players: game.players});
+    io.in(data.slotId).emit("start game on client", {tilemapName: pendingGame.tilemapName, players: game.players});
 }
 
 function onRegisterMap(data) {

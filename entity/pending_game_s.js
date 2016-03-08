@@ -2,7 +2,6 @@ var PendingGame = function() {
 	this.players = {};
 	this.screens = {};
 	this.state = "empty";
-	this.mapName = "";
 };
 
 PendingGame.prototype = {
