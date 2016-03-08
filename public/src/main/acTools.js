@@ -75,4 +75,4 @@ module.exports = function(airconsole, devType){
     
     airconsole.onMessage = acTools.onMessage;
     return acTools;
-}
+};

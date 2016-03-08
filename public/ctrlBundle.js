@@ -63,7 +63,7 @@
 	// viewMan -> https://github.com/AirConsole/airconsole-view-manager
 	var viewMan = new AirConsoleViewManager(airconsole);
 	var gyro = __webpack_require__(1)(storage);
-	var vmTools = __webpack_require__(3)(viewMan);
+	var vmTools = __webpack_require__(3)(viewMan, storage);
 	var acTools = __webpack_require__(4)(airconsole);
 	var bomb = __webpack_require__(5)(airconsole, storage);
 
@@ -77,6 +77,11 @@
 
 	function init() {
 	    storage.autoCheckGyro = storage.autoCheckGyro === undefined ? true : storage.autoCheckGyro;
+	    storage.controller = storage.controller || 'DPad'; // DPad, Gyro
+	    if(storage.current_view){
+	      vmTools.showWithCbs(storage.current_view);
+	    }
+	    
 	    // standard listeners for some devices (e.g. Samsung Galaxy S4 mini)
 	    if (window.DeviceOrientationEvent) {
 	      window.addEventListener("deviceorientation", getDoListener('deviceorientation'), true);
@@ -91,34 +96,15 @@
 	          gyro.tilt({source: 'MozOrientation', beta: event.beta, gamma: event.gamma});
 	      }, true);
 	    }
-	    
-	    storage.controller = storage.controller || 'DPad'; // DPad, Gyro
-	    
 	    // secondary listeners for some devices (e.g. Iphone)
 	    airconsole.onDeviceMotion =  getDoListener('onDeviceMotion');
 	    
-	    airconsole.onMessage = acTools.onMessage;
-	    
-	      airconsole.onCustomDeviceStateChange = function(device_id, data) {
-	        viewMan.onViewChange(data, function(view_id) {
-	          console.log('view_id', view_id);
-	        });
-	      };
-	    
-	    storage.acInterval = setInterval(function(){
-	      airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
-	    }, 3000);
-	    
-	    // debug info
-	    acTools.addListener(undefined, function(from, data){
-	      console.log('on ctrl: ', from, data);
-	    });
-	        
-	    acTools.addListener('gameState', function(from, data){
-	      if(from == AirConsole.SCREEN && data.gameState){
-	        storage.gameState = data.gameState;
-	      }
-	    });
+	    // listen to forced states from screen
+	    airconsole.onCustomDeviceStateChange = function(device_id, data) {
+	      viewMan.onViewChange(data, function(view_id) {
+	        console.log('view_id', view_id);
+	      });
+	    };
 	    
 	    /*
 	     * Checks if this device is part of the active game.
@@ -132,6 +118,12 @@
 	      // }
 	    };
 	    
+	    // screen state notifications
+	    acTools.addListener('gameState', function(from, data){
+	      if(from == AirConsole.SCREEN && data.gameState){
+	        storage.gameState = data.gameState;
+	      }
+	    });
 	    
 	    /*
 	     * Makes the device vibrate if the screen says so.
@@ -140,6 +132,16 @@
 	      if (from == AirConsole.SCREEN && data.vibrate) {
 	        navigator.vibrate(data.vibrate);
 	      }
+	    });
+	    
+	    // start contacting screen
+	    storage.acInterval = setInterval(function(){
+	      airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
+	    }, 3000);
+	    
+	    // debug info
+	    acTools.addListener(undefined, function(from, data){
+	      console.log('on ctrl: ', from, data);
 	    });
 	}
 
@@ -442,7 +444,7 @@
 /* 3 */
 /***/ function(module, exports) {
 
-	module.exports = function(viewMan){
+	module.exports = function(viewMan, storage){
 	  var vmTools = {};
 	  vmTools.cbs = {}; // callbacks
 	  
@@ -452,6 +454,7 @@
 	      fromViewCb = vmTools.cbs[fromView],
 	      toViewCb = vmTools.cbs[toView];
 	    viewMan.show(toView);
+	    storage.current_view = toView;
 	    if(fromViewCb && fromViewCb.from){
 	      fromViewCb.from(toView);
 	    }
@@ -544,7 +547,7 @@
 	    
 	    airconsole.onMessage = acTools.onMessage;
 	    return acTools;
-	}
+	};
 
 /***/ },
 /* 5 */

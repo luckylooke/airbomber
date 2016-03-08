@@ -155,7 +155,7 @@
 	    
 	    airconsole.onMessage = acTools.onMessage;
 	    return acTools;
-	}
+	};
 
 /***/ },
 /* 5 */,
