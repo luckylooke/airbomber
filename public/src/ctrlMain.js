@@ -23,7 +23,7 @@ var bomb = require('./ctrl/bomb')(airconsole, storage);
 
 require('./ctrl/views/welcome')(vmTools, storage, gyro);
 require('./ctrl/views/name_and_color')(vmTools, storage, acTools, airconsole);
-require('./ctrl/views/gyro_calibration')(vmTools, gyro);
+require('./ctrl/views/gyro_calibration')(vmTools, gyro, storage);
 require('./ctrl/views/dpad')(vmTools, storage, rateLimiter, bomb);
 require('./ctrl/views/gyro_pad')(vmTools, gyro, storage, rateLimiter, bomb);
 

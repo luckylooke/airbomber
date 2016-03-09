@@ -1,4 +1,4 @@
-module.exports = function (vmTools, gyro) {
+module.exports = function (vmTools, gyro, storage) {
     document.getElementById('calibrateBtn').addEventListener('click', calibrate);
     document.getElementById('calStartOverBtn').addEventListener('click', gyro.startOver);
     
@@ -10,4 +10,12 @@ module.exports = function (vmTools, gyro) {
           vmTools.showWithCbs("name-and-color");
         });
     }
+    
+    vmTools.cbs['gyro-pad'] = {
+    to: function(){
+        if(storage.gyroCalibrated){
+          vmTools.showWithCbs("name-and-color");
+        }
+      }
+    };
 };

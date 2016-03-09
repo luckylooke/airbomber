@@ -69,7 +69,7 @@
 
 	__webpack_require__(6)(vmTools, storage, gyro);
 	__webpack_require__(7)(vmTools, storage, acTools, airconsole);
-	__webpack_require__(8)(vmTools, gyro);
+	__webpack_require__(8)(vmTools, gyro, storage);
 	__webpack_require__(9)(vmTools, storage, rateLimiter, bomb);
 	__webpack_require__(10)(vmTools, gyro, storage, rateLimiter, bomb);
 
@@ -175,6 +175,18 @@
 	  var gyro = {
 	    init: function(){
 	      this.overTiltProtection();
+	      if(storage.gyroCalibrated){
+	        this.MAX_BETA = storage.MAX_BETA;
+	        this.MAX_BETA_SIDE = storage.MAX_BETA_SIDE;
+	        this.MIN_BETA = storage.MIN_BETA;
+	        this.MIN_BETA_SIDE = storage.MIN_BETA_SIDE;
+	        this.MAX_GAMMA = storage.MAX_GAMMA;
+	        this.MAX_GAMMA_SIDE= storage.MAX_GAMMA_SIDE;
+	        this.MIN_GAMMA = storage.MIN_GAMMA;
+	        this.MIN_GAMMA_SIDE= storage.MIN_GAMMA_SIDE;
+	        this.CENTER.beta = storage.CENTER_BETA;
+	        this.CENTER.gamma = storage.CENTER_GAMMA;
+	      }
 	    },
 	    actual:{
 	      beta: 0,
@@ -191,6 +203,7 @@
 	    MIN_BETA: 1000,
 	    MAX_GAMMA: -1000,
 	    MIN_GAMMA: 1000,
+	    CENTER: {beta:0, gamma:0},
 	    dirToAxis: {
 	      LEFT: "x",
 	      RIGHT: "x",
@@ -234,18 +247,33 @@
 	      var self = this;
 	      var steps = ['BEGIN', 'LEFT', 'RIGHT', 'UP', 'DOWN'];
 	      
-	      if(this.step === 0){
+	      if(this.step === 0 && !storage.gyroCalibrated){
 	        setMessages(steps[++this.step]);
-	      }else if(this.step === 4){
-	        this[steps[this.step]] = {beta: this.actual.beta, gamma: this.actual.gamma};
-	        this.step = 1;
-	        setMessages(steps[++this.step]);
-	        this.calculateLimits();
+	      }else if(this.step === 4 || storage.gyroCalibrated){
+	        if(!storage.gyroCalibrated){
+	          this[steps[this.step]] = {beta: this.actual.beta, gamma: this.actual.gamma};
+	          this.startOver();
+	          this.calculateLimits();
+	          storage.gyroCalibrated = true;
+	          
+	          storage.MAX_BETA = this.MAX_BETA;
+	          storage.MAX_BETA_SIDE = this.MAX_BETA_SIDE;
+	          storage.MIN_BETA = this.MIN_BETA;
+	          storage.MIN_BETA_SIDE = this.MIN_BETA_SIDE;
+	          storage.MAX_GAMMA = this.MAX_GAMMA;
+	          storage.MAX_GAMMA_SIDE= this.MAX_GAMMA_SIDE;
+	          storage.MIN_GAMMA = this.MIN_GAMMA;
+	          storage.MIN_GAMMA_SIDE= this.MIN_GAMMA_SIDE;
+	          storage.CENTER_BETA = this.CENTER.beta;
+	          storage.CENTER_GAMMA = this.CENTER.gamma;
+	        }
+	        
 	        this.calibrated = true;
+	        
 	        if(cb){
 	          cb(this);
 	        }
-	      }else{
+	      }else{ // step 1 to 3
 	        this[steps[this.step]] = {beta: this.actual.beta, gamma: this.actual.gamma};
 	        setMessages(steps[++this.step]);
 	      }
@@ -293,16 +321,16 @@
 	      this.MAX_GAMMA -= this.CENTER.gamma;
 	    },
 	    startOver: function(){
-	      gyro.message.innerHTML = 'Tap "Begin" button to start calibration!';
-	      gyro.button.innerHTML = 'Begin';
-	      gyro.step = 1;
+	      this.step = 0;
+	      this.message.innerHTML = 'Tap "Begin" button to start calibration!';
+	      this.message.innerHTML = 'Begin';
 	    },
 	    tilt: function(data){
 	      if(this.tiltLimiter()){
 	        return;
 	      }
 	      if(gyro.calibrated){
-	         if(storage.gameState === 'level'){
+	         if(storage.gameState === 'Level'){
 	            var mov = process('beta', {x: 0, y:0});
 	            mov = process('gamma', mov);
 	            // console.log(mov.x + " - " + mov.y, mov);
@@ -317,20 +345,29 @@
 	      
 	      function process(name, mov){
 	        var value = data[name],
-	          axis, dir;
+	          axis, dir, sign, abs;
 	        
 	        if(value > gyro.CENTER[name]){
 	          dir = gyro['MAX_' + name.toUpperCase() + '_SIDE'];
 	          axis = gyro.dirToAxis[dir];
-	          mov[axis] = Math.abs(value - gyro.CENTER[name]) / Math.abs(gyro['MAX_' + name.toUpperCase()]);
+	          value = Math.abs(value - gyro.CENTER[name]) / Math.abs(gyro['MAX_' + name.toUpperCase()]);
 	        }else{
 	          dir = gyro['MIN_' + name.toUpperCase() + '_SIDE'];
 	          axis = gyro.dirToAxis[dir];
-	          mov[axis] = Math.abs(value - gyro.CENTER[name]) / Math.abs(gyro['MIN_' + name.toUpperCase()]);
+	          value = Math.abs(value - gyro.CENTER[name]) / Math.abs(gyro['MIN_' + name.toUpperCase()]);
 	        }
 	        
-	        mov[axis] *= gyro.dirToSign[dir];
-	        mov[axis] *= gyro.flipCor;
+	        sign = value > 0 ? 1 : -1;
+	        abs = Math.abs(value);
+	        if(abs > 1){
+	          value = 1*sign;
+	        }else if(abs < STILL_SNAP/100){
+	          value = 0;
+	        }
+	        
+	        value *= gyro.dirToSign[dir];
+	        value *= gyro.flipCor;
+	        mov[axis] = value;
 	        return mov;
 	      }
 	    },
@@ -732,7 +769,7 @@
 /* 8 */
 /***/ function(module, exports) {
 
-	module.exports = function (vmTools, gyro) {
+	module.exports = function (vmTools, gyro, storage) {
 	    document.getElementById('calibrateBtn').addEventListener('click', calibrate);
 	    document.getElementById('calStartOverBtn').addEventListener('click', gyro.startOver);
 	    
@@ -744,6 +781,14 @@
 	          vmTools.showWithCbs("name-and-color");
 	        });
 	    }
+	    
+	    vmTools.cbs['gyro-pad'] = {
+	    to: function(){
+	        if(storage.gyroCalibrated){
+	          vmTools.showWithCbs("name-and-color");
+	        }
+	      }
+	    };
 	};
 
 /***/ },
@@ -840,7 +885,11 @@
 
 	/* global Button, AirConsole  */
 	module.exports = function (vmTools, gyro, storage, rateLimiter, bomb) {
-	  var pointerStyle = document.getElementById('gyro-indicator-pointer').style;
+	  var pointerStyle = document.getElementById('gyro-indicator-pointer').style,
+	    triangleUpStyle = document.getElementById('triangle-up').style,
+	    triangleDownStyle = document.getElementById('triangle-down').style,
+	    triangleLeftStyle = document.getElementById('triangle-left').style,
+	    triangleRightStyle = document.getElementById('triangle-right').style;
 
 	  gyro.output = moveGyro;
 	  
@@ -854,8 +903,29 @@
 	  });
 	  
 	  function moveGyro(data) {
-	    pointerStyle.top = 50 - data.y*50 - 4 + '%'; // 4 is pointer radius 
+	    pointerStyle.top = 50 + data.y*50 - 4 + '%'; // 4 is pointer radius 
 	    pointerStyle.left = 50 + data.x*50 - 4 + '%';
+	    
+	    if(data.y === 1){ // triangle-up is showed on MAXimum down and so on!
+	      triangleUpStyle.display = 'block';
+	    }else{
+	      triangleUpStyle.display = 'none';
+	    } 
+	    if(data.y === -1){
+	      triangleDownStyle.display = 'block';
+	    }else{
+	      triangleDownStyle.display = 'none';
+	    } 
+	    if(data.x === 1){
+	      triangleLeftStyle.display = 'block';
+	    }else{
+	      triangleLeftStyle.display = 'none';
+	    } 
+	    if(data.x === -1){
+	      triangleRightStyle.display = 'block';
+	    }else{
+	      triangleRightStyle.display = 'none';
+	    }
 	    
 	    data.nick = storage.nickname;
 	    data.type = 'Gyro';
