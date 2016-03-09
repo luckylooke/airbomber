@@ -1,7 +1,5 @@
 TODO:
-- rename d-pad to dpad
 - test all disconnection scenarios
-  - BUG: disconnection of controller does not remove player from screen in pending game
 - BUG: creator screen pending game players disappear on remote player addition
 - BUG: remote screen doesnt see game
 - status bar on controller (including nick color score(killed vs deaths) etc..)

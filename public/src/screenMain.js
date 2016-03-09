@@ -10,10 +10,19 @@ bomberman.height = bomberman.bomberElm.clientHeight;
 var game = bomberman.game = new Phaser.Game(bomberman.width, bomberman.height, Phaser.AUTO, 'bomber');
 bomberman.screen = {};
 bomberman.level = null;
-bomberman.airconsole = new AirConsole();
+var airconsole = new AirConsole();
+bomberman.airconsole = airconsole;
 bomberman.socket = require('./main/socketSetup')(io, game);
-bomberman.acTools = require('./main/acTools')(bomberman.airconsole, 'screen');
-bomberman.viewMan = new AirConsoleViewManager(bomberman.airconsole);
+bomberman.acTools = require('./main/acTools')(airconsole, 'screen');
+bomberman.viewMan = new AirConsoleViewManager(airconsole);
+
+
+// debug info
+bomberman.acTools.addListener(undefined, function(from, data){
+	if(!data.listener || data.listener !== 'movePlayer'){
+		console.log('on screen: ', from, data);
+	}
+});
 
 game.state.add("Boot", require("./game/states/boot"));
 game.state.add("Preloader", require("./game/states/preloader"));

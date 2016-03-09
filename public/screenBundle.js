@@ -56,10 +56,19 @@
 	var game = bomberman.game = new Phaser.Game(bomberman.width, bomberman.height, Phaser.AUTO, 'bomber');
 	bomberman.screen = {};
 	bomberman.level = null;
-	bomberman.airconsole = new AirConsole();
+	var airconsole = new AirConsole();
+	bomberman.airconsole = airconsole;
 	bomberman.socket = __webpack_require__(11)(io, game);
-	bomberman.acTools = __webpack_require__(4)(bomberman.airconsole, 'screen');
-	bomberman.viewMan = new AirConsoleViewManager(bomberman.airconsole);
+	bomberman.acTools = __webpack_require__(4)(airconsole, 'screen');
+	bomberman.viewMan = new AirConsoleViewManager(airconsole);
+
+
+	// debug info
+	bomberman.acTools.addListener(undefined, function(from, data){
+		if(!data.listener || data.listener !== 'movePlayer'){
+			console.log('on screen: ', from, data);
+		}
+	});
 
 	game.state.add("Boot", __webpack_require__(12));
 	game.state.add("Preloader", __webpack_require__(15));
@@ -131,40 +140,6 @@
 	      	airconsole.setActivePlayers(20);
 	      	console.log('connected: ', arguments);
 	      };
-	      
-	      airconsole.onDisconnect = function(device_id) {
-	        //var player = airconsole.convertDeviceIdToPlayerNumber(device_id);
-	        //if (player != undefined) {
-	        //  // Player that was in game left the game.
-	        //  // Setting active players to length 0.
-	        //  // airconsole.setActivePlayers(0);
-	        //}
-	        //deviceConnectionChange();
-	      };
-	      
-	      // function deviceConnectionChange() {
-	      //     var active_players = airconsole.getActivePlayerDeviceIds();
-	      //     var connected_controllers = airconsole.getControllerDeviceIds();
-	      //     // Only update if the game didn't have active players.
-	      //     if (active_players.length == 0) {
-	      //       if (connected_controllers.length >= 2) {
-	      //         // Enough controller devices connected to start the game.
-	      //         // Setting the first 2 controllers to active players.
-	      //         airconsole.setActivePlayers(20);
-	      //     //     resetBall(50, 0);
-	      //     //     score = [0, 0];
-	      //     //     score_el.innerHTML = score.join(":");
-	      //     //     document.getElementById("wait").innerHTML = "";
-	      //     //   } else if (connected_controllers.length == 1) {
-	      //     //     document.getElementById("wait").innerHTML = "Need 1 more player!";
-	      //     //     resetBall(0, 0);
-	      //     //   } else if (connected_controllers.length == 0) {
-	      //     //     document.getElementById("wait").innerHTML = "Need 2 more players!";
-	      //     //     resetBall(0, 0);
-	      //       }
-	      //     }
-	      //   }
-
 	    }
 	    
 	    airconsole.onMessage = acTools.onMessage;
@@ -650,30 +625,23 @@
 	var airconsole = bomberman.airconsole;
 	var acTools = bomberman.acTools;
 
-	// debug info
-	acTools.addListener(undefined, function(from, data){
-		if(!data.listener || data.listener !== 'movePlayer'){
-			console.log('on screen: ', from, data);
-		}
-	});
-
 	acTools.addListener('ready', function(from, data){
 		if(screen.isReady){
 		  airconsole.message(from, {listener: 'ready', gameState: 'PendingGame'});
 		}
 	});
 
-	function newPlayer(device_id, player){
+	acTools.addListener('newPlayer', function newPlayer(device_id, player){
 	  	if(player.nick){
 	  		delete player.listener;
 	  		player.slotId = game.slotId;
 	  		player.screenId = game.screenId;
 	  		player.device_id = device_id;
+	  		player.connection = true;
 			socket.emit('player enter pending game', player);
 			screen.players[player.nick] = player;
 	  	}
-	}
-	acTools.addListener('newPlayer', newPlayer);
+	});
 
 	var PendingGame = function() {};
 
@@ -689,6 +657,19 @@
 			game.screenId = socket.id;
 			screen.isReady = false;
 			screen.players = {};
+			if(slotId === socket.id){
+				document.getElementById('startGameBtn').classList.add("hidden");
+			}
+			airconsole.onDisconnect = function(device_id) {
+				var pl;
+			  for(pl in screen.players){
+			  	if(pl.device_id === device_id){
+			  		break;
+			  	}
+			  }
+			  pl.connection = false;
+			  this.populateCharacterSquares();
+			};
 		},
 
 		create: function() {
@@ -696,6 +677,7 @@
 			this.startGameBtn.setAttribute('disabled', 'disabled');
 			this.bindedStartGameAction = this.startGameAction.bind(this);
 			this.startGameBtn.addEventListener('click', this.bindedStartGameAction);
+			this.playerDisconnectedMessage = document.getElementById('playerDisconnectedMessage');
 			this.minPlayersMessage = document.getElementById('minPlayersMessage');
 			this.minPlayersMessage.classList.remove('hidden');
 			this.htmlPlayersElm = document.getElementById('players');
@@ -716,6 +698,7 @@
 			screen.isReady = true;
 			this.numPlayersInGame = 0;
 			this.htmlPlayersElm.innerHTML = '';
+			var allConnected = true;;
 			for(var playerId in data.players) {
 				var player = data.players[playerId];
 				var newPlayerElm = this.htmlPlayerElm.cloneNode(true);
@@ -723,16 +706,24 @@
 	        	newPlayerElm.children[1].setAttribute('src', './resource/icon_' + player.color + '.png');
 	        	newPlayerElm.children[2].innerHTML = 'Type: ' + player.controller; // Controller, Keyboard, Remote, AI..
 	        	newPlayerElm.children[3].innerHTML = 'Screen: ' + (player.screenName || game.screenId);
+	        	newPlayerElm.children[4].innerHTML = 'Connected: ' + !!player.connection;
 				// this.characterImages[playerId] = game.add.image(this.characterSquares[this.numPlayersInGame].position.x + characterOffsetX, 
 				// this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + player.color);
 				this.htmlPlayersElm.appendChild(newPlayerElm);
 				this.numPlayersInGame++;
+				if(!player.connection){
+					allConnected = false;
+				}
 			}
-			if(this.numPlayersInGame > 1 && game.slotId === game.screenId) {
+			if(this.numPlayersInGame > 1 && game.slotId === game.screenId && allConnected) {
 				this.activateStartGameButton();
 			} else {
 				// this.minPlayerMessage.visible = true;
-				this.minPlayersMessage.classList.remove('hidden');
+				if(allConnected){
+					this.minPlayersMessage.classList.remove('hidden');
+				}else{
+					this.playerDisconnectedMessage.classList.remove('hidden');
+				}
 			}
 		},
 

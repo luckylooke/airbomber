@@ -10,30 +10,23 @@ screen.players = {};
 var airconsole = bomberman.airconsole;
 var acTools = bomberman.acTools;
 
-// debug info
-acTools.addListener(undefined, function(from, data){
-	if(!data.listener || data.listener !== 'movePlayer'){
-		console.log('on screen: ', from, data);
-	}
-});
-
 acTools.addListener('ready', function(from, data){
 	if(screen.isReady){
 	  airconsole.message(from, {listener: 'ready', gameState: 'PendingGame'});
 	}
 });
 
-function newPlayer(device_id, player){
+acTools.addListener('newPlayer', function newPlayer(device_id, player){
   	if(player.nick){
   		delete player.listener;
   		player.slotId = game.slotId;
   		player.screenId = game.screenId;
   		player.device_id = device_id;
+  		player.connection = true;
 		socket.emit('player enter pending game', player);
 		screen.players[player.nick] = player;
   	}
-}
-acTools.addListener('newPlayer', newPlayer);
+});
 
 var PendingGame = function() {};
 
@@ -49,6 +42,19 @@ PendingGame.prototype = {
 		game.screenId = socket.id;
 		screen.isReady = false;
 		screen.players = {};
+		if(slotId === socket.id){
+			document.getElementById('startGameBtn').classList.add("hidden");
+		}
+		airconsole.onDisconnect = function(device_id) {
+			var pl;
+		  for(pl in screen.players){
+		  	if(pl.device_id === device_id){
+		  		break;
+		  	}
+		  }
+		  pl.connection = false;
+		  this.populateCharacterSquares();
+		};
 	},
 
 	create: function() {
@@ -56,6 +62,7 @@ PendingGame.prototype = {
 		this.startGameBtn.setAttribute('disabled', 'disabled');
 		this.bindedStartGameAction = this.startGameAction.bind(this);
 		this.startGameBtn.addEventListener('click', this.bindedStartGameAction);
+		this.playerDisconnectedMessage = document.getElementById('playerDisconnectedMessage');
 		this.minPlayersMessage = document.getElementById('minPlayersMessage');
 		this.minPlayersMessage.classList.remove('hidden');
 		this.htmlPlayersElm = document.getElementById('players');
@@ -76,6 +83,7 @@ PendingGame.prototype = {
 		screen.isReady = true;
 		this.numPlayersInGame = 0;
 		this.htmlPlayersElm.innerHTML = '';
+		var allConnected = true;;
 		for(var playerId in data.players) {
 			var player = data.players[playerId];
 			var newPlayerElm = this.htmlPlayerElm.cloneNode(true);
@@ -83,16 +91,24 @@ PendingGame.prototype = {
         	newPlayerElm.children[1].setAttribute('src', './resource/icon_' + player.color + '.png');
         	newPlayerElm.children[2].innerHTML = 'Type: ' + player.controller; // Controller, Keyboard, Remote, AI..
         	newPlayerElm.children[3].innerHTML = 'Screen: ' + (player.screenName || game.screenId);
+        	newPlayerElm.children[4].innerHTML = 'Connected: ' + !!player.connection;
 			// this.characterImages[playerId] = game.add.image(this.characterSquares[this.numPlayersInGame].position.x + characterOffsetX, 
 			// this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + player.color);
 			this.htmlPlayersElm.appendChild(newPlayerElm);
 			this.numPlayersInGame++;
+			if(!player.connection){
+				allConnected = false;
+			}
 		}
-		if(this.numPlayersInGame > 1 && game.slotId === game.screenId) {
+		if(this.numPlayersInGame > 1 && game.slotId === game.screenId && allConnected) {
 			this.activateStartGameButton();
 		} else {
 			// this.minPlayerMessage.visible = true;
-			this.minPlayersMessage.classList.remove('hidden');
+			if(allConnected){
+				this.minPlayersMessage.classList.remove('hidden');
+			}else{
+				this.playerDisconnectedMessage.classList.remove('hidden');
+			}
 		}
 	},
 
