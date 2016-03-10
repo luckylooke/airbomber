@@ -84,17 +84,23 @@ var lobby = {
     },
 
     onLeavePendingGame: function (data) {
-        if(!data || !data.screenId){
+        if(!data){
             return;
         }
         var lobbySlot = lobbySlots[data.slotId];
-        console.log(data.screenId, lobbySlot);
+        if(data.slotId === data.screenId){
+            var screens = lobbySlot.screens;
+            if(screens.length < 2){
+                delete lobbySlots[data.slotId]; 
+            }else{
+                // TODO LOGIC
+                // for (var screen in screens) {
+                //     screens[screen]
+                // }
+            }
+        }else{
         var numPlayersLeft = lobbySlot.screens[data.screenId].players.length;
         lobbySlot.removeScreen(data.screenId);
-        this.emit("players left", {players: lobbySlot.players, numPlayersLeft: numPlayersLeft});
-        if(data.slotId === data.screenId){
-           delete lobbySlots[data.slotId]; 
-        }else{
             if (lobbySlot.getNumPlayers() == 0) {
                 lobbySlot.state = "empty";
             }
@@ -103,6 +109,7 @@ var lobby = {
             }
             lobby.broadcastSlotStateUpdate(this);
         }
+        this.emit("players left", {players: lobbySlot.players, numPlayersLeft: numPlayersLeft});
     }
 };
 

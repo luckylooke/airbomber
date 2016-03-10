@@ -437,8 +437,8 @@
 		            return function(){
 		            	if (settings.callback != null){
 		                	settings.callback(slotId);
+		                	document.getElementById('lobby').classList.add("hidden");
 		            	}
-		                document.getElementById('lobby').classList.add("hidden");
 		            };
 		        })(names[i]);
 	        	

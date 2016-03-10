@@ -1,9 +1,6 @@
 TODO:
 - test all disconnection scenarios
 - BUG: second screen doesnt have stage background because it is skipping stage_select
-- BUG: Click on setting up game in lobby
-- BUG: creator screen pending game players disappear on remote player addition
-- BUG: remote screen doesnt see game
 - status bar on controller (including nick color score(killed vs deaths) etc..)
 - local player (keyboard)
 - burnable powerups?
