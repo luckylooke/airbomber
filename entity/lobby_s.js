@@ -76,7 +76,7 @@ var lobby = {
         }
         pendingGame.addPlayer(data);
         this.emit("show current players", {players: pendingGame.players});
-        this.broadcast.to(data.slotId).emit("player joined", {nick: data.nick, color: pendingGame.players[data.nick].color});
+        this.broadcast.to(data.slotId).emit("player joined", {players: pendingGame.players});
         if (pendingGame.getNumScreens() >= MapInfo[pendingGame.tilemapName].spawnLocations.length) {
             pendingGame.state = "full";
             lobby.broadcastSlotStateUpdate(this);
@@ -88,6 +88,7 @@ var lobby = {
             return;
         }
         var lobbySlot = lobbySlots[data.slotId];
+        console.log(data.screenId, lobbySlot);
         var numPlayersLeft = lobbySlot.screens[data.screenId].players.length;
         lobbySlot.removeScreen(data.screenId);
         this.emit("players left", {players: lobbySlot.players, numPlayersLeft: numPlayersLeft});

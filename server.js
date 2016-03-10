@@ -1,7 +1,7 @@
 var express = require("express");
 var app = express();
 var http = require("http"),
-    fs = require('fs'),
+    // fs = require('fs'),
     path = require('path');
 
 app.set('port', process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 3000);
