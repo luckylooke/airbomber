@@ -418,22 +418,22 @@
 					callback: null
 				}
 			};
-	        socket.on("update slots", this.updateSlots.bind(this));
+	        socket.on("update games", this.updateGames.bind(this));
 			socket.emit("enter lobby");
 		},
 
 		update: function() {
 		},
 
-		updateSlots: function(slots) {
-			var htmlSlotsElm = document.getElementById('slots');
-			var htmlSlotElm = htmlSlotsElm.children[0].cloneNode(true);
-			htmlSlotsElm.innerHTML = '';
+		updateGames: function(games) {
+			var htmlGamesElm = document.getElementById('slots');
+			var htmlGameElm = htmlGamesElm.children[0].cloneNode(true);
+			htmlGamesElm.innerHTML = '';
 			
-			var names = Object.keys(slots);
+			var names = Object.keys(games);
 	        for (var i = 0; i < names.length; i++) {
-	        	var slot = slots[names[i]];
-		        var settings = this.stateSettings[slot.state];
+	        	var game = games[names[i]];
+		        var settings = this.stateSettings[game.state];
 		        var callback = (function (gameId) {
 		            return function(){
 		            	if (settings.callback != null){
@@ -443,10 +443,10 @@
 		            };
 		        })(names[i]);
 	        	
-	        	var newSlotElm = htmlSlotElm.cloneNode(true);
-	        	newSlotElm.innerHTML = settings.text + (slot.numOfPlayers ? "(" + slot.numOfPlayers +")" : "");
-	        	newSlotElm.addEventListener("click", callback);
-	        	htmlSlotsElm.appendChild(newSlotElm);
+	        	var newGameElm = htmlGameElm.cloneNode(true);
+	        	newGameElm.innerHTML = settings.text + (game.numOfPlayers ? "(" + game.numOfPlayers +")" : "");
+	        	newGameElm.addEventListener("click", callback);
+	        	htmlGamesElm.appendChild(newGameElm);
 	        }
 		},
 
@@ -1337,7 +1337,7 @@
 
 	    if (moving) {
 	        this.animations.play(this.facing);
-	        socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing});
+	        socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing, nick: this.nick});
 	    } else {
 	        this.freeze();
 	    }
@@ -1356,6 +1356,7 @@
 	    this.body.velocity.x = 0;
 	    this.body.velocity.y = 0;
 	    this.animations.stop();
+	    socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing, nick: this.nick});
 	};
 
 	Player.prototype.applySpeedPowerup = function () {

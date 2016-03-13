@@ -15,21 +15,21 @@ server.listen(app.get('port') ,app.get('ip'), function () {
 app.use(express.static(path.join( __dirname, 'public')));
 
 app.get('/', function (req, res) {
-    res.sendfile(__dirname + '/screen.html');
+    res.sendFile(__dirname + '/screen.html');
 });
 
 var io = require("socket.io").listen(server);
 var TILE_SIZE = 35;
 
+var games = {};
+
 var Player = require("./entity/player_s");
 var Bomb = require("./entity/bomb_s");
 var Map = require("./entity/map_s");
 var MapInfo = require("./public/src/game/common/map_info");
-var Game = require("./entity/game_s");
-var lobby = require("./entity/lobby_s");
+var lobby = require("./entity/lobby_s")(games);
 var PowerupIDs = require("./public/src/game/common/powerup_ids");
 
-var games = {};
 
 var UPDATE_INTERVAL = 100;
 
@@ -60,18 +60,17 @@ function setEventHandlers () {
 
 function onSocketDisconnect() {
     console.log('Screen has disconected: ' + this.id);
-    var lobbySlot = lobby.getlobbySlots()[this.gameId];
-    if(!lobbySlot){
+    var game = games[this.gameId];
+    if(!game){
         return;
     }
-    console.log(lobbySlot.state);
-    if (lobbySlot.state == "joinable" || lobbySlot.state == "full") {
+    console.log(game.state);
+    if (game.state == "joinable" || game.state == "full") {
         lobby.onLeavePendingGame.call(this, {screenId: this.id, gameId: this.gameId});
-    } else if (lobbySlot.state == "settingup") {
-        lobby.removeSlot(this, this.id);
-    } else if (lobbySlot.state == "inprogress") {
-        var game = games[this.gameId];
-        var screen = lobbySlot.screens[this.id];
+    } else if (game.state == "settingup") {
+        lobby.removeGame(this, this.id);
+    } else if (game.state == "inprogress") {
+        var screen = game.screens[this.id];
         for(var nick in screen.players){
             if (nick in game.players) {
                 delete game.players[nick];
@@ -97,17 +96,16 @@ function terminateExistingGame(socket) {
     var gameId = socket.gameId;
     games[gameId].clearBombs();
     delete games[gameId];
-    lobby.removeSlot(socket, gameId);
+    lobby.removeGame(socket, gameId);
 }
 
 function onStartGame(data) {
-    var lobbySlots = lobby.getlobbySlots();
-    var game = lobbySlots[data.gameId];
+    var game = games[data.gameId];
     
     this.gameId = data.gameId;
     games[data.gameId] = game;
     game.state = "inprogress";
-    lobby.broadcastSlotStateUpdate(this);
+    lobby.broadcastGameStateUpdate(this);
     
     var nicks = game.getPlayersNicks();
     for(var i = 0; i < nicks.length; i++) {
@@ -242,7 +240,7 @@ function endRound(tiedWinnerIds, socket) {
 
 function onReadyForRound() {
     var game = games[this.gameId];
-    var screen = lobby.getlobbySlots()[this.gameId].screens[this.id];
+    var screen = game.screens[this.id];
     if (!game.awaiting) {
         return;
     }
@@ -253,13 +251,13 @@ function onReadyForRound() {
 }
 
 function broadcastingLoop() {
-    for (var i in games) {
-        var game = games[i];
+    for (var gameId in games) {
+        var game = games[gameId];
         if (game) {
-            for (var ii in game.players) {
-                var player = game.players[ii];
+            for (var nick in game.players) {
+                var player = game.players[nick];
                 if (player.alive) {
-                    io.in(game.id).emit("move player", {
+                    io.in(gameId).emit("move player", {
                         nick: player.nick,
                         x: player.x,
                         y: player.y,

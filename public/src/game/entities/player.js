@@ -146,7 +146,7 @@ Player.prototype.handleKeysInput = function () {
 
     if (moving) {
         this.animations.play(this.facing);
-        socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing});
+        socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing, nick: this.nick});
     } else {
         this.freeze();
     }
@@ -165,6 +165,7 @@ Player.prototype.freeze = function () {
     this.body.velocity.x = 0;
     this.body.velocity.y = 0;
     this.animations.stop();
+    socket.emit("move player", {x: this.position.x, y: this.position.y, facing: this.facing, nick: this.nick});
 };
 
 Player.prototype.applySpeedPowerup = function () {
