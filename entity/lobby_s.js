@@ -76,6 +76,7 @@ var lobby = {
         game.addPlayer(data);
         this.emit("show current players", {players: game.players});
         this.broadcast.to(data.gameId).emit("player joined", {players: game.players});
+        console.log(game.tilemapName);
         if (game.getNumScreens() >= MapInfo[game.tilemapName].spawnLocations.length) {
             game.state = "full";
             lobby.broadcastSlotStateUpdate(this);

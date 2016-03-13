@@ -35,6 +35,9 @@ module.exports = PendingGame;
 
 PendingGame.prototype = {
     init: function (tilemapName, gameId) {
+    	var self = this;
+    	
+    	acTools.currentView = 'pendingGame';
 		this.htmlPlayersElm = document.getElementById('players');
 		htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
     	document.getElementById('pendingGame').classList.remove("hidden");
@@ -62,7 +65,9 @@ PendingGame.prototype = {
 		  	return;
 		  }
 		  pl.connection = false;
-		  this.populateCharacterSquares();
+		  if(acTools.currentView === 'pendingGame'){
+		  	self.populateCharacterSquares({players: screen.players});
+		  }
 		};
 	},
 
@@ -157,7 +162,6 @@ PendingGame.prototype = {
 		this.leavingPendingGame();
 		socket.emit("leave pending game", {gameId: game.gameId, screenId: game.screenId});
 		socket.removeAllListeners();
-      	bomberman.acTools.currentView = 'Lobby';
         game.state.start("Lobby");
 	},
 	
@@ -172,7 +176,6 @@ PendingGame.prototype = {
 	startGame: function(data) {
 		this.leavingPendingGame();
 		socket.removeAllListeners();
-      	acTools.currentView = 'Level';
 		game.state.start("Level", true, false, data);
 	}
 };

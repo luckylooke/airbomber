@@ -50,6 +50,7 @@ Level.prototype = {
     gameFrozen: true,
 
     init: function (data) {
+    	acTools.currentView = 'Level';
         this.tilemapName = data.tilemapName;
         this.players = data.players;
     },

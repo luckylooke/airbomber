@@ -7,6 +7,7 @@ module.exports = Lobby;
 
 Lobby.prototype = {
     init: function () {
+    	bomberman.acTools.currentView = 'Lobby';
         document.getElementById('lobby').classList.remove("hidden");
 	},
 
