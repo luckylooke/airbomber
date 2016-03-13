@@ -13,14 +13,14 @@ var acTools = bomberman.acTools;
 
 acTools.addListener('ready', function(from, data){
 	if(screen.isReady){
-	  airconsole.message(from, {listener: 'ready', gameState: 'PendingGame'});
+	  airconsole.message(from, {listener: 'ready', gameState: 'pending'});
 	}
 });
 
 acTools.addListener('newPlayer', function newPlayer(device_id, player){
   	if(player.nick){
   		delete player.listener;
-  		player.slotId = game.slotId;
+  		player.gameId = game.gameId;
   		player.screenId = game.screenId;
   		player.device_id = device_id;
   		player.connection = true;
@@ -34,15 +34,15 @@ var PendingGame = function() {};
 module.exports = PendingGame;
 
 PendingGame.prototype = {
-    init: function (tilemapName, slotId) {
+    init: function (tilemapName, gameId) {
 		this.htmlPlayersElm = document.getElementById('players');
 		htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
     	document.getElementById('pendingGame').classList.remove("hidden");
 		this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
     	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
 		this.tilemapName = tilemapName;
-		this.masterScreen = slotId === socket.id;
-		game.slotId = slotId || socket.id;
+		this.masterScreen = gameId === socket.id;
+		game.gameId = gameId || socket.id;
 		game.screenId = socket.id;
 		screen.isReady = false;
 		screen.players = {};
@@ -77,12 +77,12 @@ PendingGame.prototype = {
 			this.minPlayersMessage.classList.remove('hidden');
 		}
 		this.htmlPlayersElm.innerHTML = '';
-		socket.emit("enter pending game", {slotId: game.slotId, screenId: game.screenId, tilemapName: this.tilemapName});
+		socket.emit("enter pending game", {gameId: game.gameId, screenId: game.screenId, tilemapName: this.tilemapName});
 		socket.on("show current players", this.populateCharacterSquares.bind(this));
 		socket.on("player joined", this.playerJoined.bind(this));
 		socket.on("players left", this.playersLeft.bind(this));
 		socket.on("start game on client", this.startGame.bind(this));
-		airconsole.broadcast({listener: 'gameState', gameState: 'PendingGame'});
+		airconsole.broadcast({listener: 'gameState', gameState: 'pending'});
 	},
 
 	update: function() {
@@ -150,12 +150,12 @@ PendingGame.prototype = {
 	},
 
 	startGameAction: function() {
-		socket.emit("start game on server", {slotId: game.slotId, tilemapName: this.tilemapName});
+		socket.emit("start game on server", {gameId: game.gameId, tilemapName: this.tilemapName});
 	},
 
 	leaveGameAction: function() {
 		this.leavingPendingGame();
-		socket.emit("leave pending game", {slotId: game.slotId, screenId: game.screenId});
+		socket.emit("leave pending game", {gameId: game.gameId, screenId: game.screenId});
 		socket.removeAllListeners();
       	bomberman.acTools.currentView = 'Lobby';
         game.state.start("Lobby");

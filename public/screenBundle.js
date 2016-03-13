@@ -433,10 +433,10 @@
 	        for (var i = 0; i < names.length; i++) {
 	        	var slot = slots[names[i]];
 		        var settings = this.stateSettings[slot.state];
-		        var callback = (function (slotId) {
+		        var callback = (function (gameId) {
 		            return function(){
 		            	if (settings.callback != null){
-		                	settings.callback(slotId);
+		                	settings.callback(gameId);
 		                	document.getElementById('lobby').classList.add("hidden");
 		            	}
 		            };
@@ -450,16 +450,16 @@
 		},
 
 		hostGameAction: function() {
-			socket.emit("host game", {slotId: socket.id});
+			socket.emit("host game", {gameId: socket.id});
 			socket.removeAllListeners();
 	      	bomberman.acTools.currentView = 'StageSelect';
 	        game.state.start("StageSelect", true, false);
 		},
 
-		joinGameAction: function(slotId) {
+		joinGameAction: function(gameId) {
 			socket.removeAllListeners();
-	      	bomberman.acTools.currentView = 'PendingGame';
-	        game.state.start("PendingGame", true, false, null, slotId);
+	      	bomberman.acTools.currentView = 'pending';
+	        game.state.start("PendingGame", true, false, null, gameId);
 		}
 	};
 
@@ -546,8 +546,8 @@
 		getHandler: function(index) {
 			return function confirmStageSelection(){
 				document.getElementById('stage-select').classList.add("hidden");
-		        socket.emit("select stage", {slotId: socket.id, tilemapName: stages[index].tilemapName});
-	      		bomberman.acTools.currentView = 'PendingGame';
+		        socket.emit("select stage", {gameId: socket.id, tilemapName: stages[index].tilemapName});
+	      		bomberman.acTools.currentView = 'pending';
 		        game.state.start("PendingGame", true, false, stages[index].tilemapName, socket.id);
 			};
 		}
@@ -628,14 +628,14 @@
 
 	acTools.addListener('ready', function(from, data){
 		if(screen.isReady){
-		  airconsole.message(from, {listener: 'ready', gameState: 'PendingGame'});
+		  airconsole.message(from, {listener: 'ready', gameState: 'pending'});
 		}
 	});
 
 	acTools.addListener('newPlayer', function newPlayer(device_id, player){
 	  	if(player.nick){
 	  		delete player.listener;
-	  		player.slotId = game.slotId;
+	  		player.gameId = game.gameId;
 	  		player.screenId = game.screenId;
 	  		player.device_id = device_id;
 	  		player.connection = true;
@@ -649,15 +649,15 @@
 	module.exports = PendingGame;
 
 	PendingGame.prototype = {
-	    init: function (tilemapName, slotId) {
+	    init: function (tilemapName, gameId) {
 			this.htmlPlayersElm = document.getElementById('players');
 			htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
 	    	document.getElementById('pendingGame').classList.remove("hidden");
 			this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
 	    	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
 			this.tilemapName = tilemapName;
-			this.masterScreen = slotId === socket.id;
-			game.slotId = slotId || socket.id;
+			this.masterScreen = gameId === socket.id;
+			game.gameId = gameId || socket.id;
 			game.screenId = socket.id;
 			screen.isReady = false;
 			screen.players = {};
@@ -692,12 +692,12 @@
 				this.minPlayersMessage.classList.remove('hidden');
 			}
 			this.htmlPlayersElm.innerHTML = '';
-			socket.emit("enter pending game", {slotId: game.slotId, screenId: game.screenId, tilemapName: this.tilemapName});
+			socket.emit("enter pending game", {gameId: game.gameId, screenId: game.screenId, tilemapName: this.tilemapName});
 			socket.on("show current players", this.populateCharacterSquares.bind(this));
 			socket.on("player joined", this.playerJoined.bind(this));
 			socket.on("players left", this.playersLeft.bind(this));
 			socket.on("start game on client", this.startGame.bind(this));
-			airconsole.broadcast({listener: 'gameState', gameState: 'PendingGame'});
+			airconsole.broadcast({listener: 'gameState', gameState: 'pending'});
 		},
 
 		update: function() {
@@ -765,12 +765,12 @@
 		},
 
 		startGameAction: function() {
-			socket.emit("start game on server", {slotId: game.slotId, tilemapName: this.tilemapName});
+			socket.emit("start game on server", {gameId: game.gameId, tilemapName: this.tilemapName});
 		},
 
 		leaveGameAction: function() {
 			this.leavingPendingGame();
-			socket.emit("leave pending game", {slotId: game.slotId, screenId: game.screenId});
+			socket.emit("leave pending game", {gameId: game.gameId, screenId: game.screenId});
 			socket.removeAllListeners();
 	      	bomberman.acTools.currentView = 'Lobby';
 	        game.state.start("Lobby");
@@ -985,7 +985,7 @@
 	                    for (var itemKey in this.items) {
 	                        var item = this.items[itemKey];
 	                        game.physics.arcade.overlap(player, item, function (p, i) {
-	                            socket.emit("powerup overlap", {x: item.x, y: item.y, nick: player.nick, slotId: game.slotId});
+	                            socket.emit("powerup overlap", {x: item.x, y: item.y, nick: player.nick, gameId: game.gameId});
 	                        });
 	                    }
 	                }
@@ -1075,7 +1075,7 @@
 	            height: blockLayerData.height,
 	            width: blockLayerData.width,
 	            destructibleTileId: mapInfo.destructibleTileId,
-	            slotId: game.slotId
+	            gameId: game.gameId
 	        });
 	    },
 
@@ -1294,7 +1294,7 @@
 	    
 	    // BOMBS
 	    if (!game.physics.arcade.overlap(this, level.bombs) && ctrl.bomb) {
-	        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, slotId: game.slotId});
+	        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, gameId: game.gameId});
 	    }
 	    
 	    // console.log('handleCtrlInput', this.body.velocity.x, this.body.velocity.y, ctrl);
@@ -1341,7 +1341,7 @@
 	Player.prototype.handleBombInput = function () {
 	    if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && !game.physics.arcade.overlap(this, level.bombs) && !this.bombButtonJustPressed) {
 	        this.bombButtonJustPressed = true;
-	        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, slotId: game.slotId});
+	        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, gameId: game.gameId});
 	    } else if (!game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && this.bombButtonJustPressed) {
 	        this.bombButtonJustPressed = false;
 	    }

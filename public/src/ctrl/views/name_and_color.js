@@ -45,7 +45,7 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
         //   }
         // }
         acTools.addListener('ready', function(from, data){
-          if(storage.color && storage.nickname && from == AirConsole.SCREEN && storage.gameState === 'PendingGame'){
+          if(storage.color && storage.nickname && from == AirConsole.SCREEN && storage.gameState === 'pending'){
             clearInterval(storage.acInterval);
             airconsole.message(AirConsole.SCREEN, {
               listener: 'newPlayer',

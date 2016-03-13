@@ -108,7 +108,7 @@ Player.prototype.handleCtrlInput = function (ctrl) {
     
     // BOMBS
     if (!game.physics.arcade.overlap(this, level.bombs) && ctrl.bomb) {
-        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, slotId: game.slotId});
+        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, gameId: game.gameId});
     }
     
     // console.log('handleCtrlInput', this.body.velocity.x, this.body.velocity.y, ctrl);
@@ -155,7 +155,7 @@ Player.prototype.handleKeysInput = function () {
 Player.prototype.handleBombInput = function () {
     if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && !game.physics.arcade.overlap(this, level.bombs) && !this.bombButtonJustPressed) {
         this.bombButtonJustPressed = true;
-        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, slotId: game.slotId});
+        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, gameId: game.gameId});
     } else if (!game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && this.bombButtonJustPressed) {
         this.bombButtonJustPressed = false;
     }

@@ -59,10 +59,10 @@ Lobby.prototype = {
         for (var i = 0; i < names.length; i++) {
         	var slot = slots[names[i]];
 	        var settings = this.stateSettings[slot.state];
-	        var callback = (function (slotId) {
+	        var callback = (function (gameId) {
 	            return function(){
 	            	if (settings.callback != null){
-	                	settings.callback(slotId);
+	                	settings.callback(gameId);
 	                	document.getElementById('lobby').classList.add("hidden");
 	            	}
 	            };
@@ -76,15 +76,15 @@ Lobby.prototype = {
 	},
 
 	hostGameAction: function() {
-		socket.emit("host game", {slotId: socket.id});
+		socket.emit("host game", {gameId: socket.id});
 		socket.removeAllListeners();
       	bomberman.acTools.currentView = 'StageSelect';
         game.state.start("StageSelect", true, false);
 	},
 
-	joinGameAction: function(slotId) {
+	joinGameAction: function(gameId) {
 		socket.removeAllListeners();
-      	bomberman.acTools.currentView = 'PendingGame';
-        game.state.start("PendingGame", true, false, null, slotId);
+      	bomberman.acTools.currentView = 'pending';
+        game.state.start("PendingGame", true, false, null, gameId);
 	}
 };

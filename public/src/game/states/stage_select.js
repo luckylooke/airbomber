@@ -77,8 +77,8 @@ StageSelect.prototype = {
 	getHandler: function(index) {
 		return function confirmStageSelection(){
 			document.getElementById('stage-select').classList.add("hidden");
-	        socket.emit("select stage", {slotId: socket.id, tilemapName: stages[index].tilemapName});
-      		bomberman.acTools.currentView = 'PendingGame';
+	        socket.emit("select stage", {gameId: socket.id, tilemapName: stages[index].tilemapName});
+      		bomberman.acTools.currentView = 'pending';
 	        game.state.start("PendingGame", true, false, stages[index].tilemapName, socket.id);
 		};
 	}

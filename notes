@@ -1,4 +1,5 @@
 TODO:
+- Slot into Game
 - test all disconnection scenarios
 - BUG: second screen doesnt have stage background because it is skipping stage_select
 - status bar on controller (including nick color score(killed vs deaths) etc..)

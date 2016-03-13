@@ -1,8 +1,10 @@
 var DEFAULT_NUM_ROUNDS = 3;
 
 var Game = function (id) {
+	this.state = 'empty',
     this.id = id;
 	this.players = {};
+	this.screens = {};
 	this.map = {};
 	this.bombs = {};
 	this.numPlayersAlive = 0;
@@ -70,6 +72,46 @@ Game.prototype = {
 		this.resetPlayers();
         this.readyRound = [];
 		this.numPlayersAlive = Object.keys(this.players).length;
+	},
+	
+	getScreensIds: function() {
+		return Object.keys(this.screens);
+	},
+	
+	getPlayersNicks: function() {
+		return Object.keys(this.players);
+	},
+
+	getNumScreens: function() {
+		return Object.keys(this.screens).length;
+	},
+
+	getNumPlayers: function() {
+		return Object.keys(this.players).length;
+	},
+
+	removeScreen: function(id) {
+		delete this.screens[id];
+	},
+
+	removePlayer: function(screenId, playerId) {
+		delete this.screens[screenId][playerId];
+		delete this.players[playerId];
+	},
+
+	addScreen: function(id) {
+		this.screens[id] = {
+			players: {}
+		};
+	},
+
+	addPlayer: function(player) {
+		if(!this.screens[player.screenId]){
+			return;
+		}
+		this.screens[player.screenId].players[player.nick] = player;
+		this.players[player.nick] = player;
+		return player;
 	}
 };
 

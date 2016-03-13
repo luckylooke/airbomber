@@ -1,5 +1,4 @@
-/* global socket */
-var PendingGame = require("./pending_game_s");
+var Game = require("./game_s");
 var MapInfo = require("./../public/src/game/common/map_info");
 
 var lobbySlots = {};
@@ -9,13 +8,13 @@ var lobby = {
         return lobbySlots;
     },
 
-    removeSlot: function(socket, slotId){
-        delete lobbySlots[slotId];
+    removeSlot: function(socket, gameId){
+        delete lobbySlots[gameId];
         lobby.broadcastSlotStateUpdate(socket);
     },
 
     restartlobby: function(data){
-        lobbySlots[data.slotId] = new PendingGame();
+        lobbySlots[data.gameId] = new Game();
     },
 
     getNumlobbySlots: function () {
@@ -36,7 +35,7 @@ var lobby = {
     },
 
     initialize: function () {
-        lobbySlots['default'] = new PendingGame();
+        lobbySlots['default'] = new Game();
     },
 
     onEnterlobby: function () {
@@ -44,41 +43,41 @@ var lobby = {
     },
 
     onHostGame: function (data) {
-        this.slotId = data.slotId;
-        lobbySlots[data.slotId] = new PendingGame();
-        lobbySlots[data.slotId].state = "settingup";
+        this.gameId = data.gameId;
+        lobbySlots[data.gameId] = new Game();
+        lobbySlots[data.gameId].state = "settingup";
         lobby.broadcastSlotStateUpdate(this);
     },
 
     onStageSelect: function (data) {
-        lobbySlots[data.slotId].state = "joinable";
-        lobbySlots[data.slotId].tilemapName = data.tilemapName;
+        lobbySlots[data.gameId].state = "joinable";
+        lobbySlots[data.gameId].tilemapName = data.tilemapName;
         lobby.broadcastSlotStateUpdate(this);
     },
 
     onEnterPendingGame: function (data) {
-        var pendingGame = lobbySlots[data.slotId];
-        pendingGame.addScreen(this.id);
-        this.slotId = data.slotId;
-        this.join(data.slotId); // join io room
-        this.emit("show current players", {players: pendingGame.players});
-        this.broadcast.to(data.slotId).emit("screen joined", {id: this.id, color: pendingGame.screens[this.id].color});
-        // if (pendingGame.getNumScreens() >= MapInfo['First'].spawnLocations.length) {
-        //     pendingGame.state = "full";
+        var game = lobbySlots[data.gameId];
+        game.addScreen(this.id);
+        this.gameId = data.gameId;
+        this.join(data.gameId); // join io room
+        this.emit("show current players", {players: game.players});
+        this.broadcast.to(data.gameId).emit("screen joined", {id: this.id, color: game.screens[this.id].color});
+        // if (game.getNumScreens() >= MapInfo['First'].spawnLocations.length) {
+        //     game.state = "full";
         //     lobby.broadcastSlotStateUpdate(this);
         // }
     },
 
     onPlayerEnterPendingGame: function (data) {
-        var pendingGame = lobbySlots[data.slotId];
-        if(!pendingGame){
+        var game = lobbySlots[data.gameId];
+        if(!game){
             return;
         }
-        pendingGame.addPlayer(data);
-        this.emit("show current players", {players: pendingGame.players});
-        this.broadcast.to(data.slotId).emit("player joined", {players: pendingGame.players});
-        if (pendingGame.getNumScreens() >= MapInfo[pendingGame.tilemapName].spawnLocations.length) {
-            pendingGame.state = "full";
+        game.addPlayer(data);
+        this.emit("show current players", {players: game.players});
+        this.broadcast.to(data.gameId).emit("player joined", {players: game.players});
+        if (game.getNumScreens() >= MapInfo[game.tilemapName].spawnLocations.length) {
+            game.state = "full";
             lobby.broadcastSlotStateUpdate(this);
         }
     },
@@ -87,11 +86,11 @@ var lobby = {
         if(!data){
             return;
         }
-        var lobbySlot = lobbySlots[data.slotId];
-        if(data.slotId === data.screenId){
+        var lobbySlot = lobbySlots[data.gameId];
+        if(data.gameId === data.screenId){
             var screens = lobbySlot.screens;
             if(screens.length < 2){
-                delete lobbySlots[data.slotId]; 
+                delete lobbySlots[data.gameId]; 
             }else{
                 // TODO LOGIC
                 // for (var screen in screens) {
