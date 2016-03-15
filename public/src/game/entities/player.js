@@ -1,7 +1,7 @@
 /* global Phaser, bomberman */
 
-var Bomb = require("./bomb");
 var game = bomberman.game;
+var storage = bomberman.storage;
 var socket = bomberman.socket;
 var level; // cannot be assigned now because level isnt initialized yet
 
@@ -108,7 +108,7 @@ Player.prototype.handleCtrlInput = function (ctrl) {
     
     // BOMBS
     if (!game.physics.arcade.overlap(this, level.bombs) && ctrl.bomb) {
-        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, gameId: game.gameId});
+        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, gameId: storage.gameId});
     }
     
     // console.log('handleCtrlInput', this.body.velocity.x, this.body.velocity.y, ctrl);
@@ -155,7 +155,7 @@ Player.prototype.handleKeysInput = function () {
 Player.prototype.handleBombInput = function () {
     if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && !game.physics.arcade.overlap(this, level.bombs) && !this.bombButtonJustPressed) {
         this.bombButtonJustPressed = true;
-        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, gameId: game.gameId});
+        socket.emit("place bomb", {x: this.body.position.x, y: this.body.position.y, id: game.time.now, nick: this.nick, gameId: storage.gameId});
     } else if (!game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && this.bombButtonJustPressed) {
         this.bombButtonJustPressed = false;
     }

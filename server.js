@@ -23,6 +23,7 @@ var TILE_SIZE = 35;
 
 var games = {};
 
+var Timer = require("./util/timer");
 var Player = require("./entity/player_s");
 var Bomb = require("./entity/bomb_s");
 var Map = require("./entity/map_s");
@@ -55,22 +56,24 @@ function setEventHandlers () {
         socket.on("enter pending game", lobby.onEnterPendingGame);
         socket.on("player enter pending game", lobby.onPlayerEnterPendingGame);
         socket.on("leave pending game", lobby.onLeavePendingGame);
+        socket.on("pause game", onPauseGame);
+        socket.on("resume game", onResumeGame);
     });
 }
 
 function onSocketDisconnect() {
-    console.log('Screen has disconected: ' + this.id);
+    console.log('Screen has disconected: ' + this.screenId);
     var game = games[this.gameId];
     if(!game){
         return;
     }
     console.log(game.state);
     if (game.state == "joinable" || game.state == "full") {
-        lobby.onLeavePendingGame.call(this, {screenId: this.id, gameId: this.gameId});
+        lobby.onLeavePendingGame.call(this, {screenId: this.screenId, gameId: this.gameId});
     } else if (game.state == "settingup") {
-        lobby.removeGame(this, this.id);
+        lobby.removeGame(this, this.screenId);
     } else if (game.state == "inprogress") {
-        var screen = game.screens[this.id];
+        var screen = game.screens[this.screenId];
         for(var nick in screen.players){
             if (nick in game.players) {
                 delete game.players[nick];
@@ -86,8 +89,8 @@ function onSocketDisconnect() {
             terminateExistingGame(this);
         }
         
-        if (game && game.awaiting && game.numEndOfRoundAcknowledgements >= game.numPlayers) {
-            game.awaiting = false;
+        if (game && game.paused && game.numEndOfRoundAcknowledgements >= game.numPlayers) {
+            game.paused = false;
         }
     }
 }
@@ -126,7 +129,7 @@ function onRegisterMap(data) {
 
 function onMovePlayer(clientPlayer) {
     var game = games[this.gameId];
-    if (game === undefined || game.awaiting) {
+    if (game === undefined || game.paused) {
         return;
     }
     var serverPlayer = game.players[clientPlayer.nick];
@@ -142,11 +145,11 @@ function onPlaceBomb(data) {
     var socket = this;
     var gameId = this.gameId;
     var game = games[gameId];
-    if(!game){
+    if(!game || game.paused){
         return;
     }
     var player = game.players[data.nick];
-    if (game === undefined || game.awaiting || player.numBombsAlive >= player.bombCapacity) {
+    if (player.numBombsAlive >= player.bombCapacity) {
         return;
     }
     var bombId = data.id;
@@ -155,7 +158,7 @@ function onPlaceBomb(data) {
         return;
     }
     player.numBombsAlive++;
-    var bombTimeoutId = setTimeout(function() {
+    var bombTimer = new Timer(function() {
         var explosionData = bomb.detonate(game.map, player.bombStrength, game.players);
         player.numBombsAlive--;
         io.in(gameId).emit("detonate", {explosions: explosionData.explosions, id: bombId,
@@ -165,7 +168,7 @@ function onPlaceBomb(data) {
 
         handlePlayerDeath(explosionData.killedPlayers, socket);
     }, 2000);
-    var bomb = new Bomb(normalizedBombLocation.x, normalizedBombLocation.y, bombTimeoutId, TILE_SIZE);
+    var bomb = new Bomb(normalizedBombLocation.x, normalizedBombLocation.y, bombTimer, TILE_SIZE);
     game.bombs[bombId] = bomb;
     io.in(gameId).emit("place bomb", {x: normalizedBombLocation.x, y: normalizedBombLocation.y, id: data.id});
 }
@@ -230,7 +233,7 @@ function endRound(tiedWinnerIds, socket) {
             return;
         }
     }
-    game.awaiting = true;
+    game.paused = true;
     game.resetForNewRound();
     io.in(gameId).emit("new round", {
         completedRoundNumber: game.currentRound - 1,
@@ -240,14 +243,32 @@ function endRound(tiedWinnerIds, socket) {
 
 function onReadyForRound() {
     var game = games[this.gameId];
-    var screen = game.screens[this.id];
-    if (!game.awaiting) {
+    var screen = game.screens[this.screenId];
+    if (!game.paused) {
         return;
     }
     game.addPlayerReadyRound(screen.players);
     if (game.numPlayersReadyRound >= game.numPlayers) {
-        game.awaiting = false;
+        game.paused = false;
     }
+}
+
+function onPauseGame() {
+    var game = games[this.gameId];
+    game.paused = true;
+    for(var bombId in game.bombs){
+        game.bombs[bombId].pause();
+    }
+    io.in(this.gameId).emit("pause game");
+}
+
+function onResumeGame() {
+    var game = games[this.gameId];
+    game.paused = false;
+    for(var bombId in game.bombs){
+        game.bombs[bombId].resume();
+    }
+    io.in(this.gameId).emit("resume game");
 }
 
 function broadcastingLoop() {

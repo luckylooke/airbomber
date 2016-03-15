@@ -2,6 +2,7 @@
 var game = bomberman.game;
 var socket = bomberman.socket;
 var screen = bomberman.screen;
+var storage = bomberman.storage;
 var MAX_PLAYERS = 4;
 var htmlPlayerElm; // element prototype taken from DOM
 
@@ -13,14 +14,14 @@ var acTools = bomberman.acTools;
 
 acTools.addListener('ready', function(from, data){
 	if(screen.isReady){
-	  airconsole.message(from, {listener: 'ready', gameState: 'pending'});
+	  airconsole.message(from, {listener: 'ready', gameState: 'pending-game'});
 	}
 });
 
 acTools.addListener('newPlayer', function newPlayer(device_id, player){
   	if(player.nick){
   		delete player.listener;
-  		player.gameId = game.gameId;
+  		player.gameId = storage.gameId;
   		player.screenId = game.screenId;
   		player.device_id = device_id;
   		player.connection = true;
@@ -45,12 +46,12 @@ PendingGame.prototype = {
 		this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
     	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
 		this.tilemapName = tilemapName;
-		this.masterScreen = gameId === socket.id;
-		game.gameId = gameId || socket.id;
-		game.screenId = socket.id;
+		storage.gameId = storage.gameId || gameId || socket.id;
+		storage.screenId = storage.screenId || socket.id;
+		storage.masterScreen = storage.masterScreen || storage.gameId === storage.screenId;
 		screen.isReady = false;
 		screen.players = {};
-		if(!this.masterScreen){
+		if(!storage.masterScreen){
 			document.getElementById('startGameBtn').classList.add("hidden");
 			document.getElementById('minPlayersMessage').classList.add("hidden");
 			document.getElementById('playerDisconnectedMessage').classList.add("hidden");
@@ -73,7 +74,7 @@ PendingGame.prototype = {
 	},
 
 	create: function() {
-		if(this.masterScreen){
+		if(storage.masterScreen){
 			this.startGameBtn = document.getElementById('startGameBtn');
 			this.startGameBtn.setAttribute('disabled', 'disabled');
 			this.bindedStartGameAction = this.startGameAction.bind(this);
@@ -83,12 +84,12 @@ PendingGame.prototype = {
 			this.minPlayersMessage.classList.remove('hidden');
 		}
 		this.htmlPlayersElm.innerHTML = '';
-		socket.emit("enter pending game", {gameId: game.gameId, screenId: game.screenId, tilemapName: this.tilemapName});
+		socket.emit("enter pending game", {gameId: storage.gameId, screenId: game.screenId, tilemapName: this.tilemapName});
 		socket.on("show current players", this.populateCharacterSquares.bind(this));
 		socket.on("player joined", this.playerJoined.bind(this));
 		socket.on("players left", this.playersLeft.bind(this));
 		socket.on("start game on client", this.startGame.bind(this));
-		airconsole.broadcast({listener: 'gameState', gameState: 'pending'});
+		airconsole.broadcast({listener: 'gameState', gameState: 'pending-game'});
 	},
 
 	update: function() {
@@ -115,7 +116,7 @@ PendingGame.prototype = {
 				this.allConnected = false;
 			}
 		}
-		if(this.masterScreen){
+		if(storage.masterScreen){
 			if(this.numPlayersInGame > 1 && this.allConnected) {
 				this.activateStartGameButton();
 			} else {
@@ -126,14 +127,14 @@ PendingGame.prototype = {
 
 	playerJoined: function(data) {
 		this.numPlayersInGame++;
-		if(this.masterScreen && this.numPlayersInGame == 2) {
+		if(storage.masterScreen && this.numPlayersInGame == 2) {
 			this.activateStartGameButton();
 		}
 		this.populateCharacterSquares(data);
 	},
 	playersLeft: function(data) {
 		this.numPlayersInGame -= data.numPlayersLeft;
-		if(this.masterScreen && this.numPlayersInGame == 1) {
+		if(storage.masterScreen && this.numPlayersInGame == 1) {
 			this.deactivateStartGameButton();
 		}
 		this.populateCharacterSquares(data);
@@ -156,18 +157,18 @@ PendingGame.prototype = {
 	},
 
 	startGameAction: function() {
-		socket.emit("start game on server", {gameId: game.gameId, tilemapName: this.tilemapName});
+		socket.emit("start game on server", {gameId: storage.gameId, tilemapName: this.tilemapName});
 	},
 
 	leaveGameAction: function() {
 		this.leavingPendingGame();
-		socket.emit("leave pending game", {gameId: game.gameId, screenId: game.screenId});
+		socket.emit("leave pending game", {gameId: storage.gameId, screenId: game.screenId});
 		socket.removeAllListeners();
         game.state.start("Lobby");
 	},
 	
 	leavingPendingGame: function(){
-		if(this.masterScreen){
+		if(storage.masterScreen){
 			this.startGameBtn.removeEventListener('click', this.bindedStartGameAction);
 		}
     	document.getElementById('leaveGameBtn').removeEventListener("click", this.bindedLeaveGameAction);

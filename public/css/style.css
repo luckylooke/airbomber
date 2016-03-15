@@ -208,3 +208,10 @@ body {
     background-color: #FFC44E;
     border: 1px solid #FFC44E;
 }
+
+#level {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    left: 0;
+}

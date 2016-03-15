@@ -159,7 +159,7 @@ module.exports = function(storage){
         return;
       }
       if(gyro.calibrated){
-         if(storage.gameState === 'Level'){
+         if(storage.gameState === 'level'){
             var mov = process('beta', {x: 0, y:0});
             mov = process('gamma', mov);
             // console.log(mov.x + " - " + mov.y, mov);

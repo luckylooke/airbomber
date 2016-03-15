@@ -15,7 +15,7 @@ var game = bomberman.game;
 var socket = bomberman.socket;
 var level = bomberman.level;
 var screen = bomberman.screen;
-var viewMan = bomberman.viewMan;
+var storage = bomberman.storage;
 
 var Level = function () {};
 var controllers = {}, // keeps state of connected controllers
@@ -51,6 +51,8 @@ Level.prototype = {
 
     init: function (data) {
         bomberman.vmTools.showWithCbs('level');
+        this.bindedPauseGameAction = this.pauseGameAction.bind(this);
+    	document.getElementById('pauseGameBtn').addEventListener("click", this.bindedPauseGameAction);
         this.tilemapName = data.tilemapName;
         this.players = data.players;
     },
@@ -63,6 +65,8 @@ Level.prototype = {
         socket.on("place bomb", this.onPlaceBomb.bind(this));
         socket.on("detonate", this.onDetonate.bind(this));
         socket.on("new round", this.onNewRound.bind(this));
+        socket.on("pause game", this.onPauseGame.bind(this));
+        socket.on("resume game", this.onResumeGame.bind(this));
         socket.on("end game", this.onEndGame.bind(this));
         socket.on("no opponents left", this.onNoOpponentsLeft.bind(this));
         socket.on("powerup acquired", this.onPowerupAcquired.bind(this));
@@ -87,7 +91,7 @@ Level.prototype = {
         this.createDimGraphic();
         this.beginRoundAnimation("round_1");
         //AudioPlayer.playMusicSound();
-		airconsole.broadcast({listener: 'gameState', gameState: 'Level'});
+		airconsole.broadcast({listener: 'gameState', gameState: 'level'});
     },
 
     createDimGraphic: function () {
@@ -143,6 +147,28 @@ Level.prototype = {
         datAnimationDoe.beginAnimation(this.beginRoundAnimation.bind(this, roundImage, this.restartGame.bind(this)));
     },
 
+    pauseGameAction: function () {
+        if(game.paused){
+            socket.emit("resume game", {gameId: storage.gameId, screenId: storage.screenId});
+        }else{
+            socket.emit("pause game", {gameId: storage.gameId, screenId: storage.screenId});
+        }
+    },
+
+    onPauseGame: function (data) {
+        this.createDimGraphic();
+        this.gameFrozen = true;
+        game.paused = true;
+        AudioPlayer.stopMusicSound();
+    },
+
+    onResumeGame: function (data) {
+        this.dimGraphic.destroy();
+        this.gameFrozen = false;
+        game.paused = false;
+        AudioPlayer.playMusicSound();
+    },
+
     onEndGame: function (data) {
         this.createDimGraphic();
         this.gameFrozen = true;
@@ -186,7 +212,7 @@ Level.prototype = {
                     for (var itemKey in this.items) {
                         var item = this.items[itemKey];
                         game.physics.arcade.overlap(player, item, function (p, i) {
-                            socket.emit("powerup overlap", {x: item.x, y: item.y, nick: player.nick, gameId: game.gameId});
+                            socket.emit("powerup overlap", {x: item.x, y: item.y, nick: player.nick, gameId: storage.gameId});
                         });
                     }
                 }
@@ -276,7 +302,7 @@ Level.prototype = {
             height: blockLayerData.height,
             width: blockLayerData.width,
             destructibleTileId: mapInfo.destructibleTileId,
-            gameId: game.gameId
+            gameId: storage.gameId
         });
     },
 

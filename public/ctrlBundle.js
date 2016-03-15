@@ -330,7 +330,7 @@
 	        return;
 	      }
 	      if(gyro.calibrated){
-	         if(storage.gameState === 'Level'){
+	         if(storage.gameState === 'level'){
 	            var mov = process('beta', {x: 0, y:0});
 	            mov = process('gamma', mov);
 	            // console.log(mov.x + " - " + mov.y, mov);
@@ -687,7 +687,7 @@
 	        //   }
 	        // }
 	        acTools.addListener('ready', function(from, data){
-	          if(storage.color && storage.nickname && from == AirConsole.SCREEN && storage.gameState === 'pending'){
+	          if(storage.color && storage.nickname && from == AirConsole.SCREEN && storage.gameState === 'pending-game'){
 	            clearInterval(storage.acInterval);
 	            airconsole.message(AirConsole.SCREEN, {
 	              listener: 'newPlayer',

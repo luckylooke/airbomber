@@ -9,13 +9,13 @@ bomberman.height = bomberman.bomberElm.clientHeight;
 var game = bomberman.game = new Phaser.Game(bomberman.width, bomberman.height, Phaser.AUTO, 'bomber');
 bomberman.screen = {};
 bomberman.level = null;
-var storage = localStorage || {};
+bomberman.storage = localStorage || {};
 var airconsole = new AirConsole();
 bomberman.airconsole = airconsole;
 bomberman.socket = require('./main/socketSetup')(io, game);
 bomberman.viewMan = new AirConsoleViewManager(airconsole);
 bomberman.acTools = require('./main/acTools')(airconsole, bomberman.viewMan, 'screen');
-bomberman.vmTools = require('./main/vmTools')(bomberman.viewMan, storage);
+bomberman.vmTools = require('./main/vmTools')(bomberman.viewMan, bomberman.storage);
 
 
 // debug info

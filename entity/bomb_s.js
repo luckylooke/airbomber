@@ -1,8 +1,8 @@
-var Bomb = function(x, y, explosionTimerId, TILE_SIZE) {
+var Bomb = function(x, y, explosionTimer, TILE_SIZE) {
 	this.TILE_SIZE = TILE_SIZE;
 	this.x = x;
 	this.y = y;
-	this.explosionTimerId = explosionTimerId;
+	this.explosionTimer = explosionTimer;
 };
 
 Bomb.prototype = {
@@ -62,6 +62,14 @@ Bomb.prototype = {
 			}
 		}
 		return hitData.hitBlock != 1 && hitData.hitBlock != 2;
+	},
+	
+	pause: function(){
+		this.explosionTimer.pause();
+	},
+	
+	resume: function(){
+		this.explosionTimer.resume();
 	}
 };
 

@@ -4,8 +4,8 @@ var game = bomberman.game;
 
 var remotePlayerUpdateInterval = 100;
 
-var RemotePlayer = function (x, y, id, color) {
-    this.id = id;
+var RemotePlayer = function (x, y, nick, color) {
+    this.nick = nick;
     this.previousPosition = {x: x, y: y};
     this.lastMoveTime = 0;
     this.targetPosition;

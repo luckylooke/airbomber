@@ -76,8 +76,8 @@ StageSelect.prototype = {
 
 	getHandler: function(index) {
 		return function confirmStageSelection(){
-	        socket.emit("select stage", {gameId: socket.id, tilemapName: stages[index].tilemapName});
-	        game.state.start("PendingGame", true, false, stages[index].tilemapName, socket.id);
+	        socket.emit("select stage", {gameId: bomberman.storage.gameId, tilemapName: stages[index].tilemapName});
+	        game.state.start("PendingGame", true, false, stages[index].tilemapName, bomberman.storage.gameId);
 		};
 	}
 	

@@ -50,11 +50,11 @@ var lobby = {
 
     onEnterPendingGame: function (data) {
         var game = lobby.games[data.gameId];
-        game.addScreen(this.id);
+        game.addScreen(this.screenId);
         this.gameId = data.gameId;
         this.join(data.gameId); // join io room
         this.emit("show current players", {players: game.players});
-        this.broadcast.to(data.gameId).emit("screen joined", {id: this.id, color: game.screens[this.id].color});
+        this.broadcast.to(data.gameId).emit("screen joined", {id: this.screenId, color: game.screens[this.screenId].color});
         // if (game.getNumScreens() >= MapInfo['First'].spawnLocations.length) {
         //     game.state = "full";
         //     lobby.broadcastGameStateUpdate(this);

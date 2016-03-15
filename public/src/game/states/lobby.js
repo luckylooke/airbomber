@@ -75,6 +75,7 @@ Lobby.prototype = {
 	},
 
 	hostGameAction: function() {
+		bomberman.storage.gameId = socket.id;
 		socket.emit("host game", {gameId: socket.id});
 		socket.removeAllListeners();
         game.state.start("StageSelect", true, false);
