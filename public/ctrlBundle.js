@@ -49,9 +49,9 @@
 	window.initController = init;
 	  
 	navigator.vibrate = (navigator.vibrate ||
-	                   navigator.webkitVibrate ||
-	                   navigator.mozVibrate ||
-	                   navigator.msVibrate);
+	                    navigator.webkitVibrate ||
+	                    navigator.mozVibrate ||
+	                    navigator.msVibrate);
 
 	var storage = localStorage || {};
 	var airconsole = new AirConsole({
