@@ -72,8 +72,8 @@ var lobby = {
         console.log(game.tilemapName);
         if (game.getNumScreens() >= MapInfo[game.tilemapName].spawnLocations.length) {
             game.state = "full";
-            lobby.broadcastGameStateUpdate(this);
         }
+        lobby.broadcastGameStateUpdate(this);
     },
 
     onLeavePendingGame: function (data) {
@@ -103,8 +103,8 @@ var lobby = {
             if (game.state == "full") {
                 game.state = "joinable";
             }
-            lobby.broadcastGameStateUpdate(this);
         }
+        lobby.broadcastGameStateUpdate(this);
         this.emit("players left", {players: game.players, numPlayersLeft: numPlayersLeft});
     }
 };
