@@ -17,7 +17,7 @@ var rateLimiter = new RateLimiter(airconsole);
 // viewMan -> https://github.com/AirConsole/airconsole-view-manager
 var viewMan = new AirConsoleViewManager(airconsole);
 var gyro = require('./ctrl/gyro.js')(storage);
-var vmTools = require('./ctrl/vmTools')(viewMan, storage);
+var vmTools = require('./main/vmTools')(viewMan, storage);
 var acTools = require('./main/acTools')(airconsole);
 var bomb = require('./ctrl/bomb')(airconsole, storage);
 

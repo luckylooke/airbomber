@@ -40,7 +40,7 @@ PendingGame.prototype = {
     	acTools.currentView = 'pendingGame';
 		this.htmlPlayersElm = document.getElementById('players');
 		htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
-    	document.getElementById('pendingGame').classList.remove("hidden");
+        bomberman.vmTools.showWithCbs('pendingGame');
 		this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
     	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
 		this.tilemapName = tilemapName;
@@ -170,7 +170,7 @@ PendingGame.prototype = {
 			this.startGameBtn.removeEventListener('click', this.bindedStartGameAction);
 		}
     	document.getElementById('leaveGameBtn').removeEventListener("click", this.bindedLeaveGameAction);
-		document.getElementById('pendingGame').classList.add("hidden");
+        bomberman.vmTools.showWithCbs('displayNone');
 	},
 
 	startGame: function(data) {

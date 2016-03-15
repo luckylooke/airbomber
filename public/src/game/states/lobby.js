@@ -8,7 +8,7 @@ module.exports = Lobby;
 Lobby.prototype = {
     init: function () {
     	bomberman.acTools.currentView = 'Lobby';
-        document.getElementById('lobby').classList.remove("hidden");
+        bomberman.vmTools.showWithCbs('lobby');
 	},
 
 	create: function() {
@@ -64,7 +64,6 @@ Lobby.prototype = {
 	            return function(){
 	            	if (settings.callback != null){
 	                	settings.callback(gameId);
-	                	document.getElementById('lobby').classList.add("hidden");
 	            	}
 	            };
 	        })(names[i]);

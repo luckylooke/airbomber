@@ -2,7 +2,6 @@
 
 var bomberman = window.bomberman = {}; // namespace in global
 bomberman.bomberElm = document.getElementById('bomber');
-bomberman.guiElm = document.getElementById('gui');
 
 bomberman.width = bomberman.bomberElm.clientWidth;
 bomberman.height = bomberman.bomberElm.clientHeight;
@@ -10,11 +9,13 @@ bomberman.height = bomberman.bomberElm.clientHeight;
 var game = bomberman.game = new Phaser.Game(bomberman.width, bomberman.height, Phaser.AUTO, 'bomber');
 bomberman.screen = {};
 bomberman.level = null;
+var storage = localStorage || {};
 var airconsole = new AirConsole();
 bomberman.airconsole = airconsole;
 bomberman.socket = require('./main/socketSetup')(io, game);
 bomberman.acTools = require('./main/acTools')(airconsole, 'screen');
 bomberman.viewMan = new AirConsoleViewManager(airconsole);
+bomberman.vmTools = require('./main/vmTools')(bomberman.viewMan, storage);
 
 
 // debug info

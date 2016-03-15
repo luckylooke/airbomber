@@ -48,7 +48,6 @@
 
 	var bomberman = window.bomberman = {}; // namespace in global
 	bomberman.bomberElm = document.getElementById('bomber');
-	bomberman.guiElm = document.getElementById('gui');
 
 	bomberman.width = bomberman.bomberElm.clientWidth;
 	bomberman.height = bomberman.bomberElm.clientHeight;
@@ -56,11 +55,13 @@
 	var game = bomberman.game = new Phaser.Game(bomberman.width, bomberman.height, Phaser.AUTO, 'bomber');
 	bomberman.screen = {};
 	bomberman.level = null;
+	var storage = localStorage || {};
 	var airconsole = new AirConsole();
 	bomberman.airconsole = airconsole;
-	bomberman.socket = __webpack_require__(11)(io, game);
+	bomberman.socket = __webpack_require__(12)(io, game);
 	bomberman.acTools = __webpack_require__(4)(airconsole, 'screen');
 	bomberman.viewMan = new AirConsoleViewManager(airconsole);
+	bomberman.vmTools = __webpack_require__(3)(bomberman.viewMan, storage);
 
 
 	// debug info
@@ -70,9 +71,9 @@
 		}
 	});
 
-	game.state.add("Boot", __webpack_require__(12));
-	game.state.add("Preloader", __webpack_require__(15));
-	game.state.add("Lobby", __webpack_require__(16));
+	game.state.add("Boot", __webpack_require__(13));
+	game.state.add("Preloader", __webpack_require__(16));
+	game.state.add("Lobby", __webpack_require__(11));
 	game.state.add("StageSelect", __webpack_require__(17));
 	game.state.add("PendingGame", __webpack_require__(19));
 	game.state.add("Level", __webpack_require__(20));
@@ -84,7 +85,32 @@
 /***/ },
 /* 1 */,
 /* 2 */,
-/* 3 */,
+/* 3 */
+/***/ function(module, exports) {
+
+	module.exports = function(viewMan, storage){
+	  var vmTools = {};
+	  vmTools.cbs = {}; // callbacks
+	  
+	  vmTools.showWithCbs = function(toView){
+	    console.log('showWithCbs toView', toView);
+	    var fromView = viewMan.current_view.self,
+	      fromViewCb = vmTools.cbs[fromView],
+	      toViewCb = vmTools.cbs[toView];
+	    viewMan.show(toView);
+	    storage.currentView = toView;
+	    if(fromViewCb && fromViewCb.from){
+	      fromViewCb.from(toView);
+	    }
+	    if(toViewCb && toViewCb.to){
+	      toViewCb.to(fromView);
+	    }
+	  };
+	  
+	  return vmTools;
+	};
+
+/***/ },
 /* 4 */
 /***/ function(module, exports) {
 
@@ -164,6 +190,101 @@
 /***/ function(module, exports) {
 
 	/* global bomberman */
+	var game = bomberman.game;
+	var socket = bomberman.socket;
+	var Lobby = function() {};
+
+	module.exports = Lobby;
+
+	Lobby.prototype = {
+	    init: function () {
+	    	bomberman.acTools.currentView = 'Lobby';
+	        bomberman.vmTools.showWithCbs('lobby');
+		},
+
+		create: function() {
+			this.stateSettings = {
+				empty: {
+					outFrame: 0,
+					overFrame: 1,
+	                text: "Host Game ",
+					callback: this.hostGameAction
+				},
+				joinable: {
+					outFrame: 2,
+					overFrame: 3,
+					text: "Join Game ",
+					callback: this.joinGameAction
+				},
+				settingup: {
+					outFrame: 4,
+					overFrame: 5,
+					text: "Game is being set up... ",
+					callback: null
+				},
+				inprogress: {
+					outFrame: 4,
+					overFrame: 5,
+					text: "Game in Progress ",
+					callback: null
+				},
+				full: {
+					outFrame: 4,
+					overFrame: 5,
+					text: "Game Full ",
+					callback: null
+				}
+			};
+	        socket.on("update games", this.updateGames.bind(this));
+			socket.emit("enter lobby");
+		},
+
+		update: function() {
+		},
+
+		updateGames: function(games) {
+			var htmlGamesElm = document.getElementById('slots');
+			var htmlGameElm = htmlGamesElm.children[0].cloneNode(true);
+			htmlGamesElm.innerHTML = '';
+			
+			var names = Object.keys(games);
+	        for (var i = 0; i < names.length; i++) {
+	        	var game = games[names[i]];
+		        var settings = this.stateSettings[game.state];
+		        var callback = (function (gameId) {
+		            return function(){
+		            	if (settings.callback != null){
+		                	settings.callback(gameId);
+		            	}
+		            };
+		        })(names[i]);
+	        	
+	        	var newGameElm = htmlGameElm.cloneNode(true);
+	        	newGameElm.innerHTML = settings.text + (game.numOfPlayers ? "(" + game.numOfPlayers +")" : "");
+	        	newGameElm.addEventListener("click", callback);
+	        	htmlGamesElm.appendChild(newGameElm);
+	        }
+		},
+
+		hostGameAction: function() {
+			socket.emit("host game", {gameId: socket.id});
+			socket.removeAllListeners();
+	      	bomberman.acTools.currentView = 'StageSelect';
+	        game.state.start("StageSelect", true, false);
+		},
+
+		joinGameAction: function(gameId) {
+			socket.removeAllListeners();
+	      	bomberman.acTools.currentView = 'pending';
+	        game.state.start("PendingGame", true, false, null, gameId);
+		}
+	};
+
+/***/ },
+/* 12 */
+/***/ function(module, exports) {
+
+	/* global bomberman */
 	module.exports = function(io, game){
 	  function getURLParameter(name) {
 	    return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
@@ -197,12 +318,12 @@
 	};
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global bomberman */
-	var AudioPlayer = __webpack_require__(13);
-	var TextConfigurer = __webpack_require__(14);
+	var AudioPlayer = __webpack_require__(14);
+	var TextConfigurer = __webpack_require__(15);
 	var game = bomberman.game;
 
 	var textXOffset = 420;
@@ -239,7 +360,7 @@
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports) {
 
 	/* global bomberman */
@@ -272,7 +393,7 @@
 	};
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports) {
 
 	exports.configureText = function(text, color, size) {
@@ -282,7 +403,7 @@
 	};
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports) {
 
 	/* global Phaser, bomberman*/
@@ -369,102 +490,6 @@
 
 
 /***/ },
-/* 16 */
-/***/ function(module, exports) {
-
-	/* global bomberman */
-	var game = bomberman.game;
-	var socket = bomberman.socket;
-	var Lobby = function() {};
-
-	module.exports = Lobby;
-
-	Lobby.prototype = {
-	    init: function () {
-	    	bomberman.acTools.currentView = 'Lobby';
-	        document.getElementById('lobby').classList.remove("hidden");
-		},
-
-		create: function() {
-			this.stateSettings = {
-				empty: {
-					outFrame: 0,
-					overFrame: 1,
-	                text: "Host Game ",
-					callback: this.hostGameAction
-				},
-				joinable: {
-					outFrame: 2,
-					overFrame: 3,
-					text: "Join Game ",
-					callback: this.joinGameAction
-				},
-				settingup: {
-					outFrame: 4,
-					overFrame: 5,
-					text: "Game is being set up... ",
-					callback: null
-				},
-				inprogress: {
-					outFrame: 4,
-					overFrame: 5,
-					text: "Game in Progress ",
-					callback: null
-				},
-				full: {
-					outFrame: 4,
-					overFrame: 5,
-					text: "Game Full ",
-					callback: null
-				}
-			};
-	        socket.on("update games", this.updateGames.bind(this));
-			socket.emit("enter lobby");
-		},
-
-		update: function() {
-		},
-
-		updateGames: function(games) {
-			var htmlGamesElm = document.getElementById('slots');
-			var htmlGameElm = htmlGamesElm.children[0].cloneNode(true);
-			htmlGamesElm.innerHTML = '';
-			
-			var names = Object.keys(games);
-	        for (var i = 0; i < names.length; i++) {
-	        	var game = games[names[i]];
-		        var settings = this.stateSettings[game.state];
-		        var callback = (function (gameId) {
-		            return function(){
-		            	if (settings.callback != null){
-		                	settings.callback(gameId);
-		                	document.getElementById('lobby').classList.add("hidden");
-		            	}
-		            };
-		        })(names[i]);
-	        	
-	        	var newGameElm = htmlGameElm.cloneNode(true);
-	        	newGameElm.innerHTML = settings.text + (game.numOfPlayers ? "(" + game.numOfPlayers +")" : "");
-	        	newGameElm.addEventListener("click", callback);
-	        	htmlGamesElm.appendChild(newGameElm);
-	        }
-		},
-
-		hostGameAction: function() {
-			socket.emit("host game", {gameId: socket.id});
-			socket.removeAllListeners();
-	      	bomberman.acTools.currentView = 'StageSelect';
-	        game.state.start("StageSelect", true, false);
-		},
-
-		joinGameAction: function(gameId) {
-			socket.removeAllListeners();
-	      	bomberman.acTools.currentView = 'pending';
-	        game.state.start("PendingGame", true, false, null, gameId);
-		}
-	};
-
-/***/ },
 /* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -480,7 +505,7 @@
 
 	StageSelect.prototype = {
 	    init: function () {
-	    	document.getElementById('stage-select').classList.remove("hidden");
+	        bomberman.vmTools.showWithCbs('stage-select');
 		},
 
 		create: function() {
@@ -546,7 +571,6 @@
 
 		getHandler: function(index) {
 			return function confirmStageSelection(){
-				document.getElementById('stage-select').classList.add("hidden");
 		        socket.emit("select stage", {gameId: socket.id, tilemapName: stages[index].tilemapName});
 	      		bomberman.acTools.currentView = 'pending';
 		        game.state.start("PendingGame", true, false, stages[index].tilemapName, socket.id);
@@ -656,7 +680,7 @@
 	    	acTools.currentView = 'pendingGame';
 			this.htmlPlayersElm = document.getElementById('players');
 			htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
-	    	document.getElementById('pendingGame').classList.remove("hidden");
+	        bomberman.vmTools.showWithCbs('pendingGame');
 			this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
 	    	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
 			this.tilemapName = tilemapName;
@@ -786,7 +810,7 @@
 				this.startGameBtn.removeEventListener('click', this.bindedStartGameAction);
 			}
 	    	document.getElementById('leaveGameBtn').removeEventListener("click", this.bindedLeaveGameAction);
-			document.getElementById('pendingGame').classList.add("hidden");
+	        bomberman.vmTools.showWithCbs('displayNone');
 		},
 
 		startGame: function(data) {
@@ -806,7 +830,7 @@
 
 	var PowerupIDs = __webpack_require__(21);
 	var MapInfo = __webpack_require__(18);
-	var AudioPlayer = __webpack_require__(13);
+	var AudioPlayer = __webpack_require__(14);
 	var Player = __webpack_require__(22);
 	var RemotePlayer = __webpack_require__(24);
 	var Bomb = __webpack_require__(23);
@@ -1384,7 +1408,7 @@
 
 	/* global Phaser, bomberman */
 
-	var AudioPlayer = __webpack_require__(13);
+	var AudioPlayer = __webpack_require__(14);
 	var game = bomberman.game;
 	var level;
 
@@ -1500,7 +1524,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
-	var TextConfigurer = __webpack_require__(14);
+	var TextConfigurer = __webpack_require__(15);
 	var game = bomberman.game;
 
 	var screenWidth = game.width;
@@ -1653,7 +1677,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
-	var TextConfigurer = __webpack_require__(14);
+	var TextConfigurer = __webpack_require__(15);
 	var game = bomberman.game,
 		airconsole = bomberman.airconsole;
 
@@ -1701,17 +1725,17 @@
 		"./entities/player.js": 22,
 		"./entities/remoteplayer.js": 24,
 		"./entities/round_end_animation.js": 25,
-		"./states/boot.js": 12,
+		"./states/boot.js": 13,
 		"./states/game_over.js": 28,
 		"./states/level.js": 20,
-		"./states/lobby.js": 16,
+		"./states/lobby.js": 11,
 		"./states/pending_game.js": 19,
-		"./states/preloader.js": 15,
+		"./states/preloader.js": 16,
 		"./states/stage_select.js": 17,
-		"./util/audio_player.js": 13,
+		"./util/audio_player.js": 14,
 		"./util/powerup_image_keys.js": 26,
 		"./util/powerup_notification_player.js": 27,
-		"./util/text_configurer.js": 14
+		"./util/text_configurer.js": 15
 	};
 	function webpackContext(req) {
 		return __webpack_require__(webpackContextResolve(req));
