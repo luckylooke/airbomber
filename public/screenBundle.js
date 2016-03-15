@@ -59,8 +59,8 @@
 	var airconsole = new AirConsole();
 	bomberman.airconsole = airconsole;
 	bomberman.socket = __webpack_require__(12)(io, game);
-	bomberman.acTools = __webpack_require__(4)(airconsole, 'screen');
 	bomberman.viewMan = new AirConsoleViewManager(airconsole);
+	bomberman.acTools = __webpack_require__(4)(airconsole, bomberman.viewMan, 'screen');
 	bomberman.vmTools = __webpack_require__(3)(bomberman.viewMan, storage);
 
 
@@ -115,7 +115,7 @@
 /***/ function(module, exports) {
 
 	/* global AirConsole */
-	module.exports = function(airconsole, devType){
+	module.exports = function(airconsole, viewMan, devType){
 	    var acTools = {};
 	    
 	    acTools.listeners = {};
@@ -149,7 +149,7 @@
 	    };
 	    acTools.getCurrentView = function(device, cb){
 	      if(device === airconsole.getDeviceId()){
-	        return acTools.currentView;
+	        return viewMan.current_view.self;
 	      }
 	      airconsole.message(device, {listener: 'currentView'});
 	      if(cb)
@@ -198,7 +198,6 @@
 
 	Lobby.prototype = {
 	    init: function () {
-	    	bomberman.acTools.currentView = 'Lobby';
 	        bomberman.vmTools.showWithCbs('lobby');
 		},
 
@@ -269,13 +268,11 @@
 		hostGameAction: function() {
 			socket.emit("host game", {gameId: socket.id});
 			socket.removeAllListeners();
-	      	bomberman.acTools.currentView = 'StageSelect';
 	        game.state.start("StageSelect", true, false);
 		},
 
 		joinGameAction: function(gameId) {
 			socket.removeAllListeners();
-	      	bomberman.acTools.currentView = 'pending';
 	        game.state.start("PendingGame", true, false, null, gameId);
 		}
 	};
@@ -311,7 +308,6 @@
 	  });
 	  socket.on('connect', function(){
 	      console.log('socket server: ', socketServer);
-	      bomberman.acTools.currentView = 'Boot';
 	      game.state.start('Boot');
 	  });
 	  return socket;
@@ -348,7 +344,6 @@
 	        AudioPlayer.initialize();
 	        // if (game.device.desktop) {
 	        game.stage.scale.pageAlignHorizontally = true;
-	        bomberman.acTools.currentView = 'Preloader';
 	        game.state.start('Preloader');
 	        // } else {
 	        //     var text = game.add.text(textXOffset, textYOffset, 'Please run the game on your computer');
@@ -483,7 +478,6 @@
 	    },
 
 	    create: function () {
-	        bomberman.acTools.currentView = 'Lobby';
 	        game.state.start("Lobby");
 	    }
 	};
@@ -515,7 +509,7 @@
 			var arrow_left = document.getElementById('arrow-left');
 			var arrow_right = document.getElementById('arrow-right');
 			var stageSelectElement = document.getElementById('stage-select');
-			var pendingGameElement = document.getElementById('pendingGame');
+			var pendingGameElement = document.getElementById('pending-game');
 			var currentStage = 0;
 			htmlStagesElm.innerHTML = '';
 			
@@ -572,7 +566,6 @@
 		getHandler: function(index) {
 			return function confirmStageSelection(){
 		        socket.emit("select stage", {gameId: socket.id, tilemapName: stages[index].tilemapName});
-	      		bomberman.acTools.currentView = 'pending';
 		        game.state.start("PendingGame", true, false, stages[index].tilemapName, socket.id);
 			};
 		}
@@ -677,10 +670,11 @@
 	    init: function (tilemapName, gameId) {
 	    	var self = this;
 	    	
-	    	acTools.currentView = 'pendingGame';
 			this.htmlPlayersElm = document.getElementById('players');
-			htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
-	        bomberman.vmTools.showWithCbs('pendingGame');
+			if(!htmlPlayerElm){
+				htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
+			}
+	        bomberman.vmTools.showWithCbs('pending-game');
 			this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
 	    	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
 			this.tilemapName = tilemapName;
@@ -705,7 +699,7 @@
 			  	return;
 			  }
 			  pl.connection = false;
-			  if(acTools.currentView === 'pendingGame'){
+			  if(bomberman.viewMan.current_view.self === 'pending-game'){
 			  	self.populateCharacterSquares({players: screen.players});
 			  }
 			};
@@ -810,7 +804,6 @@
 				this.startGameBtn.removeEventListener('click', this.bindedStartGameAction);
 			}
 	    	document.getElementById('leaveGameBtn').removeEventListener("click", this.bindedLeaveGameAction);
-	        bomberman.vmTools.showWithCbs('displayNone');
 		},
 
 		startGame: function(data) {
@@ -876,7 +869,7 @@
 	    gameFrozen: true,
 
 	    init: function (data) {
-	    	acTools.currentView = 'Level';
+	        bomberman.vmTools.showWithCbs('level');
 	        this.tilemapName = data.tilemapName;
 	        this.players = data.players;
 	    },
@@ -975,7 +968,6 @@
 	        var animation = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
 	        animation.beginAnimation(function () {
 	            controllers = {};
-	        	bomberman.acTools.currentView = 'GameOver';
 	            game.state.start("GameOver", true, false, data.gameWinnerColor, false);
 	        });
 	        AudioPlayer.stopMusicSound();
@@ -983,7 +975,6 @@
 
 	    onNoOpponentsLeft: function (data) {
 	        controllers = {};
-	      	bomberman.acTools.currentView = 'GameOver';
 	        game.state.start("GameOver", true, false, null, true);
 	    },
 

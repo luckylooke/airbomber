@@ -7,7 +7,6 @@ module.exports = Lobby;
 
 Lobby.prototype = {
     init: function () {
-    	bomberman.acTools.currentView = 'Lobby';
         bomberman.vmTools.showWithCbs('lobby');
 	},
 
@@ -78,13 +77,11 @@ Lobby.prototype = {
 	hostGameAction: function() {
 		socket.emit("host game", {gameId: socket.id});
 		socket.removeAllListeners();
-      	bomberman.acTools.currentView = 'StageSelect';
         game.state.start("StageSelect", true, false);
 	},
 
 	joinGameAction: function(gameId) {
 		socket.removeAllListeners();
-      	bomberman.acTools.currentView = 'pending';
         game.state.start("PendingGame", true, false, null, gameId);
 	}
 };

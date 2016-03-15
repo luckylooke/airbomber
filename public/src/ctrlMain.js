@@ -18,7 +18,7 @@ var rateLimiter = new RateLimiter(airconsole);
 var viewMan = new AirConsoleViewManager(airconsole);
 var gyro = require('./ctrl/gyro.js')(storage);
 var vmTools = require('./main/vmTools')(viewMan, storage);
-var acTools = require('./main/acTools')(airconsole);
+var acTools = require('./main/acTools')(airconsole, viewMan);
 var bomb = require('./ctrl/bomb')(airconsole, storage);
 
 require('./ctrl/views/welcome')(vmTools, storage, gyro);
@@ -80,7 +80,7 @@ function init() {
       if(from == AirConsole.SCREEN && data.gameState){
         storage.screenView = data.gameState;
         storage.gameState = data.gameState;
-        if(data.gameState === 'Level'){
+        if(data.gameState === 'level'){
           if(storage.controller === 'Gyro'){
             vmTools.showWithCbs("gyro-pad");
           }else{

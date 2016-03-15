@@ -25,7 +25,6 @@ Boot.prototype = {
         AudioPlayer.initialize();
         // if (game.device.desktop) {
         game.stage.scale.pageAlignHorizontally = true;
-        bomberman.acTools.currentView = 'Preloader';
         game.state.start('Preloader');
         // } else {
         //     var text = game.add.text(textXOffset, textYOffset, 'Please run the game on your computer');

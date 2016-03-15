@@ -51,7 +51,7 @@ module.exports = function (vmTools, gyro, storage, rateLimiter, bomb) {
   
   vmTools.cbs['gyro-pad'] = {
     to: function(){
-      if(storage.screenView !== 'Level'){
+      if(storage.screenView !== 'level'){
         vmTools.showWithCbs('welcome');
       }
     }

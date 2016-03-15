@@ -64,7 +64,7 @@
 	var viewMan = new AirConsoleViewManager(airconsole);
 	var gyro = __webpack_require__(1)(storage);
 	var vmTools = __webpack_require__(3)(viewMan, storage);
-	var acTools = __webpack_require__(4)(airconsole);
+	var acTools = __webpack_require__(4)(airconsole, viewMan);
 	var bomb = __webpack_require__(5)(airconsole, storage);
 
 	__webpack_require__(6)(vmTools, storage, gyro);
@@ -126,7 +126,7 @@
 	      if(from == AirConsole.SCREEN && data.gameState){
 	        storage.screenView = data.gameState;
 	        storage.gameState = data.gameState;
-	        if(data.gameState === 'Level'){
+	        if(data.gameState === 'level'){
 	          if(storage.controller === 'Gyro'){
 	            vmTools.showWithCbs("gyro-pad");
 	          }else{
@@ -519,7 +519,7 @@
 /***/ function(module, exports) {
 
 	/* global AirConsole */
-	module.exports = function(airconsole, devType){
+	module.exports = function(airconsole, viewMan, devType){
 	    var acTools = {};
 	    
 	    acTools.listeners = {};
@@ -553,7 +553,7 @@
 	    };
 	    acTools.getCurrentView = function(device, cb){
 	      if(device === airconsole.getDeviceId()){
-	        return acTools.currentView;
+	        return viewMan.current_view.self;
 	      }
 	      airconsole.message(device, {listener: 'currentView'});
 	      if(cb)
@@ -838,7 +838,7 @@
 	  
 	  vmTools.cbs['d-pad'] = {
 	    to: function(){
-	      if(storage.screenView !== 'Level'){
+	      if(storage.screenView !== 'level'){
 	        vmTools.showWithCbs('welcome');
 	      }
 	    }
@@ -902,7 +902,7 @@
 	  
 	  vmTools.cbs['gyro-pad'] = {
 	    to: function(){
-	      if(storage.screenView !== 'Level'){
+	      if(storage.screenView !== 'level'){
 	        vmTools.showWithCbs('welcome');
 	      }
 	    }

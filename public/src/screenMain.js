@@ -13,8 +13,8 @@ var storage = localStorage || {};
 var airconsole = new AirConsole();
 bomberman.airconsole = airconsole;
 bomberman.socket = require('./main/socketSetup')(io, game);
-bomberman.acTools = require('./main/acTools')(airconsole, 'screen');
 bomberman.viewMan = new AirConsoleViewManager(airconsole);
+bomberman.acTools = require('./main/acTools')(airconsole, bomberman.viewMan, 'screen');
 bomberman.vmTools = require('./main/vmTools')(bomberman.viewMan, storage);
 
 

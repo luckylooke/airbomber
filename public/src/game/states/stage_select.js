@@ -20,7 +20,7 @@ StageSelect.prototype = {
 		var arrow_left = document.getElementById('arrow-left');
 		var arrow_right = document.getElementById('arrow-right');
 		var stageSelectElement = document.getElementById('stage-select');
-		var pendingGameElement = document.getElementById('pendingGame');
+		var pendingGameElement = document.getElementById('pending-game');
 		var currentStage = 0;
 		htmlStagesElm.innerHTML = '';
 		
@@ -77,7 +77,6 @@ StageSelect.prototype = {
 	getHandler: function(index) {
 		return function confirmStageSelection(){
 	        socket.emit("select stage", {gameId: socket.id, tilemapName: stages[index].tilemapName});
-      		bomberman.acTools.currentView = 'pending';
 	        game.state.start("PendingGame", true, false, stages[index].tilemapName, socket.id);
 		};
 	}

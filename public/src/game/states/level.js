@@ -50,7 +50,7 @@ Level.prototype = {
     gameFrozen: true,
 
     init: function (data) {
-    	acTools.currentView = 'Level';
+        bomberman.vmTools.showWithCbs('level');
         this.tilemapName = data.tilemapName;
         this.players = data.players;
     },
@@ -149,7 +149,6 @@ Level.prototype = {
         var animation = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
         animation.beginAnimation(function () {
             controllers = {};
-        	bomberman.acTools.currentView = 'GameOver';
             game.state.start("GameOver", true, false, data.gameWinnerColor, false);
         });
         AudioPlayer.stopMusicSound();
@@ -157,7 +156,6 @@ Level.prototype = {
 
     onNoOpponentsLeft: function (data) {
         controllers = {};
-      	bomberman.acTools.currentView = 'GameOver';
         game.state.start("GameOver", true, false, null, true);
     },
 

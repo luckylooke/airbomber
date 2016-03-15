@@ -83,13 +83,16 @@ var lobby = {
         var game = lobby.games[data.gameId];
         if(data.gameId === data.screenId){
             var screens = game.screens;
-            if(screens.length < 2){
+            if(Object.keys(screens).length < 2){
                 delete lobby.games[data.gameId]; 
             }else{
-                // TODO LOGIC
-                // for (var screen in screens) {
-                //     screens[screen]
-                // }
+                for (var screen in screens) {
+                    if(!lobby.games[screen]){
+                        // first available screen game management can be moved to
+                        lobby.games[screen] = lobby.games[data.gameId];
+                        delete lobby.games[data.gameId];
+                    }
+                }
             }
         }else{
         var numPlayersLeft = game.screens[data.screenId].players.length;

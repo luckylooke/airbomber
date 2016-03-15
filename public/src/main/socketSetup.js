@@ -25,7 +25,6 @@ module.exports = function(io, game){
   });
   socket.on('connect', function(){
       console.log('socket server: ', socketServer);
-      bomberman.acTools.currentView = 'Boot';
       game.state.start('Boot');
   });
   return socket;

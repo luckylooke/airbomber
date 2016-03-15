@@ -37,10 +37,11 @@ PendingGame.prototype = {
     init: function (tilemapName, gameId) {
     	var self = this;
     	
-    	acTools.currentView = 'pendingGame';
 		this.htmlPlayersElm = document.getElementById('players');
-		htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
-        bomberman.vmTools.showWithCbs('pendingGame');
+		if(!htmlPlayerElm){
+			htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
+		}
+        bomberman.vmTools.showWithCbs('pending-game');
 		this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
     	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
 		this.tilemapName = tilemapName;
@@ -65,7 +66,7 @@ PendingGame.prototype = {
 		  	return;
 		  }
 		  pl.connection = false;
-		  if(acTools.currentView === 'pendingGame'){
+		  if(bomberman.viewMan.current_view.self === 'pending-game'){
 		  	self.populateCharacterSquares({players: screen.players});
 		  }
 		};
@@ -170,7 +171,6 @@ PendingGame.prototype = {
 			this.startGameBtn.removeEventListener('click', this.bindedStartGameAction);
 		}
     	document.getElementById('leaveGameBtn').removeEventListener("click", this.bindedLeaveGameAction);
-        bomberman.vmTools.showWithCbs('displayNone');
 	},
 
 	startGame: function(data) {

@@ -1,5 +1,5 @@
 /* global AirConsole */
-module.exports = function(airconsole, devType){
+module.exports = function(airconsole, viewMan, devType){
     var acTools = {};
     
     acTools.listeners = {};
@@ -33,7 +33,7 @@ module.exports = function(airconsole, devType){
     };
     acTools.getCurrentView = function(device, cb){
       if(device === airconsole.getDeviceId()){
-        return acTools.currentView;
+        return viewMan.current_view.self;
       }
       airconsole.message(device, {listener: 'currentView'});
       if(cb)

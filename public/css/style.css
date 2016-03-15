@@ -79,7 +79,7 @@ body {
 
 #lobby .airbomber-header .airbomber-text,
 #stage-select .airbomber-header .airbomber-text,
-#pendingGame .airbomber-header .airbomber-text {
+#pending-game .airbomber-header .airbomber-text {
     margin-top: 100px;
     margin-bottom: 10px;
     font-size: 90px;
@@ -92,7 +92,7 @@ body {
     font-family: bombermanFont;
 }
 
-#pendingGame .airbomber-header {
+#pending-game .airbomber-header {
     width: 463px;
     margin: 0 auto;
     color: #FFD34E;
@@ -139,7 +139,7 @@ body {
     margin-left: 30.1%;
 }
 
-#pendingGame {
+#pending-game {
     width: 100%;
     height: 100%;
     -webkit-background-size: cover;
@@ -148,16 +148,16 @@ body {
     background-size: cover;
 }
 
-#pendingGame #players {
+#pending-game #players {
     width: 80%;
     height: 45%;
 }
 
-#pendingGame .player:first-child {
+#pending-game .player:first-child {
     margin-left: 0;
 }
 
-#pendingGame .player {
+#pending-game .player {
     height: 100%;
     background: #3E454C;
     border-radius: 65px;
@@ -167,17 +167,17 @@ body {
     float: left;
 }
 
-#pendingGame .player .player-name {
+#pending-game .player .player-name {
     margin-top: 10%;
     margin-bottom: 10%;
     font-size: 38px;
 }
 
-#pendingGame .player img {
+#pending-game .player img {
     width: 50%;
 }
 
-#pendingGame .pending-game-buttons {
+#pending-game .pending-game-buttons {
     margin-left: 36%;
     margin-top: 5%;
     width: 28%;
@@ -185,7 +185,7 @@ body {
     text-align: center;
 }
 
-#pendingGame .lobby-button {
+#pending-game .lobby-button {
     float: left;
     width: 49%;
     height: 100%;
@@ -195,16 +195,16 @@ body {
     cursor: pointer;
 }
 
-#pendingGame .leave-button {
+#pending-game .leave-button {
     margin-left: 2%;
 }
 
-#pendingGame .start-button {
+#pending-game .start-button {
     background-color: #0082C1;
     border: 1px solid #0082C1;
 }
 
-#pendingGame .leave-button {
+#pending-game .leave-button {
     background-color: #FFC44E;
     border: 1px solid #FFC44E;
 }
