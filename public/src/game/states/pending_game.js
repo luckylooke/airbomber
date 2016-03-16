@@ -22,11 +22,11 @@ acTools.addListener('newPlayer', function newPlayer(device_id, player){
   	if(player.nick){
   		delete player.listener;
   		player.gameId = storage.gameId;
-  		player.screenId = game.screenId;
+  		player.screenId = storage.screenId;
   		player.device_id = device_id;
   		player.connection = true;
-		socket.emit('player enter pending game', player);
 		screen.players[player.nick] = player;
+		socket.emit('player enter pending game', player);
   	}
 });
 
@@ -84,7 +84,7 @@ PendingGame.prototype = {
 			this.minPlayersMessage.classList.remove('hidden');
 		}
 		this.htmlPlayersElm.innerHTML = '';
-		socket.emit("enter pending game", {gameId: storage.gameId, screenId: game.screenId, tilemapName: this.tilemapName});
+		socket.emit("enter pending game", {gameId: storage.gameId, screenId: storage.screenId, tilemapName: this.tilemapName});
 		socket.on("show current players", this.populateCharacterSquares.bind(this));
 		socket.on("player joined", this.playerJoined.bind(this));
 		socket.on("players left", this.playersLeft.bind(this));
@@ -106,7 +106,7 @@ PendingGame.prototype = {
 			newPlayerElm.children[0].innerHTML = player.nick;
         	newPlayerElm.children[1].setAttribute('src', './resource/icon_' + player.color + '.png');
         	newPlayerElm.children[2].innerHTML = 'Type: ' + player.controller; // Controller, Keyboard, Remote, AI..
-        	newPlayerElm.children[3].innerHTML = 'Screen: ' + (player.screenName || game.screenId);
+        	newPlayerElm.children[3].innerHTML = 'Screen: ' + (player.screenName || storage.screenId);
         	newPlayerElm.children[4].innerHTML = 'Connected: ' + !!player.connection;
 			// this.characterImages[playerId] = game.add.image(this.characterSquares[this.numPlayersInGame].position.x + characterOffsetX, 
 			// this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + player.color);
@@ -162,7 +162,7 @@ PendingGame.prototype = {
 
 	leaveGameAction: function() {
 		this.leavingPendingGame();
-		socket.emit("leave pending game", {gameId: storage.gameId, screenId: game.screenId});
+		socket.emit("leave pending game", {gameId: storage.gameId, screenId: storage.screenId});
 		socket.removeAllListeners();
         game.state.start("Lobby");
 	},

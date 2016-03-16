@@ -76,12 +76,15 @@ Lobby.prototype = {
 
 	hostGameAction: function() {
 		bomberman.storage.gameId = socket.id;
-		socket.emit("host game", {gameId: socket.id});
+		bomberman.storage.screenId = socket.id;
 		socket.removeAllListeners();
+		socket.emit("host game", {gameId: socket.id, screenId: socket.id});
         game.state.start("StageSelect", true, false);
 	},
 
 	joinGameAction: function(gameId) {
+		bomberman.storage.gameId = gameId;
+		bomberman.storage.screenId = socket.id;
 		socket.removeAllListeners();
         game.state.start("PendingGame", true, false, null, gameId);
 	}

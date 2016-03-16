@@ -1,7 +1,8 @@
 var DEFAULT_NUM_ROUNDS = 3;
 
-var Game = function (id) {
+var Game = function (id, screenId) {
 	this.state = 'empty',
+	this.master = screenId,
     this.id = id;
 	this.players = {};
 	this.screens = {};
@@ -9,7 +10,7 @@ var Game = function (id) {
 	this.bombs = {};
 	this.numPlayersAlive = 0;
     this.readyRound = [];
-    this.awaiting = false;
+    this.paused = false;
 	this.numRounds = DEFAULT_NUM_ROUNDS;
 	this.currentRound = 1;
 };
@@ -55,7 +56,7 @@ Game.prototype = {
 
 	clearBombs: function() {
 		for(var bombId in this.bombs) {
-			clearTimeout(this.bombs[bombId].explosionTimerId);
+			this.bombs[bombId].explosionTimer.clear();
 		}
 		this.bombs = {};
 	},
@@ -90,28 +91,86 @@ Game.prototype = {
 		return Object.keys(this.players).length;
 	},
 
-	removeScreen: function(id) {
-		delete this.screens[id];
+	pause: function() {
+		this.paused = true;
+	    for(var bombId in this.bombs){
+	        this.bombs[bombId].pause();
+	    }
+	    this.onPauseGame();
 	},
 
-	removePlayer: function(screenId, playerId) {
-		delete this.screens[screenId][playerId];
-		delete this.players[playerId];
+	resume: function() {
+		this.paused = false;
+	    for(var bombId in this.bombs){
+	        this.bombs[bombId].resume();
+	    }
+	    this.onResumeGame();
 	},
 
-	addScreen: function(id) {
-		this.screens[id] = {
+	removeScreen: function removeScreen(screenId) {
+		var screen = this.screens[screenId];
+		for(var nick in screen.players){
+            this.removePlayer(screenId, nick);
+        }
+		delete this.screens[screenId];
+		this.onRemoveScreen(screenId);
+	},
+
+	removePlayer: function removePlayer(screenId, nick) {
+		delete this.screens[screenId][nick];
+		delete this.players[nick];
+		this.onRemovePlayer(screenId, nick);
+	},
+
+	addScreen: function addScreen(screenId) {
+		var screen = {
+			screenId: screenId,
 			players: {}
 		};
+		this.screens[screenId] = screen;
+		this.onAddScreen(screen);
 	},
 
-	addPlayer: function(player) {
+	addPlayer: function addPlayer(player) {
 		if(!this.screens[player.screenId]){
 			return;
 		}
 		this.screens[player.screenId].players[player.nick] = player;
 		this.players[player.nick] = player;
+		this.onAddPlayer(player);
 		return player;
+	},
+	
+	onAddPlayer: function onAddPlayer(player){},
+	onAddScreen: function onAddScreen(screen){},
+	onRemovePlayer: function onRemovePlayer(screenId, playerId){},
+	onRemoveScreen: function onRemoveScreen(screenId){},
+	onPauseGame: function onPauseGame(){},
+	onResumeGame: function onResumeGame(){},
+	
+	asignNotifier: function asignNotifier(notifier){
+		if(typeof notifier !== 'function'){
+			return;
+		}
+		this.onAddPlayer = function notifierOnAddPlayer(player){
+			notifier('add player', player);
+		};
+		this.onAddScreen = function notifierOnAddScreen(screen){
+			notifier('add screen', screen);
+		};
+		this.onRemovePlayer = function notifierOnRemovePlayer(screenId, playerId){
+			notifier('remove player', {screenId: screenId, playerId: playerId});
+		};
+		this.onRemoveScreen = function notifierOnRemoveScreen(screenId){
+			notifier('remove screen', {screenId: screenId});
+		};
+		this.onPauseGame = function notifierOnPauseGame(){
+			notifier('pause game');
+		};
+		this.onResumeGame = function notifierOnResumeGame(){
+			notifier('resume game');
+		};
+		return notifier;
 	}
 };
 

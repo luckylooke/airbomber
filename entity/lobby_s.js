@@ -2,13 +2,17 @@ var Game = require("./game_s");
 var MapInfo = require("./../public/src/game/common/map_info");
 
 var lobby = {
+
+    initialize: function () {
+        lobby.games = {
+            hostSameSlot: new Game('hostSameSlot')
+        };
+        return lobby.games;
+    },
+    
     removeGame: function(socket, gameId){
         delete lobby.games[gameId];
         lobby.broadcastGameStateUpdate(socket);
-    },
-
-    restartlobby: function(data){
-        lobby.games[data.gameId] = new Game();
     },
 
     getNumGames: function () {
@@ -27,18 +31,22 @@ var lobby = {
         socket.broadcast.emit("update games", result);
     },
 
-    initialize: function () {
-        lobby.games['default'] = new Game();
-    },
-
     onEnterlobby: function () {
         lobby.broadcastGameStateUpdate(this);
     },
 
     onHostGame: function (data) {
         this.gameId = data.gameId;
-        lobby.games[data.gameId] = new Game();
-        lobby.games[data.gameId].state = "settingup";
+        this.screenId = data.screenId;
+        var game = new Game(data.gameId, data.screenId),
+            socket = this;
+        game.asignNotifier(function(message, data){
+            socket.broadcast.to(socket.gameId).emit(message, data);
+            socket.emit(message, data);
+        });
+        game.state = "settingup";
+        lobby.games[data.gameId] = game;
+        clearInterval('host lobby.games: ', lobby.games);
         lobby.broadcastGameStateUpdate(this);
     },
 
@@ -50,15 +58,15 @@ var lobby = {
 
     onEnterPendingGame: function (data) {
         var game = lobby.games[data.gameId];
-        game.addScreen(this.screenId);
+        if(!game){
+            return;
+        }
+        game.addScreen(data.screenId);
         this.gameId = data.gameId;
+        this.screenId = data.screenId;
         this.join(data.gameId); // join io room
         this.emit("show current players", {players: game.players});
-        this.broadcast.to(data.gameId).emit("screen joined", {id: this.screenId, color: game.screens[this.screenId].color});
-        // if (game.getNumScreens() >= MapInfo['First'].spawnLocations.length) {
-        //     game.state = "full";
-        //     lobby.broadcastGameStateUpdate(this);
-        // }
+        this.broadcast.to(data.gameId).emit("screen joined", {id: this.screenId});
     },
 
     onPlayerEnterPendingGame: function (data) {
@@ -69,7 +77,6 @@ var lobby = {
         game.addPlayer(data);
         this.emit("show current players", {players: game.players});
         this.broadcast.to(data.gameId).emit("player joined", {players: game.players});
-        console.log(game.tilemapName);
         if (game.getNumScreens() >= MapInfo[game.tilemapName].spawnLocations.length) {
             game.state = "full";
         }
@@ -86,17 +93,22 @@ var lobby = {
             if(Object.keys(screens).length < 2){
                 delete lobby.games[data.gameId]; 
             }else{
-                for (var screen in screens) {
-                    if(!lobby.games[screen]){
+                for (var screenId in screens) {
+                    if(!lobby.games[screenId]){
                         // first available screen game management can be moved to
-                        lobby.games[screen] = lobby.games[data.gameId];
-                        delete lobby.games[data.gameId];
+                        lobby.games[data.gameId].master = this.screenId;
+                        for(var nick in screen.players){
+                            delete game.players[nick];
+                            this.to(this.gameId).emit("remove player", {nick: nick});
+                        }
+                        delete screens[this.screenId];
+                        break;
                     }
                 }
             }
         }else{
-        var numPlayersLeft = game.screens[data.screenId].players.length;
-        game.removeScreen(data.screenId);
+            var numPlayersLeft = game.screens[data.screenId].players.length;
+            game.removeScreen(data.screenId);
             if (game.getNumPlayers() == 0) {
                 game.state = "empty";
             }
@@ -109,7 +121,4 @@ var lobby = {
     }
 };
 
-module.exports = function(games){
-    lobby.games = games;
-    return lobby;
-};
+module.exports = lobby;

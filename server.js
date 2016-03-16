@@ -21,20 +21,18 @@ app.get('/', function (req, res) {
 var io = require("socket.io").listen(server);
 var TILE_SIZE = 35;
 
-var games = {};
-
 var Timer = require("./util/timer");
 var Player = require("./entity/player_s");
 var Bomb = require("./entity/bomb_s");
 var Map = require("./entity/map_s");
 var MapInfo = require("./public/src/game/common/map_info");
-var lobby = require("./entity/lobby_s")(games);
+var lobby = require("./entity/lobby_s");
 var PowerupIDs = require("./public/src/game/common/powerup_ids");
 
 
 var UPDATE_INTERVAL = 100;
 
-lobby.initialize();
+var games = lobby.initialize();
 setEventHandlers();
 setInterval(broadcastingLoop, UPDATE_INTERVAL);
 
@@ -73,25 +71,46 @@ function onSocketDisconnect() {
     } else if (game.state == "settingup") {
         lobby.removeGame(this, this.screenId);
     } else if (game.state == "inprogress") {
-        var screen = game.screens[this.screenId];
-        for(var nick in screen.players){
-            if (nick in game.players) {
-                delete game.players[nick];
-                io.in(this.gameId).emit("remove player", {nick: nick});
+       onPauseGame.bind(this)();
+       io.in(this.gameId).emit("screen disconnected", {screenId: this.screenId});
+    }
+}
+
+function disconnectInprogress(){
+    var game = games[this.gameId];
+     var screen = game.screens[this.screenId];
+     
+     if(this.gameId === this.screenId){
+        var screens = game.screens;
+        if(Object.keys(screens).length < 2){
+            delete lobby.games[this.gameId]; 
+        }else{
+            for (var screenId in screens) {
+                if(!lobby.games[screenId]){
+                    // first available screen game management can be moved to
+                    lobby.games[screenId] = lobby.games[this.gameId];
+                    delete lobby.games[this.gameId];
+                    for(var nick in screen.players){
+                        delete game.players[nick];
+                        io.in(this.gameId).emit("remove player", {nick: nick});
+                    }
+                    delete screens[this.screenId];
+                    break;
+                }
             }
         }
-        
-        // MAY BE DISSABLED FOR DEVELOPEMENT
-        if (game && game.numPlayers < 2) {
-            if (game.numPlayers == 1) {
-                io.in(this.gameId).emit("no opponents left");
-            }
-            terminateExistingGame(this);
+    }
+    
+    // MAY BE DISSABLED FOR DEVELOPEMENT
+    if (game && game.numPlayers < 2) {
+        if (game.numPlayers == 1) {
+            io.in(this.gameId).emit("no opponents left");
         }
-        
-        if (game && game.paused && game.numEndOfRoundAcknowledgements >= game.numPlayers) {
-            game.paused = false;
-        }
+        terminateExistingGame(this);
+    }
+    
+    if (game && game.paused && game.numEndOfRoundAcknowledgements >= game.numPlayers) {
+        game.paused = false;
     }
 }
 
@@ -105,7 +124,6 @@ function terminateExistingGame(socket) {
 function onStartGame(data) {
     var game = games[data.gameId];
     
-    this.gameId = data.gameId;
     games[data.gameId] = game;
     game.state = "inprogress";
     lobby.broadcastGameStateUpdate(this);
@@ -254,21 +272,11 @@ function onReadyForRound() {
 }
 
 function onPauseGame() {
-    var game = games[this.gameId];
-    game.paused = true;
-    for(var bombId in game.bombs){
-        game.bombs[bombId].pause();
-    }
-    io.in(this.gameId).emit("pause game");
+    games[this.gameId].pause();
 }
 
 function onResumeGame() {
-    var game = games[this.gameId];
-    game.paused = false;
-    for(var bombId in game.bombs){
-        game.bombs[bombId].resume();
-    }
-    io.in(this.gameId).emit("resume game");
+    games[this.gameId].resume();
 }
 
 function broadcastingLoop() {

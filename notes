@@ -9,6 +9,7 @@ TODO:
 - bigger level (generated?)
 - Nickname over players
 - screen spectator role
+- https://github.com/socketio/socket.io/issues/1715
 
 Html partials in controller:
 http://www.slant.co/topics/51/compare/
