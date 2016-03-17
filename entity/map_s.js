@@ -34,13 +34,13 @@ Map.prototype = {
 		};
 	},
 
-	placeBombOnGrid: function(x, y) {
+	placeBombOnGrid: function(x, y, bombId) {
 		var col = Math.floor(x / this.tileSize), row = Math.floor(y / this.tileSize);
 		if(this.bombExistsAtLocation(row, col)) {
 			return -1;
 		}
 
-		this.placedBombs[row][col] = 1;
+		this.placedBombs[row][col] = bombId;
 		return {x: col * this.tileSize + this.tileSize / 2, y: row * this.tileSize + this.tileSize / 2};
 	},
 
@@ -53,7 +53,7 @@ Map.prototype = {
 	},
 
 	bombExistsAtLocation: function(row, col) {
-		return this.placedBombs[row][col] == 1;
+		return !!this.placedBombs[row][col];
 	},
 
 	claimPowerup: function(x, y) {

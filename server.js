@@ -15,7 +15,7 @@ server.listen(app.get('port') ,app.get('ip'), function () {
 app.use(express.static(path.join( __dirname, 'public')));
 
 app.get('/', function (req, res) {
-    res.sendFile(__dirname + '/screen.html');
+    res.sendFile(__dirname + '/public/screen.html');
 });
 
 var io = require("socket.io").listen(server);
@@ -41,8 +41,9 @@ function setEventHandlers () {
     io.on("connection", function(socket) {
         // socket === client === screen !!!
         console.log("New screen has connected: " + socket.id);
-        socket.on("move player", onMovePlayer);
         socket.on("disconnect", onSocketDisconnect);
+        socket.on("screen reconnect", onReconnect);
+        socket.on("move player", onMovePlayer);
         socket.on("place bomb", onPlaceBomb);
         socket.on("register map", onRegisterMap);
         socket.on("start game on server", onStartGame);
@@ -142,7 +143,10 @@ function onStartGame(data) {
 }
 
 function onRegisterMap(data) {
-    games[this.gameId].map = new Map(data, TILE_SIZE);
+    if(!games[data.gameId] || games[data.gameId].map){
+        return;
+    }
+    games[data.gameId].map = new Map(data, TILE_SIZE);
 }
 
 function onMovePlayer(clientPlayer) {
@@ -171,7 +175,7 @@ function onPlaceBomb(data) {
         return;
     }
     var bombId = data.id;
-    var normalizedBombLocation = game.map.placeBombOnGrid(data.x, data.y);
+    var normalizedBombLocation = game.map.placeBombOnGrid(data.x, data.y, bombId);
     if(normalizedBombLocation == -1) {
         return;
     }
@@ -277,6 +281,25 @@ function onPauseGame() {
 
 function onResumeGame() {
     games[this.gameId].resume();
+}
+
+function onReconnect(data) {
+    var game = games[data.gameId];
+    if(!game){
+       this.emit('screen reconnected');
+       return;
+    }
+    var screen = game.screens[data.screenId];  
+    this.join(data.gameId);
+    this.gameId = data.gameId;
+    this.screenId = data.screenId;
+    this.emit('screen reconnected', {
+        players: game.players,
+        screenPlayers: screen.players,
+        tilemapName: game.tilemapName,
+        mapData: game.map.mapData,
+        placedBombs: game.map.placedBombs
+    });
 }
 
 function broadcastingLoop() {

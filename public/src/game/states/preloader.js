@@ -75,6 +75,17 @@ Preloader.prototype = {
     },
 
     create: function () {
-        game.state.start("Lobby");
+        if (bomberman.storage[bomberman.device + 'CurrentView']) {
+            switch (bomberman.storage[bomberman.device + 'CurrentView']) {
+                case 'level':
+                    game.state.start("Level");
+                    break;
+                
+                default:
+                    game.state.start("Lobby");
+            }
+        }else{
+            game.state.start("Lobby");
+        }
     }
 };

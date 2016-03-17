@@ -1,6 +1,7 @@
 /* global Phaser, AirConsole, io, AirConsoleViewManager */
 
 // localStorage.debug = '*'; // DEBUGGING socket.io
+// localStorage.clear();
 
 var bomberman = window.bomberman = {}; // namespace in global
 bomberman.bomberElm = document.getElementById('bomber');
@@ -12,12 +13,13 @@ var game = bomberman.game = new Phaser.Game(bomberman.width, bomberman.height, P
 bomberman.screen = {};
 bomberman.level = null;
 bomberman.storage = localStorage || {};
+bomberman.device = 'screen';
 var airconsole = new AirConsole();
 bomberman.airconsole = airconsole;
 bomberman.socket = require('./main/socketSetup')(io, game);
 bomberman.viewMan = new AirConsoleViewManager(airconsole);
-bomberman.acTools = require('./main/acTools')(airconsole, bomberman.viewMan, 'screen');
-bomberman.vmTools = require('./main/vmTools')(bomberman.viewMan, bomberman.storage);
+bomberman.acTools = require('./main/acTools')(airconsole, bomberman.viewMan, bomberman.device);
+bomberman.vmTools = require('./main/vmTools')(bomberman.viewMan, bomberman.storage, bomberman.device);
 
 
 // debug info

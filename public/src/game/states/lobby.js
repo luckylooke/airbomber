@@ -59,13 +59,13 @@ Lobby.prototype = {
         for (var i = 0; i < names.length; i++) {
         	var game = games[names[i]];
 	        var settings = this.stateSettings[game.state];
-	        var callback = (function (gameId) {
+	        var callback = (function (gameId, sett) {
 	            return function(){
-	            	if (settings.callback != null){
-	                	settings.callback(gameId);
+	            	if (sett.callback != null){
+	                	sett.callback(gameId);
 	            	}
 	            };
-	        })(names[i]);
+	        })(names[i], settings);
         	
         	var newGameElm = htmlGameElm.cloneNode(true);
         	newGameElm.innerHTML = settings.text + (game.numOfPlayers ? "(" + game.numOfPlayers +")" : "");

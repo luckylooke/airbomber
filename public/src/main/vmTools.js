@@ -1,4 +1,4 @@
-module.exports = function(viewMan, storage){
+module.exports = function(viewMan, storage, device){
   var vmTools = {};
   vmTools.cbs = {}; // callbacks
   
@@ -8,7 +8,7 @@ module.exports = function(viewMan, storage){
       fromViewCb = vmTools.cbs[fromView],
       toViewCb = vmTools.cbs[toView];
     viewMan.show(toView);
-    storage.currentView = toView;
+    storage[device + 'CurrentView'] = toView;
     if(fromViewCb && fromViewCb.from){
       fromViewCb.from(toView);
     }

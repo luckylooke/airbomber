@@ -53,6 +53,7 @@
 	                    navigator.mozVibrate ||
 	                    navigator.msVibrate);
 
+	var device = 'ctrl'; // controller
 	var storage = localStorage || {};
 	var airconsole = new AirConsole({
 	                      orientation: AirConsole.ORIENTATION_LANDSCAPE,
@@ -63,7 +64,7 @@
 	// viewMan -> https://github.com/AirConsole/airconsole-view-manager
 	var viewMan = new AirConsoleViewManager(airconsole);
 	var gyro = __webpack_require__(1)(storage);
-	var vmTools = __webpack_require__(3)(viewMan, storage);
+	var vmTools = __webpack_require__(3)(viewMan, storage, device);
 	var acTools = __webpack_require__(4)(airconsole, viewMan);
 	var bomb = __webpack_require__(5)(airconsole, storage);
 
@@ -78,8 +79,8 @@
 	function init() {
 	    acTools.getCurrentView(AirConsole.SCREEN, function(data){
 	      storage.screenView = data.currentView;
-	      if(storage.currentView){
-	        vmTools.showWithCbs(storage.currentView);
+	      if(storage[device + 'CurrentView']){
+	        vmTools.showWithCbs(storage[device + 'CurrentView']);
 	      }
 	    });
 	    storage.autoCheckGyro = storage.autoCheckGyro === undefined ? true : storage.autoCheckGyro;
@@ -492,7 +493,7 @@
 /* 3 */
 /***/ function(module, exports) {
 
-	module.exports = function(viewMan, storage){
+	module.exports = function(viewMan, storage, device){
 	  var vmTools = {};
 	  vmTools.cbs = {}; // callbacks
 	  
@@ -502,7 +503,7 @@
 	      fromViewCb = vmTools.cbs[fromView],
 	      toViewCb = vmTools.cbs[toView];
 	    viewMan.show(toView);
-	    storage.currentView = toView;
+	    storage[device + 'CurrentView'] = toView;
 	    if(fromViewCb && fromViewCb.from){
 	      fromViewCb.from(toView);
 	    }
@@ -592,12 +593,12 @@
 	    function bomb(setting) {
 	      airconsole.message(AirConsole.SCREEN, {
 	        listener: 'setBomb',
-	        nick: storage.nickname,
+	        nick: storage.nick,
 	        setting: setting
 	      });
 	      console.log({
 	        listener: 'setBomb',
-	        nick: storage.nickname,
+	        nick: storage.nick,
 	        setting: setting
 	      });
 	    }
@@ -666,7 +667,7 @@
 	      	}
 	    });
 	    document.getElementById('addPlayer').addEventListener('click', addPlayer);
-	    document.getElementById('player_name').value = storage.nickname || '';
+	    document.getElementById('player_name').value = storage.nick || '';
 	    
 	     vmTools.cbs['name-and-color'] = {
 	      from: function(){
@@ -679,7 +680,7 @@
 	    
 	    function addPlayer(){
 	        getPlayerInfo();
-	        // if(storage.color && storage.nickname){
+	        // if(storage.color && storage.nick){
 	        //   if(storage.controller === 'Gyro'){
 	        //     vmTools.showWithCbs("gyro-pad");
 	        //   }else{
@@ -687,11 +688,11 @@
 	        //   }
 	        // }
 	        acTools.addListener('ready', function(from, data){
-	          if(storage.color && storage.nickname && from == AirConsole.SCREEN && storage.gameState === 'pending-game'){
+	          if(storage.color && storage.nick && from == AirConsole.SCREEN && storage.gameState === 'pending-game'){
 	            clearInterval(storage.acInterval);
 	            airconsole.message(AirConsole.SCREEN, {
 	              listener: 'newPlayer',
-	              nick: storage.nickname,
+	              nick: storage.nick,
 	              color: storage.color,
 	              controller: storage.controller
 	            });
@@ -704,7 +705,7 @@
 	    
 	    function getPlayerInfo(){
 	        storage.color = getColor();
-	        storage.nickname = getName();
+	        storage.nick = getName();
 	    }
 	    
 	    function getColor(){
@@ -823,14 +824,14 @@
 	    rateLimiter.message(AirConsole.SCREEN, {
 	      type: 'DPad',
 	      listener: 'movePlayer',
-	      nick: storage.nickname,
+	      nick: storage.nick,
 	      x: dpad.x,
 	      y: dpad.y
 	    });
 	    console.log({
 	      type: 'DPad',
 	      listener: 'movePlayer',
-	      nick: storage.nickname,
+	      nick: storage.nick,
 	      x: dpad.x,
 	      y: dpad.y
 	    });
@@ -893,7 +894,7 @@
 	      triangleRightStyle.display = 'none';
 	    }
 	    
-	    data.nick = storage.nickname;
+	    data.nick = storage.nick;
 	    data.type = 'Gyro';
 	    data.listener = 'movePlayer';
 	    rateLimiter.message(AirConsole.SCREEN, data);

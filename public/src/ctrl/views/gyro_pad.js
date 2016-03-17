@@ -42,7 +42,7 @@ module.exports = function (vmTools, gyro, storage, rateLimiter, bomb) {
       triangleRightStyle.display = 'none';
     }
     
-    data.nick = storage.nickname;
+    data.nick = storage.nick;
     data.type = 'Gyro';
     data.listener = 'movePlayer';
     rateLimiter.message(AirConsole.SCREEN, data);

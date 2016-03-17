@@ -47,6 +47,7 @@
 	/* global Phaser, AirConsole, io, AirConsoleViewManager */
 
 	// localStorage.debug = '*'; // DEBUGGING socket.io
+	// localStorage.clear();
 
 	var bomberman = window.bomberman = {}; // namespace in global
 	bomberman.bomberElm = document.getElementById('bomber');
@@ -58,12 +59,13 @@
 	bomberman.screen = {};
 	bomberman.level = null;
 	bomberman.storage = localStorage || {};
+	bomberman.device = 'screen';
 	var airconsole = new AirConsole();
 	bomberman.airconsole = airconsole;
 	bomberman.socket = __webpack_require__(12)(io, game);
 	bomberman.viewMan = new AirConsoleViewManager(airconsole);
-	bomberman.acTools = __webpack_require__(4)(airconsole, bomberman.viewMan, 'screen');
-	bomberman.vmTools = __webpack_require__(3)(bomberman.viewMan, bomberman.storage);
+	bomberman.acTools = __webpack_require__(4)(airconsole, bomberman.viewMan, bomberman.device);
+	bomberman.vmTools = __webpack_require__(3)(bomberman.viewMan, bomberman.storage, bomberman.device);
 
 
 	// debug info
@@ -90,7 +92,7 @@
 /* 3 */
 /***/ function(module, exports) {
 
-	module.exports = function(viewMan, storage){
+	module.exports = function(viewMan, storage, device){
 	  var vmTools = {};
 	  vmTools.cbs = {}; // callbacks
 	  
@@ -100,7 +102,7 @@
 	      fromViewCb = vmTools.cbs[fromView],
 	      toViewCb = vmTools.cbs[toView];
 	    viewMan.show(toView);
-	    storage.currentView = toView;
+	    storage[device + 'CurrentView'] = toView;
 	    if(fromViewCb && fromViewCb.from){
 	      fromViewCb.from(toView);
 	    }
@@ -252,13 +254,13 @@
 	        for (var i = 0; i < names.length; i++) {
 	        	var game = games[names[i]];
 		        var settings = this.stateSettings[game.state];
-		        var callback = (function (gameId) {
+		        var callback = (function (gameId, sett) {
 		            return function(){
-		            	if (settings.callback != null){
-		                	settings.callback(gameId);
+		            	if (sett.callback != null){
+		                	sett.callback(gameId);
 		            	}
 		            };
-		        })(names[i]);
+		        })(names[i], settings);
 	        	
 	        	var newGameElm = htmlGameElm.cloneNode(true);
 	        	newGameElm.innerHTML = settings.text + (game.numOfPlayers ? "(" + game.numOfPlayers +")" : "");
@@ -484,7 +486,18 @@
 	    },
 
 	    create: function () {
-	        game.state.start("Lobby");
+	        if (bomberman.storage[bomberman.device + 'CurrentView']) {
+	            switch (bomberman.storage[bomberman.device + 'CurrentView']) {
+	                case 'level':
+	                    game.state.start("Level");
+	                    break;
+	                
+	                default:
+	                    game.state.start("Lobby");
+	            }
+	        }else{
+	            game.state.start("Lobby");
+	        }
 	    }
 	};
 
@@ -876,15 +889,27 @@
 	    gameFrozen: true,
 
 	    init: function (data) {
+	        if (!data) {
+	            if (storage.gameId && storage.screenId) {
+	                game.paused = true;
+	                socket.on('screen reconnected', this.onReconnected.bind(this));
+	                socket.emit('screen reconnect', {gameId: storage.gameId, screenId: storage.screenId});
+	            } else {
+	                game.state.start("Lobby");
+	                return;
+	            }
+	        }else{
+	            this.tilemapName = data.tilemapName;
+	            this.players = data.players;
+	        }
 	        bomberman.vmTools.showWithCbs('level');
 	        this.bindedPauseGameAction = this.pauseGameAction.bind(this);
 	    	document.getElementById('pauseGameBtn').addEventListener("click", this.bindedPauseGameAction);
-	        this.tilemapName = data.tilemapName;
-	        this.players = data.players;
 	    },
 
 	    setEventHandlers: function () {
-	        socket.on("disconnect", this.onSocketDisconnect);
+	        socket.on("disconnect", this.onSocketDisconnect.bind(this));
+	        socket.on("reconnected", this.onReconnected.bind(this));
 	        socket.on("move player", this.onMovePlayer.bind(this));
 	        socket.on("remove player", this.onRemovePlayer.bind(this));
 	        socket.on("kill player", this.onKillPlayer.bind(this));
@@ -907,15 +932,16 @@
 	        this.initializeMap();
 
 	        this.bombs = game.add.group();
-	        this.items = {};
 	        game.physics.enable(this.bombs, Phaser.Physics.ARCADE);
-	        game.physics.arcade.enable(this.blockLayer);
+	        this.items = {};
 
 	        this.setEventHandlers();
 	        this.initializePlayers();
 
-	        this.createDimGraphic();
-	        this.beginRoundAnimation("round_1");
+	        if(!game.paused){
+	            this.createDimGraphic();
+	            this.beginRoundAnimation("round_1");
+	        }
 	        //AudioPlayer.playMusicSound();
 			airconsole.broadcast({listener: 'gameState', gameState: 'level'});
 	    },
@@ -982,6 +1008,9 @@
 	    },
 
 	    onPauseGame: function (data) {
+	        if(game.paused){
+	            return;
+	        }
 	        this.createDimGraphic();
 	        this.gameFrozen = true;
 	        game.paused = true;
@@ -989,10 +1018,31 @@
 	    },
 
 	    onResumeGame: function (data) {
-	        this.dimGraphic.destroy();
+	        if(!game.paused){
+	            return;
+	        }
+	        if(this.dimGraphic){
+	            this.dimGraphic.destroy();
+	        }
 	        this.gameFrozen = false;
 	        game.paused = false;
 	        AudioPlayer.playMusicSound();
+	    },
+	    
+	    onReconnected: function (data) {
+	        if(!data){
+	            game.paused = false;
+	            game.state.start("Lobby");
+	            return;
+	        }
+	        this.onPauseGame();
+	        this.tilemapName = data.tilemapName;
+	        this.players = data.players;
+	        screen.players = data.screenPlayers;
+	        this.initializeMap(data.mapData, data.placedBombs);
+	        this.initializePlayers();
+	        socket.emit("resume game", {gameId: storage.gameId, screenId: storage.screenId});
+	        // this.bombs = data.bombs;
 	    },
 
 	    onEndGame: function (data) {
@@ -1089,10 +1139,14 @@
 	    },
 
 	    onSocketDisconnect: function () {
+	        this.onPauseGame();
 	        console.log("Disconnected from socket server.");
 	    },
 
 	    initializePlayers: function () {
+	        if(!this.players){
+	            return;
+	        }
 	        for (var i in this.players) {
 	            var player = this.players[i];
 	            if (player.nick in screen.players) {
@@ -1110,7 +1164,10 @@
 	        this.blockLayer.destroy();
 	    },
 
-	    initializeMap: function () {
+	    initializeMap: function (mapData, placedBombs) {
+	        if(!this.tilemapName){
+	            return;
+	        }
 	        this.map = game.add.tilemap(this.tilemapName);
 	        var mapInfo = MapInfo[this.tilemapName];
 
@@ -1119,17 +1176,32 @@
 	        game.world.addAt(this.groundLayer, 0);
 	        this.groundLayer.resizeWorld();
 	        this.blockLayer = new Phaser.TilemapLayer(game, this.map, this.map.getLayerIndex(mapInfo.blockLayer), game.width, game.height);
+	        game.physics.arcade.enable(this.blockLayer);
 	        game.world.addAt(this.blockLayer, 1);
 	        this.blockLayer.resizeWorld();
 	        this.map.setCollision(mapInfo.collisionTiles, true, mapInfo.blockLayer);
 	        var blockLayerData = game.cache.getTilemapData(this.tilemapName).data.layers[1];
-	        socket.emit("register map", {
-	            tiles: blockLayerData.data,
-	            height: blockLayerData.height,
-	            width: blockLayerData.width,
-	            destructibleTileId: mapInfo.destructibleTileId,
-	            gameId: storage.gameId
-	        });
+	        if(mapData){
+	            for (var y = 0; y < mapData.length; y++) {
+	                var row = mapData[y];
+	                for (var x = 0; x < row.length; x++) {
+	                    if(row[x] === 0){
+	                        this.map.removeTile(x, y, 1);
+	                    }
+	                    if(placedBombs[y][x] != 0){
+	                        this.bombs.add(new Bomb(x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + TILE_SIZE / 2, placedBombs[y][x]));
+	                    }
+	                }
+	            }
+	        }else{
+	            socket.emit("register map", {
+	                tiles: blockLayerData.data,
+	                height: blockLayerData.height,
+	                width: blockLayerData.width,
+	                destructibleTileId: mapInfo.destructibleTileId,
+	                gameId: storage.gameId
+	            });
+	        }
 	    },
 
 	    onMovePlayer: function (remotePlayer) {

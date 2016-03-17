@@ -3,12 +3,14 @@ TODO:
 - game pause
 - BUG: second screen doesnt have stage background because it is skipping stage_select
 - status bar on controller (including nick color score(killed vs deaths) etc..)
+- distinguish game state and screen view, track both
 - local player (keyboard)
 - burnable powerups?
 - fire detonates bombs
 - bigger level (generated?)
 - Nickname over players
 - screen spectator role
+- url detection socket setup (cloud9 url parameter removal, replaced by optional parameter "socketserver")
 - https://github.com/socketio/socket.io/issues/1715
 
 Html partials in controller:

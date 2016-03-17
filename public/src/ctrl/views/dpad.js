@@ -60,14 +60,14 @@ module.exports = function (vmTools, storage, rateLimiter, bomb) {
     rateLimiter.message(AirConsole.SCREEN, {
       type: 'DPad',
       listener: 'movePlayer',
-      nick: storage.nickname,
+      nick: storage.nick,
       x: dpad.x,
       y: dpad.y
     });
     console.log({
       type: 'DPad',
       listener: 'movePlayer',
-      nick: storage.nickname,
+      nick: storage.nick,
       x: dpad.x,
       y: dpad.y
     });

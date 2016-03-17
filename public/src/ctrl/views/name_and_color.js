@@ -24,7 +24,7 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
       	}
     });
     document.getElementById('addPlayer').addEventListener('click', addPlayer);
-    document.getElementById('player_name').value = storage.nickname || '';
+    document.getElementById('player_name').value = storage.nick || '';
     
      vmTools.cbs['name-and-color'] = {
       from: function(){
@@ -37,7 +37,7 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     
     function addPlayer(){
         getPlayerInfo();
-        // if(storage.color && storage.nickname){
+        // if(storage.color && storage.nick){
         //   if(storage.controller === 'Gyro'){
         //     vmTools.showWithCbs("gyro-pad");
         //   }else{
@@ -45,11 +45,11 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
         //   }
         // }
         acTools.addListener('ready', function(from, data){
-          if(storage.color && storage.nickname && from == AirConsole.SCREEN && storage.gameState === 'pending-game'){
+          if(storage.color && storage.nick && from == AirConsole.SCREEN && storage.gameState === 'pending-game'){
             clearInterval(storage.acInterval);
             airconsole.message(AirConsole.SCREEN, {
               listener: 'newPlayer',
-              nick: storage.nickname,
+              nick: storage.nick,
               color: storage.color,
               controller: storage.controller
             });
@@ -62,7 +62,7 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     
     function getPlayerInfo(){
         storage.color = getColor();
-        storage.nickname = getName();
+        storage.nick = getName();
     }
     
     function getColor(){
