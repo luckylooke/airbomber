@@ -11,6 +11,10 @@ body{
 .hidden{
   display:none;
 }
+
+div{
+  font-family: 'Open Sans', sans-serif;
+}
   
 #d-pad, #name-and-color, #gyro-calibration, #gyro-pad{
   display: none;
@@ -21,35 +25,85 @@ body{
     height: 100%;
 }
 
-.name-container{
-  color:white;
+#characterScreen{
+  height: 100%;
+  width: 40%;
+  float: left;
+}
+
+#characterScreen #playerCharacter{
+  height: 65px;
+  width: 32px;
+  margin-left: 44.5%;
+  margin-top: 59%;
+  float: left;
+  background-position: 764px 0px;
+  transform: scale(2,2);
+}
+#playerStats{
+  height: 100%;
+  width: 60%;
+  float: left;
+}
+#playerStats .name-container{
+  margin-top: 35px;
+  color: white;
   height: 10%;
 }
 
-.color-container{
-  height: 80%;
-  margin:0 50px 0 50px;
+#playerStats .colorWrapper{
 }
 
-.color-container .player-color{
+#playerStats .colorWrapper p{
+  margin: 0;
+}
+
+#playerStats .colorWrapper .color-container{
+  height: 30%;
+  width: 80%;
+}
+
+#playerStats .color-container .player-color{
   float: left;
-  height: 45%;
-  width: 24%;
+  height: 50%;
+  width: 25%;
   cursor: pointer;
+}
+
+#playerStats #movementSettings {
+  margin-top: 10px
+}
+
+#playerStats #movementSettings input{
+  width: 20px;
+  height: 20px;
+}
+
+#playerStats #movementSettings label{
+  vertical-align: 5px;
 }
 
 .selected {
   box-sizing:border-box;
-  border:2px solid white;
+  border:2px solid orange;
 }
 
 .play-button{
-  height:10%;
+  color: white;
+  background-color: #167F39;
+  border: 1px solid #167F39;
+  width: 40%;
+  height: 12%;
+  margin-top: 20px;
+  margin-left: 50px;
+  border-radius: 15px;
+  font-size: 27px;
+  cursor: pointer;
 }
 
-.play-button input{
-  display:inherit;
-  margin: 0 auto;
+.play-button:hover{
+  background-color: #044C29;
+  border: 1px solid #044C29;
 }
 
 #my-DPad {

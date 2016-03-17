@@ -2,9 +2,10 @@
 <head>
   <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0" charset="UTF-8"/>
   <link rel="manifest" href="controller/manifest.json">
-  <link rel="stylesheet" href="controller/button/button.css">
-  <link rel="stylesheet" href="controller/dpad/dpad.css">
-  <link rel="stylesheet" href="css/controller.css">
+  <link rel="stylesheet"  href="controller/button/button.css">
+  <link rel="stylesheet"  href="controller/dpad/dpad.css">
+  <link rel="stylesheet"  href="css/controller.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 </head>
 <body onload='initController()'>
   
@@ -14,15 +15,26 @@
   
   <div id="name-and-color" class="view">
     <form>
-      <div class="name-container">
-        Player name: <input type="text" name="player_name" id="player_name">
+      <div id="characterScreen">
+        <div id="playerCharacter"></div>
       </div>
-      <div class="color-container" id="colors">
-       <img class="player-color" src="resource/icon_black.png">
+      <div id="playerStats">
+         <div class="name-container">
+            Name: <input type="text" name="player_name" id="player_name">
+         </div>
+         <div class="colorWrapper">
+           <p>Pick a color:</p>
+           <div class="color-container" id="colors">
+              <div class="player-color"></div>
+           </div>
+           <div id="movementSettings">
+             <input id="dpadSettings" type="checkbox" name="dpadSettings" /> <label for="dpadSettings"> Use DPad</label> <br>
+             *defaut is gyroscope
+           </div>
+         </div>
+            <button id="addPlayer" class="play-button">Ready</button>
       </div>
-      <div class="play-button">
-        <input id="addPlayer" type="button" value="READY">
-      </div>
+     
     </form>
   </div>
 
