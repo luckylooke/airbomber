@@ -8,6 +8,7 @@ module.exports = Lobby;
 Lobby.prototype = {
     init: function () {
         bomberman.vmTools.showWithCbs('lobby');
+        bomberman.airconsole.broadcast({listener: 'gameState', gameState: 'lobby'});
 	},
 
 	create: function() {
