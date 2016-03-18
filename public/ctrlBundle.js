@@ -660,18 +660,23 @@
 	    for (var i = 0; i < colors.length; i++) {
 	    	var color = colors[i];
 	    	newColorElm = colorElm.cloneNode(true);
-	    	newColorElm.setAttribute('src', 'resource/icon_' + color + '.png');
+	    	newColorElm.style.backgroundColor = color;
 	    	if(storage.color === color){
 	    	  newColorElm.classList.add('selected');
 	    	}
 	    	colorsElm.appendChild(newColorElm);
 	    }
 	    
+	    changeCharacterColor();
+	    
 	    document.getElementById('name-and-color').addEventListener('click',function(e){
 	      	var clickedElement = e.target;
 	      	if (clickedElement.classList.contains('player-color')){
 	      	  unselectAll(clickedElement);
 	      	  clickedElement.classList.add('selected');
+	      	  
+	      	  //zmenim character obrazok podla farby
+	      	  changeCharacterColor();
 	      	}
 	    });
 	    document.getElementById('addPlayer').addEventListener('click', addPlayer);
@@ -718,15 +723,10 @@
 	    
 	    function getColor(){
 	        var el = document.getElementsByClassName('selected');
-	        if (el[0]){
-	           var reg = /[a-z]+(?=.png)(?!_)/,
-	              color;
-	           if(el[0].currentSrc)
-	             color = reg.exec(el[0].currentSrc);
-	           else if (el[0].src)
-	             color = reg.exec(el[0].src);
-	        }
-	        return color ? color[0] : '';
+	        
+	           color = el[0].style.backgroundColor;
+	           
+	        return color ? color : '';
 	    }
 	    
 	    function getName(){
@@ -734,9 +734,17 @@
 	    }
 	      
 	    function unselectAll(clickedElement){
+	        
+	        //zmenim character obrazok podla farby
 	        var allCharacters = document.getElementsByClassName(clickedElement.className);
 	        for(var i = 0; i < allCharacters.length; i++)
 	          allCharacters[i].classList.remove('selected');
+	    }
+	    
+	    function changeCharacterColor(){
+	        var character = document.getElementById('playerCharacter');
+	        var characterColor = getColor();
+	        character.style.backgroundImage = "url(resource/bomberman_" + characterColor + ".png)";
 	    }
 	};
 
