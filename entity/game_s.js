@@ -78,10 +78,6 @@ Game.prototype = {
 	getScreensIds: function() {
 		return Object.keys(this.screens);
 	},
-	
-	getPlayersNicks: function() {
-		return Object.keys(this.players);
-	},
 
 	getNumScreens: function() {
 		return Object.keys(this.screens).length;
@@ -125,7 +121,8 @@ Game.prototype = {
 	addScreen: function addScreen(screenId) {
 		var screen = {
 			screenId: screenId,
-			players: {}
+			players: {},
+			master: this.master === screenId
 		};
 		this.screens[screenId] = screen;
 		this.onAddScreen(screen);

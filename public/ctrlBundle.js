@@ -133,6 +133,8 @@
 	          }else{
 	            vmTools.showWithCbs("d-pad");
 	          }
+	        }else{
+	          vmTools.showWithCbs("welcome");
 	        }
 	      }
 	    });
@@ -143,6 +145,12 @@
 	    acTools.addListener('vibrator', function(from, data) {
 	      if (from == AirConsole.SCREEN && data.vibrate) {
 	        navigator.vibrate(data.vibrate);
+	      }
+	    });
+	    
+	    acTools.addListener('reconnect', function(from, data) {
+	      if (from == AirConsole.SCREEN) {
+	        airconsole.message(AirConsole.SCREEN, {listener: 'reconnect', nick: storage.nick});
 	      }
 	    });
 	    

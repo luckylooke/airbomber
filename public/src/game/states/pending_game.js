@@ -19,7 +19,7 @@ acTools.addListener('ready', function(from, data){
 });
 
 acTools.addListener('newPlayer', function newPlayer(device_id, player){
-  	if(player.nick){
+  	if(player.nick && !screen.players[player.nick]){
   		delete player.listener;
   		player.gameId = storage.gameId;
   		player.screenId = storage.screenId;
@@ -56,21 +56,21 @@ PendingGame.prototype = {
 			document.getElementById('minPlayersMessage').classList.add("hidden");
 			document.getElementById('playerDisconnectedMessage').classList.add("hidden");
 		}
-		airconsole.onDisconnect = function(device_id) {
-			var pl;
-		  for(pl in screen.players){
-		  	if(pl.device_id === device_id){
-		  		break;
-		  	}
-		  }
-		  if(!pl){
-		  	return;
-		  }
-		  pl.connection = false;
-		  if(bomberman.viewMan.current_view.self === 'pending-game'){
-		  	self.populateCharacterSquares({players: screen.players});
-		  }
-		};
+		// airconsole.onDisconnect = function(device_id) {
+		// 	var pl;
+		//   for(pl in screen.players){
+		//   	if(pl.device_id === device_id){
+		//   		break;
+		//   	}
+		//   }
+		//   if(!pl){
+		//   	return;
+		//   }
+		//   pl.connection = false;
+		//   if(bomberman.viewMan.current_view.self === 'pending-game'){
+		//   	self.populateCharacterSquares({players: bomberman.players});
+		//   }
+		// };
 	},
 
 	create: function() {
@@ -100,6 +100,7 @@ PendingGame.prototype = {
 		this.numPlayersInGame = 0;
 		this.htmlPlayersElm.innerHTML = '';
 		this.allConnected = true;
+		bomberman.players = data.players;
 		for(var playerId in data.players) {
 			var player = data.players[playerId];
 			var newPlayerElm = htmlPlayerElm.cloneNode(true);

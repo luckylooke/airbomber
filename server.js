@@ -21,6 +21,8 @@ app.get('/', function (req, res) {
 var io = require("socket.io").listen(server);
 var TILE_SIZE = 35;
 
+require("./util/object_assign"); // ES6 object assign polyfill
+
 var Timer = require("./util/timer");
 var Player = require("./entity/player_s");
 var Bomb = require("./entity/bomb_s");
@@ -129,16 +131,15 @@ function onStartGame(data) {
     game.state = "inprogress";
     lobby.broadcastGameStateUpdate(this);
     
-    var nicks = game.getPlayersNicks();
-    for(var i = 0; i < nicks.length; i++) {
-        var nick = nicks[i];
-        var spawnPoint = MapInfo[game.tilemapName].spawnLocations[i];
+    var i = 0;
+    for(var nick in game.players) {
+        var spawnPoint = MapInfo[game.tilemapName].spawnLocations[i++];
         var newPlayer = new Player(spawnPoint.x * TILE_SIZE, spawnPoint.y * TILE_SIZE, "down", nick, game.players[nick].color);
         newPlayer.spawnPoint = spawnPoint;
-        newPlayer.controller = game.players[nick].controller;
+        Object.assign(newPlayer, game.players[nick]);
         game.players[nick] = newPlayer;
     }
-    game.numPlayersAlive = nicks.length;
+    game.numPlayersAlive = i;
     io.in(data.gameId).emit("start game on client", {tilemapName: game.tilemapName, players: game.players});
 }
 

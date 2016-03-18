@@ -94,12 +94,14 @@ var lobby = {
                 delete lobby.games[data.gameId]; 
             }else{
                 for (var screenId in screens) {
-                    if(!lobby.games[screenId]){
-                        // first available screen game management can be moved to
-                        lobby.games[data.gameId].master = this.screenId;
+                    if(!screens[screenId].master){
+                        // first available screen, game management can be moved to
+                        var screen = screens[screenId];
+                        screen.master = true;
+                        lobby.games[data.gameId].master = screenId;
                         for(var nick in screen.players){
                             delete game.players[nick];
-                            this.to(this.gameId).emit("remove player", {nick: nick});
+                            this.to(data.gameId).emit("remove player", {nick: nick});
                         }
                         delete screens[this.screenId];
                         break;

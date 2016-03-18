@@ -1,6 +1,6 @@
 TODO:
-- test all disconnection scenarios
-- game pause
+- game pause reasons collection and resume on all resolved
+- BUG: reconnected controller doesnt come to Dpad nor Gyropad
 - BUG: second screen doesnt have stage background because it is skipping stage_select
 - status bar on controller (including nick color score(killed vs deaths) etc..)
 - distinguish game state and screen view, track both
@@ -12,6 +12,7 @@ TODO:
 - screen spectator role
 - url detection socket setup (cloud9 url parameter removal, replaced by optional parameter "socketserver")
 - https://github.com/socketio/socket.io/issues/1715
+- merge player, controller, screen.player, bomberman.player, Level.player
 
 Html partials in controller:
 http://www.slant.co/topics/51/compare/
