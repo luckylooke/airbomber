@@ -778,6 +778,10 @@
 	        	newPlayerElm.children[3].innerHTML = 'Screen: ' + (player.screenName || storage.screenId);
 	        	newPlayerElm.children[4].innerHTML = 'Connected: ' + player.connection;
 	        	newPlayerElm.children[5].innerHTML = 'Ready: ' + player.ready;
+	        	if(bomberman.masterScreen){
+	        		newPlayerElm.children[6].addEventListener('click', this.kickPlayer.bind(player));
+	        		newPlayerElm.children[6].classList.remove('hidden');
+	        	}
 				// this.characterImages[playerId] = game.add.image(this.characterSquares[this.numPlayersInGame].position.x + characterOffsetX, 
 				// this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + player.color);
 				this.htmlPlayersElm.appendChild(newPlayerElm);
@@ -806,6 +810,11 @@
 		playersLeft: function(data) {
 			this.numPlayersInGame -= data.numPlayersLeft;
 			this.populateCharacterSquares(data);
+		},
+		kickPlayer: function() {
+			delete bomberman.players[this.nick];
+			delete screen.players[this.nick];
+			socket.emit('player leave pending game', this);
 		},
 
 		checkStartConditions: function(showMessages) {

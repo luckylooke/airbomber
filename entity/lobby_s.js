@@ -80,8 +80,22 @@ var lobby = {
         game.addPlayer(data);
         this.emit("show current players", {players: game.players});
         this.broadcast.to(data.gameId).emit("player joined", {players: game.players});
-        if (game.getNumScreens() >= MapInfo[game.tilemapName].spawnLocations.length) {
+        if (game.getNumPlayers() >= MapInfo[game.tilemapName].spawnLocations.length) {
             game.state = "full";
+        }
+        lobby.broadcastGameStateUpdate(this);
+    },
+
+    onPlayerLeavePendingGame: function (data) {
+        var game = lobby.games[data.gameId];
+        if(!game){
+            return;
+        }
+        game.removePlayer(data.screenId, data.nick);
+        this.emit("show current players", {players: game.players});
+        this.broadcast.to(data.gameId).emit("players left", {numPlayersLeft: 1});
+        if (game.state === "full" && game.getNumPlayers() < MapInfo[game.tilemapName].spawnLocations.length) {
+            game.state = "joinable";
         }
         lobby.broadcastGameStateUpdate(this);
     },

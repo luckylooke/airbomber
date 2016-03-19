@@ -56,6 +56,7 @@ function setEventHandlers () {
         socket.on("select stage", lobby.onStageSelect);
         socket.on("enter pending game", lobby.onEnterPendingGame);
         socket.on("player enter pending game", lobby.onPlayerEnterPendingGame);
+        socket.on("player leave pending game", lobby.onPlayerLeavePendingGame);
         socket.on("update player pending game", lobby.onUpdatePlayerPendingGame);
         socket.on("leave pending game", lobby.onLeavePendingGame);
         socket.on("pause game", onPauseGame);
