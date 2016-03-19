@@ -69,6 +69,7 @@ Game.prototype = {
 	},
 
 	resetForNewRound: function() {
+		this.map = false;
 		this.clearBombs();
 		this.resetPlayers();
         this.readyRound = [];

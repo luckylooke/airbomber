@@ -5,6 +5,10 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     var colorElm = colorsElm.children[0];
     var newColorElm;
     
+    if(!storage.color){
+        storage.color = 'black';
+    }
+    
     colorsElm.innerHTML = '';
     for (var i = 0; i < colors.length; i++) {
     	var color = colors[i];
@@ -88,7 +92,10 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     function getColor(){
         var el = document.getElementsByClassName('selected');
         
-           color = el[0].style.backgroundColor;
+        if(!el[0]){
+            return;
+        }
+        color = el[0].style.backgroundColor;
            
         return color ? color : '';
     }

@@ -278,11 +278,15 @@ function onReadyForRound() {
 }
 
 function onPauseGame() {
-    games[this.gameId].pause();
+    if(games[this.gameId]){
+        games[this.gameId].pause();
+    }
 }
 
 function onResumeGame() {
-    games[this.gameId].resume();
+    if(games[this.gameId]){
+        games[this.gameId].pause();
+    }
 }
 
 function onReconnect(data) {
