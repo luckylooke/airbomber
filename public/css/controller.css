@@ -32,12 +32,9 @@ div{
 }
 
 #characterScreen #playerCharacter{
-  height: 65px;
-  width: 32px;
-  margin-left: 44.5%;
-  margin-top: 59%;
-  float: left;
-  background-position: 764px 0px;
+  height: 80px;
+  width: 80px;
+  margin: 50% auto;
   transform: scale(2,2);
 }
 #playerStats{
@@ -96,6 +93,7 @@ div{
   height: 12%;
   margin-top: 20px;
   margin-left: 50px;
+  text-align: center;
   border-radius: 15px;
   font-size: 27px;
   cursor: pointer;

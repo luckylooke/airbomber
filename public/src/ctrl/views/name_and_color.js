@@ -93,6 +93,6 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     function changeCharacterColor(){
         var character = document.getElementById('playerCharacter');
         var characterColor = getColor();
-        character.style.backgroundImage = "url(resource/bomberman_" + characterColor + ".png)";
+        character.style.backgroundImage = "url(resource/icon_" + characterColor + ".png)";
     }
 };
