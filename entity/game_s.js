@@ -1,4 +1,4 @@
-var DEFAULT_NUM_ROUNDS = 3;
+var DEFAULT_NUM_ROUNDS = 1;
 
 var Game = function (id, screenId) {
 	this.state = 'empty',
