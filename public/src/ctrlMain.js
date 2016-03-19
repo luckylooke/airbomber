@@ -33,8 +33,8 @@ require('./ctrl/views/gyro_pad')(vmTools, gyro, storage, rateLimiter, bomb);
 function init() {
     acTools.getCurrentView(AirConsole.SCREEN, function(data){
       storage.screenView = data.currentView;
-      if(storage[device + 'CurrentView']){
-        vmTools.showWithCbs(storage[device + 'CurrentView']);
+      if(storage.ctrlCurrentView){
+        vmTools.showWithCbs(storage.ctrlCurrentView);
       }
     });
     storage.autoCheckGyro = storage.autoCheckGyro === undefined ? true : storage.autoCheckGyro;
@@ -87,6 +87,8 @@ function init() {
           }else{
             vmTools.showWithCbs("d-pad");
           }
+        }else if(data.gameState === 'pending-game' && (storage.ctrlCurrentView === "gyro-pad" || storage.ctrlCurrentView === "d-pad")){
+          vmTools.showWithCbs("welcome");
         }
       }
     });
