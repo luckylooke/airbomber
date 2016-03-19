@@ -452,9 +452,10 @@
 	        this.load.spritesheet("game_slot", "resource/game_slot.png", 522, 48);
 	        this.load.tilemap("GreenField", "assets/levels/GreenField.json", null, Phaser.Tilemap.TILED_JSON);
 	        this.load.tilemap("GreenHell", "assets/levels/GreenHell.json", null, Phaser.Tilemap.TILED_JSON);
-	        // this.load.tilemap("levelTwo", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
+	        this.load.tilemap("DesertGraveyard", "assets/levels/DesertGraveyard.json", null, Phaser.Tilemap.TILED_JSON);
 	        this.load.image("tiles", "resource/tileset.png");
-	        this.load.image("select_stage", "resource/select_stage.png");
+	        this.load.image("desertTiles", "resource/desert-tileset.png");
+	        this.load.image("select_stase", "resource/select_stage.png");
 	        // this.load.image("first_", "assets/levels/thumbnails/danger_desert_thumbnail.png");
 	        // this.load.image("danger_desert_thumbnail", "assets/levels/thumbnails/danger_desert_thumbnail.png");
 	        this.load.image("pending_game_backdrop", "resource/lobby_backdrop.png");
@@ -551,33 +552,36 @@
 	        }
 	        
 	        stageSelectElement.style.backgroundImage = "url(" + completeStages[0].background + ")";
-	        pendingGameElement.style.backgroundImage = "url(" + completeStages[0].background + ")";	
+	        bomberman.selectedStage = completeStages[0];
 	        completeStages[0].classList.remove("hidden");
 			
 			arrow_left.addEventListener('click',function(f){
-			completeStages[currentStage].classList.add("hidden");
-				currentStage--;
-				if(currentStage < 0)
-					currentStage = completeStages.length - 1;
-					
-				stageSelectElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
-				pendingGameElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
-			
-			completeStages[currentStage].classList.remove("hidden");		
+				changeMap('left');
 			})
 			
 			arrow_right.addEventListener('click',function(f){
-				completeStages[currentStage].classList.add("hidden");
-				
-				currentStage++;
-				if(currentStage >= completeStages.length)
-					currentStage = 0;
-					
-				stageSelectElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
-				pendingGameElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
-					
-				completeStages[currentStage].classList.remove("hidden");	
+				changeMap('right');
 			})
+			
+			function changeMap(direction){
+			completeStages[currentStage].classList.add("hidden");
+				
+				if(direction == 'right'){
+					currentStage++;
+					if(currentStage >= completeStages.length)
+					currentStage = 0;
+				}
+				else if (direction == 'left'){
+					currentStage--;
+					if(currentStage < 0)
+					currentStage = completeStages.length - 1;
+				}
+				
+				bomberman.selectedStage = completeStages[currentStage];
+				
+				stageSelectElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
+				completeStages[currentStage].classList.remove("hidden");
+			}
 		},
 
 		update: function() {
@@ -589,6 +593,8 @@
 		        game.state.start("PendingGame", true, false, stages[index].tilemapName, bomberman.storage.gameId);
 			};
 		}
+		
+		
 		
 	};
 
@@ -628,19 +634,19 @@
 			tilesetImage: "tiles",
 			destructibleTileId: 4
 		},
-		Third: {
+		DesertGraveyard: {
 			name: "Desert2",
-			thumbnailFile: "../resource/danger_desert_thumbnail.png",
-			tilemapName: "Third",
+			thumbnailFile: "../resource/desert_graveyard_thumbnail.png",
+			tilemapName: "DesertGraveyard",
 			maxPlayers: 4,
 			size: "Small",
-			background:"../resource/danger_desert_background.png",
-			spawnLocations: [{x: 1, y: 1}, {x: 23, y: 1}, {x: 1, y: 13}, {x: 23, y: 13}],
+			background:"../resource/desert_graveyard_background.png",
+			spawnLocations: [{x: 11, y: 6}, {x: 13, y: 6}, {x: 11, y: 8}, {x: 13, y: 8}],
 			collisionTiles: [3, 4],
 			groundLayer: "Ground",
 			blockLayer: "Blocks",
-			tilesetName: "tiles",
-			tilesetImage: "tiles",
+			tilesetName: "desertTiles",
+			tilesetImage: "desertTiles",
 			destructibleTileId: 4
 		}
 	};
@@ -700,10 +706,14 @@
 			if(!htmlPlayerElm){
 				htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
 			}
+			//sets background for pending-game based on selected stage in stage-select
+			document.getElementById('pending-game').style.backgroundImage = "url(" + bomberman.selectedStage.background + ")";
+			
 	        bomberman.vmTools.showWithCbs('pending-game');
 			this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
 	    	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
 			this.tilemapName = tilemapName;
+			
 			storage.gameId = storage.gameId || gameId || socket.id;
 			storage.screenId = storage.screenId || socket.id;
 			bomberman.masterScreen = storage.gameId === storage.screenId;

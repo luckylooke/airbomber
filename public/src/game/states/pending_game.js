@@ -47,10 +47,14 @@ PendingGame.prototype = {
 		if(!htmlPlayerElm){
 			htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
 		}
+		//sets background for pending-game based on selected stage in stage-select
+		document.getElementById('pending-game').style.backgroundImage = "url(" + bomberman.selectedStage.background + ")";
+		
         bomberman.vmTools.showWithCbs('pending-game');
 		this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
     	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
 		this.tilemapName = tilemapName;
+		
 		storage.gameId = storage.gameId || gameId || socket.id;
 		storage.screenId = storage.screenId || socket.id;
 		bomberman.masterScreen = storage.gameId === storage.screenId;

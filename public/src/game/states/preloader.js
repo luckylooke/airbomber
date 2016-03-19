@@ -40,9 +40,10 @@ Preloader.prototype = {
         this.load.spritesheet("game_slot", "resource/game_slot.png", 522, 48);
         this.load.tilemap("GreenField", "assets/levels/GreenField.json", null, Phaser.Tilemap.TILED_JSON);
         this.load.tilemap("GreenHell", "assets/levels/GreenHell.json", null, Phaser.Tilemap.TILED_JSON);
-        // this.load.tilemap("levelTwo", "assets/levels/Arena_map.json", null, Phaser.Tilemap.TILED_JSON);
+        this.load.tilemap("DesertGraveyard", "assets/levels/DesertGraveyard.json", null, Phaser.Tilemap.TILED_JSON);
         this.load.image("tiles", "resource/tileset.png");
-        this.load.image("select_stage", "resource/select_stage.png");
+        this.load.image("desertTiles", "resource/desert-tileset.png");
+        this.load.image("select_stase", "resource/select_stage.png");
         // this.load.image("first_", "assets/levels/thumbnails/danger_desert_thumbnail.png");
         // this.load.image("danger_desert_thumbnail", "assets/levels/thumbnails/danger_desert_thumbnail.png");
         this.load.image("pending_game_backdrop", "resource/lobby_backdrop.png");
