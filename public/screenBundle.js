@@ -788,7 +788,7 @@
 				if(!player.ready){
 					this.allReady = false;
 				}
-				console.log(player, this.allConnected, this.allReady);
+				// console.log(player, this.allConnected, this.allReady);
 			}
 			if(bomberman.masterScreen){
 				if(this.checkStartConditions()){

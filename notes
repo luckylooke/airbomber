@@ -1,16 +1,20 @@
 TODO:
 - exit game
 - kick player from pending
+- handle all disconnect scenarios on both sides
+- forbid changes when ready
 - game pause reasons collection and resume on all resolved
 - status bar on controller (including nick color score(killed vs deaths) etc..)
 - distinguish game state and screen view, track both
 - local player (keyboard)
+- html partials
 - burnable powerups?
 - fire detonates bombs
 - bigger level (generated?)
 - Nickname over players
 - screen spectator role
 - url detection socket setup (cloud9 url parameter removal, replaced by optional parameter "socketserver")
+- take player photo to use as player icon
 - https://github.com/socketio/socket.io/issues/1715
 - merge player, controller, screen.player, bomberman.player, Level.player
 

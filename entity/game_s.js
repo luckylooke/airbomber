@@ -152,6 +152,11 @@ Game.prototype = {
 			return;
 		}
 		var player = this.screens[playerData.screenId].players[playerData.nick];
+		if(playerData.newNick){
+			player.nick = playerData.newNick;
+			delete playerData.nick;
+			delete playerData.newNick;
+		}
 		Object.assign(player, playerData);
 		this.notifier('update player', player);
 		return player;

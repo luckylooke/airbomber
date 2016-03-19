@@ -5,6 +5,7 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     var colorElm = colorsElm.children[0];
     var newColorElm;
     var ready = false;
+    var tmpNick;
     
     if(!storage.color){
         storage.color = 'black';
@@ -35,7 +36,7 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     });
     document.getElementById('playerReady').addEventListener('click', playerReady);
     document.getElementById('playerNotReady').addEventListener('click', playerNotReady);
-    document.getElementById('player_name').value = storage.nick || '';
+    document.getElementById('player_nick').value = storage.nick || '';
     
      vmTools.cbs['name-and-color'] = {
       from: function(){
@@ -78,6 +79,7 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
           airconsole.message(AirConsole.SCREEN, {
             listener: 'playerReady',
             nick: storage.nick,
+            newNick: tmpNick !== storage.nick ? tmpNick : undefined,
             color: storage.color,
             controller: storage.controller,
             ready: ready
@@ -87,7 +89,12 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     
     function getPlayerData(){
         storage.color = getColor();
-        storage.nick = getName();
+        
+        if(storage.nick){
+            tmpNick = '' + getNick();
+        }else{
+            storage.nick = getNick();
+        }
     }
     
     function getColor(){
@@ -101,8 +108,8 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
         return color ? color : '';
     }
     
-    function getName(){
-        return document.getElementById('player_name').value;
+    function getNick(){
+        return document.getElementById('player_nick').value;
     }
       
     function unselectAll(clickedElement){
