@@ -133,7 +133,7 @@
 	          }else{
 	            vmTools.showWithCbs("d-pad");
 	          }
-	        }else if(data.gameState === 'pending-game' && (storage.ctrlCurrentView === "gyro-pad" || storage.ctrlCurrentView === "d-pad")){
+	        }else if(data.gameState === 'game-over' || (data.gameState === 'pending-game' && (storage.ctrlCurrentView === "gyro-pad" || storage.ctrlCurrentView === "d-pad"))){
 	          vmTools.showWithCbs("welcome");
 	        }
 	      }

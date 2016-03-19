@@ -58,7 +58,7 @@ function setEventHandlers () {
         socket.on("player enter pending game", lobby.onPlayerEnterPendingGame);
         socket.on("player leave pending game", lobby.onPlayerLeavePendingGame);
         socket.on("update player pending game", lobby.onUpdatePlayerPendingGame);
-        socket.on("leave pending game", lobby.onLeavePendingGame);
+        socket.on("leave game", lobby.onLeaveGame);
         socket.on("pause game", onPauseGame);
         socket.on("resume game", onResumeGame);
     });
@@ -72,7 +72,7 @@ function onSocketDisconnect() {
     }
     console.log(game.state);
     if (game.state == "joinable" || game.state == "full") {
-        lobby.onLeavePendingGame.call(this, {screenId: this.screenId, gameId: this.gameId});
+        lobby.onLeaveGame.call(this, {screenId: this.screenId, gameId: this.gameId});
     } else if (game.state == "settingup") {
         lobby.removeGame(this, this.screenId);
     } else if (game.state == "inprogress") {
@@ -111,19 +111,12 @@ function disconnectInprogress(){
         if (game.numPlayers == 1) {
             io.in(this.gameId).emit("no opponents left", game.lastAlivePlayer());
         }
-        terminateExistingGame(this);
+        lobby.removeGame(this, game.id);
     }
     
     if (game && game.paused && game.numEndOfRoundAcknowledgements >= game.numPlayers) {
         game.paused = false;
     }
-}
-
-function terminateExistingGame(socket) {
-    var gameId = socket.gameId;
-    games[gameId].clearBombs();
-    delete games[gameId];
-    lobby.removeGame(socket, gameId);
 }
 
 function onStartGame(data) {
@@ -167,7 +160,6 @@ function onMovePlayer(clientPlayer) {
 }
 
 function onPlaceBomb(data) {
-    var socket = this;
     var gameId = this.gameId;
     var game = games[gameId];
     if(!game || game.paused){
@@ -191,7 +183,7 @@ function onPlaceBomb(data) {
         delete game.bombs[bombId];
         game.map.removeBombFromGrid(data.x, data.y);
 
-        handlePlayerDeath(explosionData.killedPlayers, socket);
+        games[gameId].handlePlayersDeath(explosionData.killedPlayers);
     }, 2000);
     var bomb = new Bomb(normalizedBombLocation.x, normalizedBombLocation.y, bombTimer, TILE_SIZE);
     game.bombs[bombId] = bomb;
@@ -214,58 +206,6 @@ function onPowerupOverlap(data) {
     io.in(this.gameId).emit("powerup acquired", {acquiringPlayerId: player.nick, powerupId: powerup.id, powerupType: powerup.powerupType});
 }
 
-function handlePlayerDeath(deadPlayerNicks, socket) {
-    var gameId = socket.gameId;
-    var game = games[gameId];
-    var tiedWinnerNicks;
-    if (deadPlayerNicks.length > 1 && game.numPlayersAlive - deadPlayerNicks.length == 0) {
-        tiedWinnerNicks = deadPlayerNicks;
-    }
-    deadPlayerNicks.forEach(function(deadPlayerId) {
-        game.players[deadPlayerId].alive = false;
-        io.in(gameId).emit("kill player", {nick: deadPlayerId});
-        game.numPlayersAlive--;
-    }, this);
-
-    // MAY BE DISSABLED FOR DEVELOPEMENT
-    if (game.numPlayersAlive <= 1) {
-        endRound(tiedWinnerNicks, socket);
-    }
-}
-
-function endRound(tiedWinnerIds, socket) {
-    var gameId = socket.gameId;
-    var game = games[gameId];
-    var roundWinnerColors = [];
-    if(tiedWinnerIds) {
-        tiedWinnerIds.forEach(function(tiedWinnerId) {
-            roundWinnerColors.push(game.players[tiedWinnerId].color);
-        });
-    } else {
-        var winner = game.calculateRoundWinner();
-        winner.wins++;
-        roundWinnerColors.push(winner.color);
-    }
-    game.currentRound++;
-    if (game.currentRound > 2) {
-        var gameWinners = game.calculateGameWinners();
-
-        if (gameWinners.length == 1 && (game.currentRound > 3 || gameWinners[0].wins == 2)) {
-            io.in(gameId).emit("end game", {
-                completedRoundNumber: game.currentRound - 1, roundWinnerColors: roundWinnerColors,
-                gameWinner: gameWinners[0]});
-            terminateExistingGame(socket);
-            return;
-        }
-    }
-    game.paused = true;
-    game.resetForNewRound();
-    io.in(gameId).emit("new round", {
-        completedRoundNumber: game.currentRound - 1,
-        roundWinnerColors: roundWinnerColors
-    });
-}
-
 function onReadyForRound() {
     var game = games[this.gameId];
     var screen = game.screens[this.screenId];
@@ -278,15 +218,15 @@ function onReadyForRound() {
     }
 }
 
-function onPauseGame() {
+function onPauseGame(data) {
     if(games[this.gameId]){
         games[this.gameId].pause();
     }
 }
 
-function onResumeGame() {
+function onResumeGame(data) {
     if(games[this.gameId]){
-        games[this.gameId].pause();
+        games[this.gameId].resume();
     }
 }
 

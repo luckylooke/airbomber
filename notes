@@ -1,6 +1,5 @@
 TODO:
-- exit game
-- kick player from pending
+- BUG: exit game on secondary screens
 - handle all disconnect scenarios on both sides
 - forbid changes when ready
 - game pause reasons collection and resume on all resolved
@@ -17,6 +16,7 @@ TODO:
 - take player photo to use as player icon
 - https://github.com/socketio/socket.io/issues/1715
 - merge player, controller, screen.player, bomberman.player, Level.player
+- move game related code from server.js to game class
 
 Html partials in controller:
 http://www.slant.co/topics/51/compare/

@@ -41,8 +41,10 @@ var lobby = {
     onHostGame: function (data) {
         this.gameId = data.gameId;
         this.screenId = data.screenId;
-        var game = new Game(data.gameId, data.screenId),
-            socket = this;
+        var socket = this,
+            game = new Game(data.gameId, data.screenId, function(){
+                lobby.removeGame(socket, data.gameId);
+            });
         game.asignNotifier(function(message, data){
             socket.broadcast.to(socket.gameId).emit(message, data);
             socket.emit(message, data);
@@ -111,11 +113,13 @@ var lobby = {
         lobby.broadcastGameStateUpdate(this);
     },
 
-    onLeavePendingGame: function (data) {
+    onLeaveGame: function (data) {
+        console.log(data, lobby.games);
         if(!data){
             return;
         }
         var game = lobby.games[data.gameId];
+        var numPlayersLeft;
         if(data.gameId === data.screenId){
             var screens = game.screens;
             if(Object.keys(screens).length < 2){
@@ -127,27 +131,20 @@ var lobby = {
                         var screen = screens[screenId];
                         screen.master = true;
                         lobby.games[data.gameId].master = screenId;
-                        for(var nick in screen.players){
-                            delete game.players[nick];
-                            this.to(data.gameId).emit("remove player", {nick: nick});
-                        }
-                        delete screens[this.screenId];
                         break;
                     }
                 }
+                game.removeScreen(data.screenId);
             }
         }else{
-            var numPlayersLeft = game.screens[data.screenId].players.length;
+            numPlayersLeft = game.screens[data.screenId].players.length;
             game.removeScreen(data.screenId);
-            if (game.getNumPlayers() == 0) {
-                game.state = "empty";
-            }
-            if (game.state == "full") {
-                game.state = "joinable";
-            }
+        }
+        if(game.getNumPlayers() < 2){
+            delete lobby.games[data.gameId]; 
         }
         lobby.broadcastGameStateUpdate(this);
-        this.emit("players left", {players: game.players, numPlayersLeft: numPlayersLeft});
+        this.to(data.gameId).emit("players left", {players: game.players, numPlayersLeft: numPlayersLeft});
     }
 };
 

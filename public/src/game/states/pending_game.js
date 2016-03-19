@@ -52,7 +52,7 @@ PendingGame.prototype = {
 		
         bomberman.vmTools.showWithCbs('pending-game');
 		this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
-    	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
+    	document.getElementById('leavePendingGameBtn').addEventListener("click", this.bindedLeaveGameAction);
 		
 		//sets background for pending-game based on selected stage in stage-select
 		document.getElementById('pending-game').style.backgroundImage = "url(" + MapInfo[tilemapName].background + ")";
@@ -207,7 +207,7 @@ PendingGame.prototype = {
 
 	leaveGameAction: function() {
 		this.leavingPendingGame();
-		socket.emit("leave pending game", {gameId: storage.gameId, screenId: storage.screenId});
+		socket.emit("leave game", {gameId: storage.gameId, screenId: storage.screenId});
 		socket.removeAllListeners();
         game.state.start("Lobby");
 	},
@@ -216,7 +216,7 @@ PendingGame.prototype = {
 		if(bomberman.masterScreen){
 			this.startGameBtn.removeEventListener('click', this.bindedStartGameAction);
 		}
-    	document.getElementById('leaveGameBtn').removeEventListener("click", this.bindedLeaveGameAction);
+    	document.getElementById('leavePendingGameBtn').removeEventListener("click", this.bindedLeaveGameAction);
 	},
 
 	startGame: function(data) {

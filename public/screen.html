@@ -12,7 +12,15 @@
     
     <!-- GUIs -->
     <div id="level" class="view">
-        <button type="button" class="lobby-button start-button" id="pauseGameBtn">||</button>
+        <button type="button" id="pauseGameBtn">||</button>
+        <button type="button" id="leaveGameBtn">LEAVE</button>
+        <div id="leave-modal" class="hidden">
+            <div>
+                Really want to leave? <br/>
+                <button type="button" id="yesLeaveModalBtn">YES</button>      
+                <button type="button" id="noLeaveModalBtn">NO</button>
+            </div>
+        </div>
     </div>
     <div id="lobby" class="gui view">
         <div class="airbomber-header">
@@ -64,7 +72,7 @@
         
         <div class="pending-game-buttons">
             <button type="button" class="lobby-button start-button hidden" id="startGameBtn">Start Game</button>
-            <button type="button" class="lobby-button leave-button" id="leaveGameBtn">Leave</button>
+            <button type="button" class="lobby-button leave-button" id="leavePendingGameBtn">Leave</button>
             <div id="minPlayersMessage" class="hidden">Cannot start game without at least two players!</div>
             <div id="playerDisconnectedMessage" class="hidden">Cannot start game with disconnected player!</div>
             <div id="playerNotReadyMessage" class="hidden">Cannot start game with not ready player!</div>

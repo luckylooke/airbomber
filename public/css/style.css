@@ -215,3 +215,18 @@ body {
     width: 100%;
     left: 0;
 }
+
+#leave-modal {
+    position: fixed;
+    top:30%;
+    left:30%;
+    width:40%;
+    height:40%;
+    background: red;
+    text-align: center;
+}
+
+#leave-modal div {
+    display: inline-block;
+    margin-top: 27%;
+}
