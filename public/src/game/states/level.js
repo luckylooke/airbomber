@@ -42,36 +42,6 @@ function setBomb(device_id, data) {
 }
 acTools.addListener('setBomb', setBomb);
 
-airconsole.onDisconnect = function(device_id){
-    console.log('onDisconnect', device_id, bomberman.players);
-    for (var nick in bomberman.players) {
-        var player = bomberman.players[nick];
-        if(player.device_id === device_id && player.screenId === storage.screenId){
-            player.connection = false;
-            socket.emit("pause game", {gameId: storage.gameId, screenId: storage.screenId});
-        }
-    }
-};
-airconsole.onConnect = function(device_id){
-    console.log('onConnect', device_id);
-    airconsole.message(device_id, {listener: 'reconnect'});
-};
-acTools.addListener('reconnect', function(device_id, data){
-    console.log('reconnection: ', data, bomberman);
-    for (var nick in bomberman.players) {
-        console.log('nick: ', nick);
-        if(nick === data.nick){
-            console.log('found so resume');
-            var player = bomberman.players[nick];
-            player.device_id = device_id;
-            player.connection = true;
-            socket.emit("resume game", {gameId: storage.gameId, screenId: storage.screenId});
-        }
-    }
-    console.log('storage.screenCurrentView', storage.screenCurrentView);
-    airconsole.message(device_id, {listener: 'gameState', gameState: storage.screenCurrentView});
-});
-
 module.exports = Level;
 
 Level.prototype = {
@@ -96,6 +66,36 @@ Level.prototype = {
         bomberman.vmTools.showWithCbs('level');
         this.bindedPauseGameAction = this.pauseGameAction.bind(this);
     	document.getElementById('pauseGameBtn').addEventListener("click", this.bindedPauseGameAction);
+    	
+        airconsole.onDisconnect = function(device_id){
+            console.log('onDisconnect', device_id, bomberman.players);
+            for (var nick in bomberman.players) {
+                var player = bomberman.players[nick];
+                if(player.device_id === device_id && player.screenId === storage.screenId){
+                    player.connection = false;
+                    socket.emit("pause game", {gameId: storage.gameId, screenId: storage.screenId});
+                }
+            }
+        };
+        airconsole.onConnect = function(device_id){
+            console.log('onConnect', device_id);
+            airconsole.message(device_id, {listener: 'reconnect'});
+        };
+        acTools.addListener('reconnect', function(device_id, data){
+            console.log('reconnection: ', data, bomberman);
+            for (var nick in bomberman.players) {
+                console.log('nick: ', nick);
+                if(nick === data.nick){
+                    console.log('found so resume');
+                    var player = bomberman.players[nick];
+                    player.device_id = device_id;
+                    player.connection = true;
+                    socket.emit("resume game", {gameId: storage.gameId, screenId: storage.screenId});
+                }
+            }
+            console.log('storage.screenCurrentView', storage.screenCurrentView);
+            airconsole.message(device_id, {listener: 'gameState', gameState: storage.screenCurrentView});
+        });
     },
 
     setEventHandlers: function () {
