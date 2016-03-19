@@ -655,9 +655,10 @@
 
 /***/ },
 /* 19 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	/* global bomberman */
+	var MapInfo = __webpack_require__(18)
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var screen = bomberman.screen;
@@ -706,13 +707,15 @@
 			if(!htmlPlayerElm){
 				htmlPlayerElm = this.htmlPlayersElm.children[0].cloneNode(true);
 			}
-			//sets background for pending-game based on selected stage in stage-select
-			document.getElementById('pending-game').style.backgroundImage = "url(" + bomberman.selectedStage.background + ")";
+			
 			
 	        bomberman.vmTools.showWithCbs('pending-game');
 			this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
 	    	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
 			this.tilemapName = tilemapName;
+			
+			//sets background for pending-game based on selected stage in stage-select
+			document.getElementById('pending-game').style.backgroundImage = "url(" + MapInfo[this.tilemapName].background + ")";
 			
 			storage.gameId = storage.gameId || gameId || socket.id;
 			storage.screenId = storage.screenId || socket.id;
