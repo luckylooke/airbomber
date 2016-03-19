@@ -4,6 +4,7 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     var colorsElm = document.getElementById('colors');
     var colorElm = colorsElm.children[0];
     var newColorElm;
+    var ready = false;
     
     if(!storage.color){
         storage.color = 'black';
@@ -63,12 +64,12 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
             }
           }
         });
-        storage.ready = true;
+        ready = true;
         sendPlayerDataToScreen();
     }
     
     function playerNotReady(){
-        storage.ready = false;
+        ready = false;
         sendPlayerDataToScreen();
     }
     
@@ -79,7 +80,7 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
             nick: storage.nick,
             color: storage.color,
             controller: storage.controller,
-            ready: storage.ready
+            ready: ready
           });
         }
     }

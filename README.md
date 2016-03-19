@@ -2,10 +2,13 @@
 Bomberman clone for airconsole.com contest
 
 Planned features:
-- status bar on controller (including nick color score(killed vs deaths) etc..)
-- local player (keyboard)
-- bigger levels (generated?)
-- Nickname over players
+- status bar on screen
+- status bar on controller
+- local players (keyboard)
+- more levels (generated?)
+- nicknames over players
+- better graphics
+- etc...
 
 Sources:
 Starting point of this open project was here:
