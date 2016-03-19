@@ -8,6 +8,7 @@ module.exports = Lobby;
 Lobby.prototype = {
     init: function () {
         bomberman.vmTools.showWithCbs('lobby');
+        bomberman.airconsole.broadcast({listener: 'gameState', gameState: 'lobby'});
 	},
 
 	create: function() {
@@ -59,13 +60,13 @@ Lobby.prototype = {
         for (var i = 0; i < names.length; i++) {
         	var game = games[names[i]];
 	        var settings = this.stateSettings[game.state];
-	        var callback = (function (gameId) {
+	        var callback = (function (gameId, sett) {
 	            return function(){
-	            	if (settings.callback != null){
-	                	settings.callback(gameId);
+	            	if (sett.callback != null){
+	                	sett.callback(gameId);
 	            	}
 	            };
-	        })(names[i]);
+	        })(names[i], settings);
         	
         	var newGameElm = htmlGameElm.cloneNode(true);
         	newGameElm.innerHTML = settings.text + (game.numOfPlayers ? "(" + game.numOfPlayers +")" : "");
@@ -76,12 +77,15 @@ Lobby.prototype = {
 
 	hostGameAction: function() {
 		bomberman.storage.gameId = socket.id;
-		socket.emit("host game", {gameId: socket.id});
+		bomberman.storage.screenId = socket.id;
 		socket.removeAllListeners();
+		socket.emit("host game", {gameId: socket.id, screenId: socket.id});
         game.state.start("StageSelect", true, false);
 	},
 
 	joinGameAction: function(gameId) {
+		bomberman.storage.gameId = gameId;
+		bomberman.storage.screenId = socket.id;
 		socket.removeAllListeners();
         game.state.start("PendingGame", true, false, null, gameId);
 	}

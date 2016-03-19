@@ -1,15 +1,16 @@
 var DEFAULT_NUM_ROUNDS = 3;
 
-var Game = function (id) {
+var Game = function (id, screenId) {
 	this.state = 'empty',
+	this.master = screenId,
     this.id = id;
 	this.players = {};
 	this.screens = {};
-	this.map = {};
+	this.map = false;
 	this.bombs = {};
 	this.numPlayersAlive = 0;
     this.readyRound = [];
-    this.awaiting = false;
+    this.paused = false;
 	this.numRounds = DEFAULT_NUM_ROUNDS;
 	this.currentRound = 1;
 };
@@ -55,7 +56,7 @@ Game.prototype = {
 
 	clearBombs: function() {
 		for(var bombId in this.bombs) {
-			clearTimeout(this.bombs[bombId].explosionTimerId);
+			this.bombs[bombId].explosionTimer.clear();
 		}
 		this.bombs = {};
 	},
@@ -77,10 +78,6 @@ Game.prototype = {
 	getScreensIds: function() {
 		return Object.keys(this.screens);
 	},
-	
-	getPlayersNicks: function() {
-		return Object.keys(this.players);
-	},
 
 	getNumScreens: function() {
 		return Object.keys(this.screens).length;
@@ -90,28 +87,75 @@ Game.prototype = {
 		return Object.keys(this.players).length;
 	},
 
-	removeScreen: function(id) {
-		delete this.screens[id];
+	pause: function() {
+		this.paused = true;
+	    for(var bombId in this.bombs){
+	        this.bombs[bombId].pause();
+	    }
+	    this.notifier('pause game');
 	},
 
-	removePlayer: function(screenId, playerId) {
-		delete this.screens[screenId][playerId];
-		delete this.players[playerId];
+	resume: function() {
+		this.paused = false;
+	    for(var bombId in this.bombs){
+	        this.bombs[bombId].resume();
+	    }
+	    this.notifier('resume game');
 	},
 
-	addScreen: function(id) {
-		this.screens[id] = {
-			players: {}
+	removeScreen: function removeScreen(screenId) {
+		var screen = this.screens[screenId];
+		for(var nick in screen.players){
+            this.removePlayer(screenId, nick);
+        }
+		delete this.screens[screenId];
+		this.notifier('remove screen', {screenId: screenId});
+	},
+
+	removePlayer: function removePlayer(screenId, nick) {
+		delete this.screens[screenId][nick];
+		delete this.players[nick];
+		this.notifier('remove player', {screenId: screenId, nick: nick});
+	},
+
+	addScreen: function addScreen(screenId) {
+		var screen = {
+			screenId: screenId,
+			players: {},
+			master: this.master === screenId
 		};
+		this.screens[screenId] = screen;
+		this.notifier('add screen', screen);
 	},
 
-	addPlayer: function(player) {
+	addPlayer: function addPlayer(player) {
 		if(!this.screens[player.screenId]){
 			return;
 		}
 		this.screens[player.screenId].players[player.nick] = player;
 		this.players[player.nick] = player;
+		this.notifier('add player', player);
 		return player;
+	},
+
+	updatePlayer: function updatePlayer(playerData) {
+		if(!this.screens[playerData.screenId]){
+			return;
+		}
+		var player = this.screens[playerData.screenId].players[playerData.nick];
+		Object.assign(player, playerData);
+		this.notifier('update player', player);
+		return player;
+	},
+	
+	notifier: function gameNotifier(message, data){},
+	
+	asignNotifier: function asignNotifier(notifier){
+		if(typeof notifier !== 'function'){
+			return;
+		}
+		this.notifier = notifier;
+		return notifier;
 	}
 };
 

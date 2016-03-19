@@ -42,6 +42,36 @@ function setBomb(device_id, data) {
 }
 acTools.addListener('setBomb', setBomb);
 
+airconsole.onDisconnect = function(device_id){
+    console.log('onDisconnect', device_id, bomberman.players);
+    for (var nick in bomberman.players) {
+        var player = bomberman.players[nick];
+        if(player.device_id === device_id && player.screenId === storage.screenId){
+            player.connection = false;
+            socket.emit("pause game", {gameId: storage.gameId, screenId: storage.screenId});
+        }
+    }
+};
+airconsole.onConnect = function(device_id){
+    console.log('onConnect', device_id);
+    airconsole.message(device_id, {listener: 'reconnect'});
+};
+acTools.addListener('reconnect', function(device_id, data){
+    console.log('reconnection: ', data, bomberman);
+    for (var nick in bomberman.players) {
+        console.log('nick: ', nick);
+        if(nick === data.nick){
+            console.log('found so resume');
+            var player = bomberman.players[nick];
+            player.device_id = device_id;
+            player.connection = true;
+            socket.emit("resume game", {gameId: storage.gameId, screenId: storage.screenId});
+        }
+    }
+    console.log('storage.screenCurrentView', storage.screenCurrentView);
+    airconsole.message(device_id, {listener: 'gameState', gameState: storage.screenCurrentView});
+});
+
 module.exports = Level;
 
 Level.prototype = {
@@ -50,15 +80,27 @@ Level.prototype = {
     gameFrozen: true,
 
     init: function (data) {
+        if (!data) {
+            if (storage.gameId && storage.screenId) {
+                game.paused = true;
+                socket.on('screen reconnected', this.onReconnected.bind(this));
+                socket.emit('screen reconnect', {gameId: storage.gameId, screenId: storage.screenId});
+            } else {
+                game.state.start("Lobby");
+                return;
+            }
+        }else{
+            this.tilemapName = data.tilemapName;
+            bomberman.players = this.players = data.players;
+        }
         bomberman.vmTools.showWithCbs('level');
         this.bindedPauseGameAction = this.pauseGameAction.bind(this);
     	document.getElementById('pauseGameBtn').addEventListener("click", this.bindedPauseGameAction);
-        this.tilemapName = data.tilemapName;
-        this.players = data.players;
     },
 
     setEventHandlers: function () {
-        socket.on("disconnect", this.onSocketDisconnect);
+        socket.on("disconnect", this.onSocketDisconnect.bind(this));
+        socket.on("reconnected", this.onReconnected.bind(this));
         socket.on("move player", this.onMovePlayer.bind(this));
         socket.on("remove player", this.onRemovePlayer.bind(this));
         socket.on("kill player", this.onKillPlayer.bind(this));
@@ -81,15 +123,16 @@ Level.prototype = {
         this.initializeMap();
 
         this.bombs = game.add.group();
-        this.items = {};
         game.physics.enable(this.bombs, Phaser.Physics.ARCADE);
-        game.physics.arcade.enable(this.blockLayer);
+        this.items = {};
 
         this.setEventHandlers();
         this.initializePlayers();
 
-        this.createDimGraphic();
-        this.beginRoundAnimation("round_1");
+        if(!game.paused){
+            this.createDimGraphic();
+            this.beginRoundAnimation("round_1");
+        }
         //AudioPlayer.playMusicSound();
 		airconsole.broadcast({listener: 'gameState', gameState: 'level'});
     },
@@ -156,6 +199,9 @@ Level.prototype = {
     },
 
     onPauseGame: function (data) {
+        if(game.paused){
+            return;
+        }
         this.createDimGraphic();
         this.gameFrozen = true;
         game.paused = true;
@@ -163,10 +209,30 @@ Level.prototype = {
     },
 
     onResumeGame: function (data) {
-        this.dimGraphic.destroy();
+        if(!game.paused){
+            return;
+        }
+        if(this.dimGraphic){
+            this.dimGraphic.destroy();
+        }
         this.gameFrozen = false;
         game.paused = false;
         AudioPlayer.playMusicSound();
+    },
+    
+    onReconnected: function (data) {
+        if(!data){
+            game.paused = false;
+            game.state.start("Lobby");
+            return;
+        }
+        this.onPauseGame();
+        this.tilemapName = data.tilemapName;
+        bomberman.players = this.players = data.players;
+        screen.players = data.screenPlayers;
+        this.initializeMap(data.mapData, data.placedBombs);
+        this.initializePlayers();
+        socket.emit("resume game", {gameId: storage.gameId, screenId: storage.screenId});
     },
 
     onEndGame: function (data) {
@@ -263,10 +329,14 @@ Level.prototype = {
     },
 
     onSocketDisconnect: function () {
+        this.onPauseGame();
         console.log("Disconnected from socket server.");
     },
 
     initializePlayers: function () {
+        if(!this.players){
+            return;
+        }
         for (var i in this.players) {
             var player = this.players[i];
             if (player.nick in screen.players) {
@@ -284,7 +354,10 @@ Level.prototype = {
         this.blockLayer.destroy();
     },
 
-    initializeMap: function () {
+    initializeMap: function (mapData, placedBombs) {
+        if(!this.tilemapName){
+            return;
+        }
         this.map = game.add.tilemap(this.tilemapName);
         var mapInfo = MapInfo[this.tilemapName];
 
@@ -293,17 +366,32 @@ Level.prototype = {
         game.world.addAt(this.groundLayer, 0);
         this.groundLayer.resizeWorld();
         this.blockLayer = new Phaser.TilemapLayer(game, this.map, this.map.getLayerIndex(mapInfo.blockLayer), game.width, game.height);
+        game.physics.arcade.enable(this.blockLayer);
         game.world.addAt(this.blockLayer, 1);
         this.blockLayer.resizeWorld();
         this.map.setCollision(mapInfo.collisionTiles, true, mapInfo.blockLayer);
         var blockLayerData = game.cache.getTilemapData(this.tilemapName).data.layers[1];
-        socket.emit("register map", {
-            tiles: blockLayerData.data,
-            height: blockLayerData.height,
-            width: blockLayerData.width,
-            destructibleTileId: mapInfo.destructibleTileId,
-            gameId: storage.gameId
-        });
+        if(mapData){
+            for (var y = 0; y < mapData.length; y++) {
+                var row = mapData[y];
+                for (var x = 0; x < row.length; x++) {
+                    if(row[x] === 0){
+                        this.map.removeTile(x, y, 1);
+                    }
+                    if(placedBombs[y][x] != 0){
+                        this.bombs.add(new Bomb(x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + TILE_SIZE / 2, placedBombs[y][x]));
+                    }
+                }
+            }
+        }else{
+            socket.emit("register map", {
+                tiles: blockLayerData.data,
+                height: blockLayerData.height,
+                width: blockLayerData.width,
+                destructibleTileId: mapInfo.destructibleTileId,
+                gameId: storage.gameId
+            });
+        }
     },
 
     onMovePlayer: function (remotePlayer) {

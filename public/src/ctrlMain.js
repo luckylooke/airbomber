@@ -7,6 +7,7 @@ navigator.vibrate = (navigator.vibrate ||
                     navigator.mozVibrate ||
                     navigator.msVibrate);
 
+var device = 'ctrl'; // controller
 var storage = localStorage || {};
 var airconsole = new AirConsole({
                       orientation: AirConsole.ORIENTATION_LANDSCAPE,
@@ -17,7 +18,7 @@ var rateLimiter = new RateLimiter(airconsole);
 // viewMan -> https://github.com/AirConsole/airconsole-view-manager
 var viewMan = new AirConsoleViewManager(airconsole);
 var gyro = require('./ctrl/gyro.js')(storage);
-var vmTools = require('./main/vmTools')(viewMan, storage);
+var vmTools = require('./main/vmTools')(viewMan, storage, device);
 var acTools = require('./main/acTools')(airconsole, viewMan);
 var bomb = require('./ctrl/bomb')(airconsole, storage);
 
@@ -32,8 +33,8 @@ require('./ctrl/views/gyro_pad')(vmTools, gyro, storage, rateLimiter, bomb);
 function init() {
     acTools.getCurrentView(AirConsole.SCREEN, function(data){
       storage.screenView = data.currentView;
-      if(storage.currentView){
-        vmTools.showWithCbs(storage.currentView);
+      if(storage[device + 'CurrentView']){
+        vmTools.showWithCbs(storage[device + 'CurrentView']);
       }
     });
     storage.autoCheckGyro = storage.autoCheckGyro === undefined ? true : storage.autoCheckGyro;
@@ -96,6 +97,13 @@ function init() {
     acTools.addListener('vibrator', function(from, data) {
       if (from == AirConsole.SCREEN && data.vibrate) {
         navigator.vibrate(data.vibrate);
+      }
+    });
+    
+    acTools.addListener('reconnect', function(from, data) {
+      if (from == AirConsole.SCREEN) {
+        airconsole.message(AirConsole.SCREEN, {listener: 'reconnect', nick: storage.nick});
+        airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
       }
     });
     

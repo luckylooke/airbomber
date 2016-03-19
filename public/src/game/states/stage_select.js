@@ -42,33 +42,36 @@ StageSelect.prototype = {
         }
         
         stageSelectElement.style.backgroundImage = "url(" + completeStages[0].background + ")";
-        pendingGameElement.style.backgroundImage = "url(" + completeStages[0].background + ")";	
+        bomberman.selectedStage = completeStages[0];
         completeStages[0].classList.remove("hidden");
 		
 		arrow_left.addEventListener('click',function(f){
-		completeStages[currentStage].classList.add("hidden");
-			currentStage--;
-			if(currentStage < 0)
-				currentStage = completeStages.length - 1;
-				
-			stageSelectElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
-			pendingGameElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
-		
-		completeStages[currentStage].classList.remove("hidden");		
+			changeMap('left');
 		})
 		
 		arrow_right.addEventListener('click',function(f){
-			completeStages[currentStage].classList.add("hidden");
-			
-			currentStage++;
-			if(currentStage >= completeStages.length)
-				currentStage = 0;
-				
-			stageSelectElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
-			pendingGameElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
-				
-			completeStages[currentStage].classList.remove("hidden");	
+			changeMap('right');
 		})
+		
+		function changeMap(direction){
+		completeStages[currentStage].classList.add("hidden");
+			
+			if(direction == 'right'){
+				currentStage++;
+				if(currentStage >= completeStages.length)
+				currentStage = 0;
+			}
+			else if (direction == 'left'){
+				currentStage--;
+				if(currentStage < 0)
+				currentStage = completeStages.length - 1;
+			}
+			
+			bomberman.selectedStage = completeStages[currentStage];
+			
+			stageSelectElement.style.backgroundImage = "url(" + completeStages[currentStage].background + ")";	
+			completeStages[currentStage].classList.remove("hidden");
+		}
 	},
 
 	update: function() {
@@ -80,5 +83,7 @@ StageSelect.prototype = {
 	        game.state.start("PendingGame", true, false, stages[index].tilemapName, bomberman.storage.gameId);
 		};
 	}
+	
+	
 	
 };

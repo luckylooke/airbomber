@@ -29,19 +29,19 @@ var MapInfo = {
 		tilesetImage: "tiles",
 		destructibleTileId: 4
 	},
-	Third: {
+	DesertGraveyard: {
 		name: "Desert2",
-		thumbnailFile: "../resource/danger_desert_thumbnail.png",
-		tilemapName: "Third",
+		thumbnailFile: "../resource/desert_graveyard_thumbnail.png",
+		tilemapName: "DesertGraveyard",
 		maxPlayers: 4,
 		size: "Small",
-		background:"../resource/danger_desert_background.png",
-		spawnLocations: [{x: 1, y: 1}, {x: 23, y: 1}, {x: 1, y: 13}, {x: 23, y: 13}],
+		background:"../resource/desert_graveyard_background.png",
+		spawnLocations: [{x: 11, y: 6}, {x: 13, y: 6}, {x: 11, y: 8}, {x: 13, y: 8}],
 		collisionTiles: [3, 4],
 		groundLayer: "Ground",
 		blockLayer: "Blocks",
-		tilesetName: "tiles",
-		tilesetImage: "tiles",
+		tilesetName: "desertTiles",
+		tilesetImage: "desertTiles",
 		destructibleTileId: 4
 	}
 };

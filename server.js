@@ -15,26 +15,26 @@ server.listen(app.get('port') ,app.get('ip'), function () {
 app.use(express.static(path.join( __dirname, 'public')));
 
 app.get('/', function (req, res) {
-    res.sendFile(__dirname + '/screen.html');
+    res.sendFile(__dirname + '/public/screen.html');
 });
 
 var io = require("socket.io").listen(server);
 var TILE_SIZE = 35;
 
-var games = {};
+require("./util/object_assign"); // ES6 object assign polyfill
 
 var Timer = require("./util/timer");
 var Player = require("./entity/player_s");
 var Bomb = require("./entity/bomb_s");
 var Map = require("./entity/map_s");
 var MapInfo = require("./public/src/game/common/map_info");
-var lobby = require("./entity/lobby_s")(games);
+var lobby = require("./entity/lobby_s");
 var PowerupIDs = require("./public/src/game/common/powerup_ids");
 
 
 var UPDATE_INTERVAL = 100;
 
-lobby.initialize();
+var games = lobby.initialize();
 setEventHandlers();
 setInterval(broadcastingLoop, UPDATE_INTERVAL);
 
@@ -43,8 +43,9 @@ function setEventHandlers () {
     io.on("connection", function(socket) {
         // socket === client === screen !!!
         console.log("New screen has connected: " + socket.id);
-        socket.on("move player", onMovePlayer);
         socket.on("disconnect", onSocketDisconnect);
+        socket.on("screen reconnect", onReconnect);
+        socket.on("move player", onMovePlayer);
         socket.on("place bomb", onPlaceBomb);
         socket.on("register map", onRegisterMap);
         socket.on("start game on server", onStartGame);
@@ -55,6 +56,7 @@ function setEventHandlers () {
         socket.on("select stage", lobby.onStageSelect);
         socket.on("enter pending game", lobby.onEnterPendingGame);
         socket.on("player enter pending game", lobby.onPlayerEnterPendingGame);
+        socket.on("update player pending game", lobby.onUpdatePlayerPendingGame);
         socket.on("leave pending game", lobby.onLeavePendingGame);
         socket.on("pause game", onPauseGame);
         socket.on("resume game", onResumeGame);
@@ -73,25 +75,46 @@ function onSocketDisconnect() {
     } else if (game.state == "settingup") {
         lobby.removeGame(this, this.screenId);
     } else if (game.state == "inprogress") {
-        var screen = game.screens[this.screenId];
-        for(var nick in screen.players){
-            if (nick in game.players) {
-                delete game.players[nick];
-                io.in(this.gameId).emit("remove player", {nick: nick});
+       onPauseGame.bind(this)();
+       io.in(this.gameId).emit("screen disconnected", {screenId: this.screenId});
+    }
+}
+
+function disconnectInprogress(){
+    var game = games[this.gameId];
+     var screen = game.screens[this.screenId];
+     
+     if(this.gameId === this.screenId){
+        var screens = game.screens;
+        if(Object.keys(screens).length < 2){
+            delete lobby.games[this.gameId]; 
+        }else{
+            for (var screenId in screens) {
+                if(!lobby.games[screenId]){
+                    // first available screen game management can be moved to
+                    lobby.games[screenId] = lobby.games[this.gameId];
+                    delete lobby.games[this.gameId];
+                    for(var nick in screen.players){
+                        delete game.players[nick];
+                        io.in(this.gameId).emit("remove player", {nick: nick});
+                    }
+                    delete screens[this.screenId];
+                    break;
+                }
             }
         }
-        
-        // MAY BE DISSABLED FOR DEVELOPEMENT
-        if (game && game.numPlayers < 2) {
-            if (game.numPlayers == 1) {
-                io.in(this.gameId).emit("no opponents left");
-            }
-            terminateExistingGame(this);
+    }
+    
+    // MAY BE DISSABLED FOR DEVELOPEMENT
+    if (game && game.numPlayers < 2) {
+        if (game.numPlayers == 1) {
+            io.in(this.gameId).emit("no opponents left");
         }
-        
-        if (game && game.paused && game.numEndOfRoundAcknowledgements >= game.numPlayers) {
-            game.paused = false;
-        }
+        terminateExistingGame(this);
+    }
+    
+    if (game && game.paused && game.numEndOfRoundAcknowledgements >= game.numPlayers) {
+        game.paused = false;
     }
 }
 
@@ -105,26 +128,27 @@ function terminateExistingGame(socket) {
 function onStartGame(data) {
     var game = games[data.gameId];
     
-    this.gameId = data.gameId;
     games[data.gameId] = game;
     game.state = "inprogress";
     lobby.broadcastGameStateUpdate(this);
     
-    var nicks = game.getPlayersNicks();
-    for(var i = 0; i < nicks.length; i++) {
-        var nick = nicks[i];
-        var spawnPoint = MapInfo[game.tilemapName].spawnLocations[i];
+    var i = 0;
+    for(var nick in game.players) {
+        var spawnPoint = MapInfo[game.tilemapName].spawnLocations[i++];
         var newPlayer = new Player(spawnPoint.x * TILE_SIZE, spawnPoint.y * TILE_SIZE, "down", nick, game.players[nick].color);
         newPlayer.spawnPoint = spawnPoint;
-        newPlayer.controller = game.players[nick].controller;
+        Object.assign(newPlayer, game.players[nick]);
         game.players[nick] = newPlayer;
     }
-    game.numPlayersAlive = nicks.length;
+    game.numPlayersAlive = i;
     io.in(data.gameId).emit("start game on client", {tilemapName: game.tilemapName, players: game.players});
 }
 
 function onRegisterMap(data) {
-    games[this.gameId].map = new Map(data, TILE_SIZE);
+    if(!games[data.gameId] || games[data.gameId].map){
+        return;
+    }
+    games[data.gameId].map = new Map(data, TILE_SIZE);
 }
 
 function onMovePlayer(clientPlayer) {
@@ -153,7 +177,7 @@ function onPlaceBomb(data) {
         return;
     }
     var bombId = data.id;
-    var normalizedBombLocation = game.map.placeBombOnGrid(data.x, data.y);
+    var normalizedBombLocation = game.map.placeBombOnGrid(data.x, data.y, bombId);
     if(normalizedBombLocation == -1) {
         return;
     }
@@ -254,21 +278,30 @@ function onReadyForRound() {
 }
 
 function onPauseGame() {
-    var game = games[this.gameId];
-    game.paused = true;
-    for(var bombId in game.bombs){
-        game.bombs[bombId].pause();
-    }
-    io.in(this.gameId).emit("pause game");
+    games[this.gameId].pause();
 }
 
 function onResumeGame() {
-    var game = games[this.gameId];
-    game.paused = false;
-    for(var bombId in game.bombs){
-        game.bombs[bombId].resume();
+    games[this.gameId].resume();
+}
+
+function onReconnect(data) {
+    var game = games[data.gameId];
+    if(!game){
+       this.emit('screen reconnected');
+       return;
     }
-    io.in(this.gameId).emit("resume game");
+    var screen = game.screens[data.screenId];  
+    this.join(data.gameId);
+    this.gameId = data.gameId;
+    this.screenId = data.screenId;
+    this.emit('screen reconnected', {
+        players: game.players,
+        screenPlayers: screen.players,
+        tilemapName: game.tilemapName,
+        mapData: game.map.mapData,
+        placedBombs: game.map.placedBombs
+    });
 }
 
 function broadcastingLoop() {

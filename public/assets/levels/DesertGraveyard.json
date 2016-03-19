@@ -34,7 +34,7 @@
          "imageheight":35,
          "imagewidth":175,
          "margin":0,
-         "name":"desert-tiles",
+         "name":"desertTiles",
          "spacing":0,
          "tilecount":5,
          "tileheight":35,
