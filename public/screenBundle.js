@@ -658,7 +658,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global bomberman */
-	var MapInfo = __webpack_require__(18)
+	var MapInfo = __webpack_require__(18);
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var screen = bomberman.screen;
@@ -782,12 +782,13 @@
 				// this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + player.color);
 				this.htmlPlayersElm.appendChild(newPlayerElm);
 				this.numPlayersInGame++;
-				if(player.connection === 'false'){
+				if(!player.connection){
 					this.allConnected = false;
 				}
-				if(player.ready === 'false'){
+				if(!player.ready){
 					this.allReady = false;
 				}
+				console.log(player, this.allConnected, this.allReady);
 			}
 			if(bomberman.masterScreen){
 				if(this.checkStartConditions()){
@@ -1120,16 +1121,17 @@
 	        this.createDimGraphic();
 	        this.gameFrozen = true;
 	        var animation = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
+	        var tilemapName = this.tilemapName;
 	        animation.beginAnimation(function () {
 	            controllers = {};
-	            game.state.start("GameOver", true, false, data.gameWinnerColor, false);
+	            game.state.start("GameOver", true, false, data.gameWinner, false, tilemapName);
 	        });
 	        AudioPlayer.stopMusicSound();
 	    },
 
 	    onNoOpponentsLeft: function (data) {
 	        controllers = {};
-	        game.state.start("GameOver", true, false, null, true);
+	        game.state.start("GameOver", true, false, data, true, this.tilemapName);
 	    },
 
 	    beginRoundAnimation: function (image, callback) {
@@ -1844,7 +1846,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
-	var TextConfigurer = __webpack_require__(15);
+	var MapInfo = __webpack_require__(18);
 	var game = bomberman.game,
 		airconsole = bomberman.airconsole;
 
@@ -1852,18 +1854,20 @@
 	}
 
 	GameOver.prototype = {
-		init: function(winnerColor, winByDefault) {
-			this.winnerColor = winnerColor;
+		init: function(winner, winByDefault, tilemapName) {
+			document.getElementById('game-over').style.backgroundImage = "url(" + MapInfo[tilemapName].background + ")";
+			document.getElementById('game-over').addEventListener('click', this.returnToLobby);
+			this.winner = winner;
 			this.winByDefault = winByDefault;
 			bomberman.level = undefined;
+	        bomberman.vmTools.showWithCbs('game-over');
 		},
 
 		create: function() {
-			var textToDisplay = this.winByDefault ? "     No other players remaining.\n              You win by default." : "Game Over. Winner: " + this.winnerColor;
-			textToDisplay += "\n\nPress Enter to return to main menu.";
-			var textObject = game.add.text(game.camera.width / 2, game.camera.height / 2, textToDisplay);
-			textObject.anchor.setTo(0.5, 0.5);
-			TextConfigurer.configureText(textObject, "white", 28);
+			var textToDisplay = this.winByDefault ? "     No other players remaining.\n" + this.winner.nick + " win by default." : "Winner: " + this.winner.nick;
+			textToDisplay += "\n\nPress Enter or Tap/Click anywhere to return to main menu.";
+			document.getElementById('game-over-text').innerHTML = textToDisplay;
+			document.getElementById('winner').children[0].setAttribute('src', './resource/icon_' + this.winner.color + '.png');
 			airconsole.broadcast({listener: 'gameState', gameState: 'game-over'});
 		},
 
@@ -1874,7 +1878,6 @@
 		},
 
 		returnToLobby: function() {
-			airconsole.broadcast({listener: 'gameState'});
 			game.state.start("Lobby");
 		}
 	};

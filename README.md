@@ -7,6 +7,7 @@ Planned features:
 - local players (keyboard)
 - more levels (generated?)
 - nicknames over players
+- settable number of rounds
 - better graphics
 - etc...
 

@@ -108,7 +108,7 @@ function disconnectInprogress(){
     // MAY BE DISSABLED FOR DEVELOPEMENT
     if (game && game.numPlayers < 2) {
         if (game.numPlayers == 1) {
-            io.in(this.gameId).emit("no opponents left");
+            io.in(this.gameId).emit("no opponents left", game.lastAlivePlayer());
         }
         terminateExistingGame(this);
     }
@@ -252,7 +252,7 @@ function endRound(tiedWinnerIds, socket) {
         if (gameWinners.length == 1 && (game.currentRound > 3 || gameWinners[0].wins == 2)) {
             io.in(gameId).emit("end game", {
                 completedRoundNumber: game.currentRound - 1, roundWinnerColors: roundWinnerColors,
-                gameWinnerColor: gameWinners[0].color});
+                gameWinner: gameWinners[0]});
             terminateExistingGame(socket);
             return;
         }

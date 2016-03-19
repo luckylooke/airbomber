@@ -239,16 +239,17 @@ Level.prototype = {
         this.createDimGraphic();
         this.gameFrozen = true;
         var animation = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
+        var tilemapName = this.tilemapName;
         animation.beginAnimation(function () {
             controllers = {};
-            game.state.start("GameOver", true, false, data.gameWinnerColor, false);
+            game.state.start("GameOver", true, false, data.gameWinner, false, tilemapName);
         });
         AudioPlayer.stopMusicSound();
     },
 
     onNoOpponentsLeft: function (data) {
         controllers = {};
-        game.state.start("GameOver", true, false, null, true);
+        game.state.start("GameOver", true, false, data, true, this.tilemapName);
     },
 
     beginRoundAnimation: function (image, callback) {

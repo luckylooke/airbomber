@@ -54,6 +54,14 @@ Game.prototype = {
 		return winningPlayers;
 	},
 
+	lastAlivePlayer: function() {
+		for(var i in this.players) {
+			if(this.players[i].alive){
+				return this.players[i];
+			}
+		}
+	},
+
 	clearBombs: function() {
 		for(var bombId in this.bombs) {
 			this.bombs[bombId].explosionTimer.clear();

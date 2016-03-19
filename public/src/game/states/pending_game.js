@@ -1,5 +1,5 @@
 /* global bomberman */
-var MapInfo = require("./../common/map_info")
+var MapInfo = require("./../common/map_info");
 var game = bomberman.game;
 var socket = bomberman.socket;
 var screen = bomberman.screen;
@@ -123,12 +123,13 @@ PendingGame.prototype = {
 			// this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + player.color);
 			this.htmlPlayersElm.appendChild(newPlayerElm);
 			this.numPlayersInGame++;
-			if(player.connection === 'false'){
+			if(!player.connection){
 				this.allConnected = false;
 			}
-			if(player.ready === 'false'){
+			if(!player.ready){
 				this.allReady = false;
 			}
+			console.log(player, this.allConnected, this.allReady);
 		}
 		if(bomberman.masterScreen){
 			if(this.checkStartConditions()){
