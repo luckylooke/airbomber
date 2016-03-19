@@ -53,14 +53,12 @@ PendingGame.prototype = {
 		this.tilemapName = tilemapName;
 		storage.gameId = storage.gameId || gameId || socket.id;
 		storage.screenId = storage.screenId || socket.id;
-		storage.masterScreen = storage.gameId === storage.screenId;
+		bomberman.masterScreen = storage.gameId === storage.screenId;
+		console.log('QQQQQQQQQQQQQQQ', storage.gameId, storage.screenId, bomberman.masterScreen);
 		screen.isReady = false;
 		screen.players = {};
-		if(!storage.masterScreen){
-			document.getElementById('startGameBtn').classList.add("hidden");
-			document.getElementById('minPlayersMessage').classList.add("hidden");
-			document.getElementById('playerDisconnectedMessage').classList.add("hidden");
-			document.getElementById('playerNotReadyMessage').classList.add("hidden");
+		if(bomberman.masterScreen){
+			document.getElementById('startGameBtn').classList.remove("hidden");
 		}
 		airconsole.onDisconnect = function(device_id) {
 			var pl;
@@ -80,15 +78,13 @@ PendingGame.prototype = {
 	},
 
 	create: function() {
-		if(storage.masterScreen){
+		if(bomberman.masterScreen){
 			this.startGameBtn = document.getElementById('startGameBtn');
-			this.startGameBtn.setAttribute('disabled', 'disabled');
 			this.bindedStartGameAction = this.startGameAction.bind(this);
 			this.startGameBtn.addEventListener('click', this.bindedStartGameAction);
 			this.playerNotReadyMessage = document.getElementById('playerNotReadyMessage');
 			this.playerDisconnectedMessage = document.getElementById('playerDisconnectedMessage');
 			this.minPlayersMessage = document.getElementById('minPlayersMessage');
-			this.minPlayersMessage.classList.remove('hidden');
 		}
 		this.htmlPlayersElm.innerHTML = '';
 		socket.emit("enter pending game", {gameId: storage.gameId, screenId: storage.screenId, tilemapName: this.tilemapName});
@@ -122,59 +118,76 @@ PendingGame.prototype = {
 			// this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + player.color);
 			this.htmlPlayersElm.appendChild(newPlayerElm);
 			this.numPlayersInGame++;
-			if(!player.connection){
+			if(player.connection === 'false'){
 				this.allConnected = false;
 			}
-			if(!player.ready){
+			if(player.ready === 'false'){
 				this.allReady = false;
 			}
 		}
-		if(storage.masterScreen){
-			if(this.numPlayersInGame > 1 && this.allConnected && this.allReady) {
-				this.activateStartGameButton();
-			} else {
-				this.deactivateStartGameButton();
+		if(bomberman.masterScreen){
+			if(this.checkStartConditions()){
+				this.startGameBtn.classList.add('active');
+			}else{
+				this.startGameBtn.classList.remove('active');
 			}
 		}
 	},
 
 	playerJoined: function(data) {
 		this.numPlayersInGame++;
-		if(storage.masterScreen && this.numPlayersInGame == 2) {
-			this.activateStartGameButton();
-		}
 		this.populateCharacterSquares(data);
 	},
 	playersLeft: function(data) {
 		this.numPlayersInGame -= data.numPlayersLeft;
-		if(storage.masterScreen && this.numPlayersInGame == 1) {
-			this.deactivateStartGameButton();
-		}
 		this.populateCharacterSquares(data);
 	},
 
-	activateStartGameButton: function() {
+	checkStartConditions: function(showMessages) {
+		if(this.messageTimeout){
+			this.hideAllMessages();
+			clearTimeout(this.messageTimeout);
+		}
+		
+		var self = this,
+			result = true;
+		if(this.numPlayersInGame < 2){
+			if(showMessages){
+				this.minPlayersMessage.classList.remove('hidden');
+			}
+			result = false;
+		}
+		if(!this.allConnected){
+			if(showMessages){
+				this.playerDisconnectedMessage.classList.remove('hidden');
+			}
+			result = false;
+		}
+		if(!this.allReady){
+			if(showMessages){
+				this.playerNotReadyMessage.classList.remove('hidden');
+			}
+			result = false;
+		}
+		
+		this.messageTimeout = setTimeout(function(){
+			self.hideAllMessages();
+			self.messageTimeout = undefined;
+		}, 5000);
+		
+		return result;
+	},
+	
+	hideAllMessages: function(){
 		this.minPlayersMessage.classList.add('hidden');
 		this.playerDisconnectedMessage.classList.add('hidden');
 		this.playerNotReadyMessage.classList.add('hidden');
-		this.startGameBtn.removeAttribute('disabled');
-	},
-
-	deactivateStartGameButton: function() {
-		if(this.numPlayersInGame < 2){
-			this.minPlayersMessage.classList.remove('hidden');
-		}
-		if(this.allConnected){
-			this.playerDisconnectedMessage.classList.remove('hidden');
-		}
-		if(this.allReady){
-			this.playerNotReadyMessage.classList.remove('hidden');
-		}
-		this.startGameBtn.setAttribute('disabled', 'disabled');
 	},
 
 	startGameAction: function() {
-		socket.emit("start game on server", {gameId: storage.gameId, tilemapName: this.tilemapName});
+		if(this.checkStartConditions('showMessages')){
+			socket.emit("start game on server", {gameId: storage.gameId, tilemapName: this.tilemapName});
+		}
 	},
 
 	leaveGameAction: function() {
@@ -185,7 +198,7 @@ PendingGame.prototype = {
 	},
 	
 	leavingPendingGame: function(){
-		if(storage.masterScreen){
+		if(bomberman.masterScreen){
 			this.startGameBtn.removeEventListener('click', this.bindedStartGameAction);
 		}
     	document.getElementById('leaveGameBtn').removeEventListener("click", this.bindedLeaveGameAction);
