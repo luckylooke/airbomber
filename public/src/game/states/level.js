@@ -68,6 +68,7 @@ acTools.addListener('reconnect', function(device_id, data){
             socket.emit("resume game", {gameId: storage.gameId, screenId: storage.screenId});
         }
     }
+    console.log('storage.screenCurrentView', storage.screenCurrentView);
     airconsole.message(device_id, {listener: 'gameState', gameState: storage.screenCurrentView});
 });
 

@@ -83,6 +83,17 @@ var lobby = {
         lobby.broadcastGameStateUpdate(this);
     },
 
+    onUpdatePlayerPendingGame: function (data) {
+        var game = lobby.games[data.gameId];
+        if(!game){
+            return;
+        }
+        game.updatePlayer(data);
+        this.broadcast.to(data.gameId).emit("player joined", {players: game.players});
+        this.emit("show current players", {players: game.players});
+        lobby.broadcastGameStateUpdate(this);
+    },
+
     onLeavePendingGame: function (data) {
         if(!data){
             return;

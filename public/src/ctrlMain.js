@@ -87,8 +87,6 @@ function init() {
           }else{
             vmTools.showWithCbs("d-pad");
           }
-        }else{
-          vmTools.showWithCbs("welcome");
         }
       }
     });
@@ -105,6 +103,7 @@ function init() {
     acTools.addListener('reconnect', function(from, data) {
       if (from == AirConsole.SCREEN) {
         airconsole.message(AirConsole.SCREEN, {listener: 'reconnect', nick: storage.nick});
+        airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
       }
     });
     

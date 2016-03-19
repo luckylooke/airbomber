@@ -92,7 +92,7 @@ Game.prototype = {
 	    for(var bombId in this.bombs){
 	        this.bombs[bombId].pause();
 	    }
-	    this.onPauseGame();
+	    this.notifier('pause game');
 	},
 
 	resume: function() {
@@ -100,7 +100,7 @@ Game.prototype = {
 	    for(var bombId in this.bombs){
 	        this.bombs[bombId].resume();
 	    }
-	    this.onResumeGame();
+	    this.notifier('resume game');
 	},
 
 	removeScreen: function removeScreen(screenId) {
@@ -109,13 +109,13 @@ Game.prototype = {
             this.removePlayer(screenId, nick);
         }
 		delete this.screens[screenId];
-		this.onRemoveScreen(screenId);
+		this.notifier('remove screen', {screenId: screenId});
 	},
 
 	removePlayer: function removePlayer(screenId, nick) {
 		delete this.screens[screenId][nick];
 		delete this.players[nick];
-		this.onRemovePlayer(screenId, nick);
+		this.notifier('remove player', {screenId: screenId, nick: nick});
 	},
 
 	addScreen: function addScreen(screenId) {
@@ -125,7 +125,7 @@ Game.prototype = {
 			master: this.master === screenId
 		};
 		this.screens[screenId] = screen;
-		this.onAddScreen(screen);
+		this.notifier('add screen', screen);
 	},
 
 	addPlayer: function addPlayer(player) {
@@ -134,39 +134,27 @@ Game.prototype = {
 		}
 		this.screens[player.screenId].players[player.nick] = player;
 		this.players[player.nick] = player;
-		this.onAddPlayer(player);
+		this.notifier('add player', player);
+		return player;
+	},
+
+	updatePlayer: function updatePlayer(playerData) {
+		if(!this.screens[playerData.screenId]){
+			return;
+		}
+		var player = this.screens[playerData.screenId].players[playerData.nick];
+		Object.assign(player, playerData);
+		this.notifier('update player', player);
 		return player;
 	},
 	
-	onAddPlayer: function onAddPlayer(player){},
-	onAddScreen: function onAddScreen(screen){},
-	onRemovePlayer: function onRemovePlayer(screenId, playerId){},
-	onRemoveScreen: function onRemoveScreen(screenId){},
-	onPauseGame: function onPauseGame(){},
-	onResumeGame: function onResumeGame(){},
+	notifier: function gameNotifier(message, data){},
 	
 	asignNotifier: function asignNotifier(notifier){
 		if(typeof notifier !== 'function'){
 			return;
 		}
-		this.onAddPlayer = function notifierOnAddPlayer(player){
-			notifier('add player', player);
-		};
-		this.onAddScreen = function notifierOnAddScreen(screen){
-			notifier('add screen', screen);
-		};
-		this.onRemovePlayer = function notifierOnRemovePlayer(screenId, playerId){
-			notifier('remove player', {screenId: screenId, playerId: playerId});
-		};
-		this.onRemoveScreen = function notifierOnRemoveScreen(screenId){
-			notifier('remove screen', {screenId: screenId});
-		};
-		this.onPauseGame = function notifierOnPauseGame(){
-			notifier('pause game');
-		};
-		this.onResumeGame = function notifierOnResumeGame(){
-			notifier('resume game');
-		};
+		this.notifier = notifier;
 		return notifier;
 	}
 };

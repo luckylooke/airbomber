@@ -28,7 +28,8 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
       	  changeCharacterColor();
       	}
     });
-    document.getElementById('addPlayer').addEventListener('click', addPlayer);
+    document.getElementById('playerReady').addEventListener('click', playerReady);
+    document.getElementById('playerNotReady').addEventListener('click', playerNotReady);
     document.getElementById('player_name').value = storage.nick || '';
     
      vmTools.cbs['name-and-color'] = {
@@ -40,8 +41,8 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
       }
     };
     
-    function addPlayer(){
-        getPlayerInfo();
+    function playerReady(){
+        getPlayerData();
         // if(storage.color && storage.nick){
         //   if(storage.controller === 'Gyro'){
         //     vmTools.showWithCbs("gyro-pad");
@@ -50,22 +51,36 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
         //   }
         // }
         acTools.addListener('ready', function(from, data){
-          if(storage.color && storage.nick && from == AirConsole.SCREEN && storage.gameState === 'pending-game'){
+          if(from == AirConsole.SCREEN){
             clearInterval(storage.acInterval);
-            airconsole.message(AirConsole.SCREEN, {
-              listener: 'newPlayer',
-              nick: storage.nick,
-              color: storage.color,
-              controller: storage.controller
-            });
-          }
-          if(data.gameState){
-            storage.gameState = data.gameState;
+            sendPlayerDataToScreen();  
+            if(data.gameState){
+              storage.gameState = data.gameState;
+            }
           }
         });
+        storage.ready = true;
+        sendPlayerDataToScreen();
     }
     
-    function getPlayerInfo(){
+    function playerNotReady(){
+        storage.ready = false;
+        sendPlayerDataToScreen();
+    }
+    
+    function sendPlayerDataToScreen(){
+       if(storage.color && storage.nick && storage.gameState === 'pending-game'){
+          airconsole.message(AirConsole.SCREEN, {
+            listener: 'playerReady',
+            nick: storage.nick,
+            color: storage.color,
+            controller: storage.controller,
+            ready: storage.ready
+          });
+        }
+    }
+    
+    function getPlayerData(){
         storage.color = getColor();
         storage.nick = getName();
     }
