@@ -53,15 +53,13 @@ PendingGame.prototype = {
         bomberman.vmTools.showWithCbs('pending-game');
 		this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
     	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
-		this.tilemapName = tilemapName;
 		
 		//sets background for pending-game based on selected stage in stage-select
-		document.getElementById('pending-game').style.backgroundImage = "url(" + MapInfo[this.tilemapName].background + ")";
+		document.getElementById('pending-game').style.backgroundImage = "url(" + MapInfo[tilemapName].background + ")";
 		
 		storage.gameId = storage.gameId || gameId || socket.id;
 		storage.screenId = storage.screenId || socket.id;
 		bomberman.masterScreen = storage.gameId === storage.screenId;
-		console.log('QQQQQQQQQQQQQQQ', storage.gameId, storage.screenId, bomberman.masterScreen);
 		screen.isReady = false;
 		screen.players = {};
 		if(bomberman.masterScreen){
@@ -94,7 +92,7 @@ PendingGame.prototype = {
 			this.minPlayersMessage = document.getElementById('minPlayersMessage');
 		}
 		this.htmlPlayersElm.innerHTML = '';
-		socket.emit("enter pending game", {gameId: storage.gameId, screenId: storage.screenId, tilemapName: this.tilemapName});
+		socket.emit("enter pending game", {gameId: storage.gameId, screenId: storage.screenId});
 		socket.on("show current players", this.populateCharacterSquares.bind(this));
 		socket.on("player joined", this.playerJoined.bind(this));
 		socket.on("players left", this.playersLeft.bind(this));
@@ -193,7 +191,7 @@ PendingGame.prototype = {
 
 	startGameAction: function() {
 		if(this.checkStartConditions('showMessages')){
-			socket.emit("start game on server", {gameId: storage.gameId, tilemapName: this.tilemapName});
+			socket.emit("start game on server", {gameId: storage.gameId});
 		}
 	},
 

@@ -1,7 +1,7 @@
 TODO:
+- exit game
+- kick player from pending
 - game pause reasons collection and resume on all resolved
-- BUG: reconnected controller doesnt come to Dpad nor Gyropad
-- BUG: second screen doesnt have stage background because it is skipping stage_select
 - status bar on controller (including nick color score(killed vs deaths) etc..)
 - distinguish game state and screen view, track both
 - local player (keyboard)

@@ -22,9 +22,12 @@ var lobby = {
     broadcastGameStateUpdate: function (socket) {
         var result = {};
         for (var i in lobby.games) {
+            var game = lobby.games[i];
             result[i] = {
-                numOfPlayers:lobby.games[i].getNumPlayers(),
-                state:this.games[i].state
+                numOfPlayers: game.getNumPlayers(),
+                state: game.state,
+                gameId: game.id,
+                tilemapName: game.tilemapName
             };
         }
         socket.emit("update games", result);
