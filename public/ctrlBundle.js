@@ -46,6 +46,8 @@
 
 	/* global AirConsole, RateLimiter, AirConsoleViewManager */
 
+	localStorage.clear(); // deactivate localStorage for testing
+
 	window.initController = init;
 	  
 	navigator.vibrate = (navigator.vibrate ||
@@ -84,7 +86,11 @@
 	      }
 	    });
 	    storage.autoCheckGyro = storage.autoCheckGyro === undefined ? true : storage.autoCheckGyro;
+	    if(storage.controller === 'undefined'){ // temporary fix
+	      storage.removeItem('controller'); 
+	    }
 	    storage.controller = storage.controller || 'DPad'; // DPad, Gyro
+	    storage.controllerAuto = storage.controller; // autodetection saved separately, but starting with same value
 	    
 	    // standard listeners for some devices (e.g. Samsung Galaxy S4 mini)
 	    if (window.DeviceOrientationEvent) {
@@ -730,7 +736,7 @@
 	        
 	        // start contacting screen
 	        storage.acInterval = setInterval(function(){
-	          airconsole.message(AirConsole.SCREEN, {listener: 'playerReady'});
+	          airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
 	        }, 3000);
 
 	        sendPlayerDataToScreen();
@@ -753,7 +759,7 @@
 	    }
 	    
 	    function sendPlayerDataToScreen(){
-	        storage.controller = JSON.parse(storage.forcedDpad) ? 'DPad' : storage.controllerAuto;
+	        storage.controller = JSON.parse(storage.forcedDpad) ? 'DPad' : storage.controllerAuto || 'DPad'; // temporary sollution "storage.controllerAuto || 'DPad'"
 	        
 	       if(storage.color && storage.nick && storage.gameState === 'pending-game'){
 	          airconsole.message(AirConsole.SCREEN, {

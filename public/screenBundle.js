@@ -47,7 +47,7 @@
 	/* global Phaser, AirConsole, io, AirConsoleViewManager */
 
 	// localStorage.debug = '*'; // DEBUGGING socket.io
-	// localStorage.clear();
+	localStorage.clear(); // deactivate localStorage for testing
 
 	var bomberman = window.bomberman = {}; // namespace in global
 	bomberman.bomberElm = document.getElementById('bomber');

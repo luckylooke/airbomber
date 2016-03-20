@@ -83,7 +83,7 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
         
         // start contacting screen
         storage.acInterval = setInterval(function(){
-          airconsole.message(AirConsole.SCREEN, {listener: 'playerReady'});
+          airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
         }, 3000);
 
         sendPlayerDataToScreen();
@@ -106,7 +106,7 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     }
     
     function sendPlayerDataToScreen(){
-        storage.controller = JSON.parse(storage.forcedDpad) ? 'DPad' : storage.controllerAuto;
+        storage.controller = JSON.parse(storage.forcedDpad) ? 'DPad' : storage.controllerAuto || 'DPad'; // temporary sollution "storage.controllerAuto || 'DPad'"
         
        if(storage.color && storage.nick && storage.gameState === 'pending-game'){
           airconsole.message(AirConsole.SCREEN, {

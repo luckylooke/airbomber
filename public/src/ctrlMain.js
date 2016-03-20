@@ -1,5 +1,7 @@
 /* global AirConsole, RateLimiter, AirConsoleViewManager */
 
+localStorage.clear(); // deactivate localStorage for testing
+
 window.initController = init;
   
 navigator.vibrate = (navigator.vibrate ||
@@ -38,7 +40,11 @@ function init() {
       }
     });
     storage.autoCheckGyro = storage.autoCheckGyro === undefined ? true : storage.autoCheckGyro;
+    if(storage.controller === 'undefined'){ // temporary fix
+      storage.removeItem('controller'); 
+    }
     storage.controller = storage.controller || 'DPad'; // DPad, Gyro
+    storage.controllerAuto = storage.controller; // autodetection saved separately, but starting with same value
     
     // standard listeners for some devices (e.g. Samsung Galaxy S4 mini)
     if (window.DeviceOrientationEvent) {
