@@ -6,13 +6,22 @@
     <link rel="stylesheet" href="css/style.css"/>
     <link rel="stylesheet" href="css/bootstrap.css"/>
     <link rel="stylesheet" href="css/bootstrap-theme.css"/>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 </head>
 <body>
     <div id="bomber"></div>
     
     <!-- GUIs -->
     <div id="level" class="view">
-        <button type="button" class="lobby-button start-button" id="pauseGameBtn">||</button>
+        <button type="button" id="pauseGameBtn">||</button>
+        <button type="button" id="leaveGameBtn">LEAVE</button>
+        <div id="leave-modal" class="hidden">
+            <div>
+                Really want to leave? <br/>
+                <button type="button" id="yesLeaveModalBtn">YES</button>      
+                <button type="button" id="noLeaveModalBtn">NO</button>
+            </div>
+        </div>
     </div>
     <div id="lobby" class="gui view">
         <div class="airbomber-header">
@@ -34,10 +43,10 @@
         </div>
         <div id="stages" class=""> 
             <div class="stage stage-button">
-                <div>Loading..</div>
+                <div class="text" >Loading..</div>
                 <img src="./resource/green_field_thumbnail.png"></img>
-                <div>Loading..</div>
-                <div>Loading..</div>
+                <div class="text" >Loading..</div>
+                <div class="text" >Loading..</div>
             </div>
         </div>
         <div class="arrow" id="arrow-right">
@@ -50,7 +59,7 @@
             <p class="airbomber-text">PLAYERS</p>
         </div>
         <!-- list of players -->
-        <div id="players" class="container"> 
+        <div id="players"> 
             <div class="player">
                 <p class="player-name">Loading..</p>
                 <img src="./resource/green_field_thumbnail.png"></img>
@@ -58,15 +67,35 @@
                 <div>Loading..</div>
                 <div>Loading..</div>
                 <div>Loading..</div>
+                <div class="hidden">KICK PLAYER!</div>
             </div>
         </div>
         
         <div class="pending-game-buttons">
             <button type="button" class="lobby-button start-button hidden" id="startGameBtn">Start Game</button>
-            <button type="button" class="lobby-button leave-button" id="leaveGameBtn">Leave</button>
+            <button type="button" class="lobby-button leave-button" id="leavePendingGameBtn">Leave</button>
             <div id="minPlayersMessage" class="hidden">Cannot start game without at least two players!</div>
             <div id="playerDisconnectedMessage" class="hidden">Cannot start game with disconnected player!</div>
             <div id="playerNotReadyMessage" class="hidden">Cannot start game with not ready player!</div>
+        </div>
+    </div>
+    
+    <div id="game-over" class="gui view">
+        <div class="airbomber-header">
+            GAME OVER
+        </div>
+        <div id="winner" class="airbomber-text">
+            <div id="game-over-winner" class="airbomber-text">
+                Loading..
+            </div>
+            
+            <img src="./resource/icon_blue.png" id="winner-picture" class="winner-picture"></img>
+            Congratulations! You 
+            <div class="bomb-in-text"></div>
+            them all!
+        </div>
+        <div id="game-over-text" class="airbomber-text">
+            <p>Loading..</p>
         </div>
     </div>
     <script type="text/javascript">

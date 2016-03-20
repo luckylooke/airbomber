@@ -58,18 +58,18 @@ Lobby.prototype = {
 		
 		var names = Object.keys(games);
         for (var i = 0; i < names.length; i++) {
-        	var game = games[names[i]];
-	        var settings = this.stateSettings[game.state];
+        	var gme = games[names[i]];
+	        var settings = this.stateSettings[gme.state];
 	        var callback = (function (gameId, sett) {
 	            return function(){
 	            	if (sett.callback != null){
-	                	sett.callback(gameId);
+	                	sett.callback(gme);
 	            	}
 	            };
-	        })(names[i], settings);
+	        })(gme, settings);
         	
         	var newGameElm = htmlGameElm.cloneNode(true);
-        	newGameElm.innerHTML = settings.text + (game.numOfPlayers ? "(" + game.numOfPlayers +")" : "");
+        	newGameElm.innerHTML = settings.text + (gme.numOfPlayers ? "(" + gme.numOfPlayers +")" : "");
         	newGameElm.addEventListener("click", callback);
         	htmlGamesElm.appendChild(newGameElm);
         }
@@ -83,10 +83,10 @@ Lobby.prototype = {
         game.state.start("StageSelect", true, false);
 	},
 
-	joinGameAction: function(gameId) {
-		bomberman.storage.gameId = gameId;
+	joinGameAction: function(gme) {
+		bomberman.storage.gameId = gme.gameId;
 		bomberman.storage.screenId = socket.id;
 		socket.removeAllListeners();
-        game.state.start("PendingGame", true, false, null, gameId);
+        game.state.start("PendingGame", true, false, gme.tilemapName, gme.gameId);
 	}
 };

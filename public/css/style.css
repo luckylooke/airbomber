@@ -32,7 +32,8 @@ body {
     display: none;
 }
 
-#lobby {
+#lobby,
+#game-over{
     width: 100%;
     height: 100%;
     background: url("../resource/Background_1.png") no-repeat;
@@ -40,6 +41,29 @@ body {
     -moz-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
+}
+
+.airbomber-header{
+    -webkit-text-stroke: 3px black;
+   color: white;
+   text-shadow:
+        7px 7px 0 #000,
+        -1px -1px 0 #000,  
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+}
+
+.text{
+    font-size:37px;
+    font-family: 'Open Sans', sans-serif;
+    color: white;
+    text-shadow:
+      3px 3px 0 #000,
+     -1px -1px 0 #000,  
+      1px -1px 0 #000,
+     -1px 1px 0 #000,
+      1px 1px 0 #000;
 }
 
 #lobby #slots {
@@ -50,10 +74,16 @@ body {
     bottom: -310px;
 }
 
-#lobby .airbomber-header {
+#lobby .airbomber-header,
+#game-over .airbomber-header{
     width: 605px;
     margin: 0 auto;
     font-family: bombermanFont;
+}
+
+#game-over .airbomber-header{
+    padding-top: 100px;
+    font-size: 90px;
 }
 
 #lobby .lobby-button {
@@ -149,6 +179,7 @@ body {
 }
 
 #pending-game #players {
+    margin: 0 auto;
     width: 80%;
     height: 45%;
 }
@@ -214,4 +245,56 @@ body {
     top: 0;
     width: 100%;
     left: 0;
+}
+
+#leave-modal {
+    position: fixed;
+    top:30%;
+    left:30%;
+    width:40%;
+    height:40%;
+    background: red;
+    text-align: center;
+}
+
+#leave-modal div {
+    display: inline-block;
+    margin-top: 27%;
+}
+
+#game-over #winner{
+    width: 35%;
+    margin: 50px auto;
+    font-size: 43px;
+    text-align:center;
+}
+
+#game-over .bomb-in-text{
+    width: 36px;
+    height: 36px;
+    display: inline-block;
+    transform: scale(1.5,1.5);
+    background: url("../resource/bomb.png") no-repeat 0 0;
+}
+
+#game-over #game-over-text{
+    text-align: center;
+    margin-top: 45px;
+    font-size: 30px;
+}
+
+#game-over .airbomber-text{
+    -webkit-text-stroke: 4px black;
+    font-size: 43px;
+    font-family: bombermanFont;
+}
+
+#game-over .winner-picture{
+    padding-top: 20px;
+    padding-bottom: 20px;
+    
+}
+
+#game-over img{
+    transform: scale(1.5,1.5);
 }

@@ -1,5 +1,5 @@
 /* global bomberman */
-var MapInfo = require("./../common/map_info")
+var MapInfo = require("./../common/map_info");
 var game = bomberman.game;
 var socket = bomberman.socket;
 var screen = bomberman.screen;
@@ -52,16 +52,14 @@ PendingGame.prototype = {
 		
         bomberman.vmTools.showWithCbs('pending-game');
 		this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
-    	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
-		this.tilemapName = tilemapName;
+    	document.getElementById('leavePendingGameBtn').addEventListener("click", this.bindedLeaveGameAction);
 		
 		//sets background for pending-game based on selected stage in stage-select
-		document.getElementById('pending-game').style.backgroundImage = "url(" + MapInfo[this.tilemapName].background + ")";
+		document.getElementById('pending-game').style.backgroundImage = "url(" + MapInfo[tilemapName].background + ")";
 		
 		storage.gameId = storage.gameId || gameId || socket.id;
 		storage.screenId = storage.screenId || socket.id;
 		bomberman.masterScreen = storage.gameId === storage.screenId;
-		console.log('QQQQQQQQQQQQQQQ', storage.gameId, storage.screenId, bomberman.masterScreen);
 		screen.isReady = false;
 		screen.players = {};
 		if(bomberman.masterScreen){
@@ -94,7 +92,7 @@ PendingGame.prototype = {
 			this.minPlayersMessage = document.getElementById('minPlayersMessage');
 		}
 		this.htmlPlayersElm.innerHTML = '';
-		socket.emit("enter pending game", {gameId: storage.gameId, screenId: storage.screenId, tilemapName: this.tilemapName});
+		socket.emit("enter pending game", {gameId: storage.gameId, screenId: storage.screenId});
 		socket.on("show current players", this.populateCharacterSquares.bind(this));
 		socket.on("player joined", this.playerJoined.bind(this));
 		socket.on("players left", this.playersLeft.bind(this));
@@ -121,16 +119,21 @@ PendingGame.prototype = {
         	newPlayerElm.children[3].innerHTML = 'Screen: ' + (player.screenName || storage.screenId);
         	newPlayerElm.children[4].innerHTML = 'Connected: ' + player.connection;
         	newPlayerElm.children[5].innerHTML = 'Ready: ' + player.ready;
+        	if(bomberman.masterScreen){
+        		newPlayerElm.children[6].addEventListener('click', this.kickPlayer.bind(player));
+        		newPlayerElm.children[6].classList.remove('hidden');
+        	}
 			// this.characterImages[playerId] = game.add.image(this.characterSquares[this.numPlayersInGame].position.x + characterOffsetX, 
 			// this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + player.color);
 			this.htmlPlayersElm.appendChild(newPlayerElm);
 			this.numPlayersInGame++;
-			if(player.connection === 'false'){
+			if(!player.connection){
 				this.allConnected = false;
 			}
-			if(player.ready === 'false'){
+			if(!player.ready){
 				this.allReady = false;
 			}
+			// console.log(player, this.allConnected, this.allReady);
 		}
 		if(bomberman.masterScreen){
 			if(this.checkStartConditions()){
@@ -148,6 +151,11 @@ PendingGame.prototype = {
 	playersLeft: function(data) {
 		this.numPlayersInGame -= data.numPlayersLeft;
 		this.populateCharacterSquares(data);
+	},
+	kickPlayer: function() {
+		delete bomberman.players[this.nick];
+		delete screen.players[this.nick];
+		socket.emit('player leave pending game', this);
 	},
 
 	checkStartConditions: function(showMessages) {
@@ -193,13 +201,13 @@ PendingGame.prototype = {
 
 	startGameAction: function() {
 		if(this.checkStartConditions('showMessages')){
-			socket.emit("start game on server", {gameId: storage.gameId, tilemapName: this.tilemapName});
+			socket.emit("start game on server", {gameId: storage.gameId});
 		}
 	},
 
 	leaveGameAction: function() {
 		this.leavingPendingGame();
-		socket.emit("leave pending game", {gameId: storage.gameId, screenId: storage.screenId});
+		socket.emit("leave game", {gameId: storage.gameId, screenId: storage.screenId});
 		socket.removeAllListeners();
         game.state.start("Lobby");
 	},
@@ -208,7 +216,7 @@ PendingGame.prototype = {
 		if(bomberman.masterScreen){
 			this.startGameBtn.removeEventListener('click', this.bindedStartGameAction);
 		}
-    	document.getElementById('leaveGameBtn').removeEventListener("click", this.bindedLeaveGameAction);
+    	document.getElementById('leavePendingGameBtn').removeEventListener("click", this.bindedLeaveGameAction);
 	},
 
 	startGame: function(data) {

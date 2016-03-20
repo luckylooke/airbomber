@@ -41,6 +41,7 @@ Preloader.prototype = {
         this.load.tilemap("GreenField", "assets/levels/GreenField.json", null, Phaser.Tilemap.TILED_JSON);
         this.load.tilemap("GreenHell", "assets/levels/GreenHell.json", null, Phaser.Tilemap.TILED_JSON);
         this.load.tilemap("DesertGraveyard", "assets/levels/DesertGraveyard.json", null, Phaser.Tilemap.TILED_JSON);
+        this.load.tilemap("DesertCanyon", "assets/levels/DesertCanyon.json", null, Phaser.Tilemap.TILED_JSON);
         this.load.image("tiles", "resource/tileset.png");
         this.load.image("desertTiles", "resource/desert-tileset.png");
         this.load.image("select_stase", "resource/select_stage.png");

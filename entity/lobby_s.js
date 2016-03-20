@@ -22,9 +22,12 @@ var lobby = {
     broadcastGameStateUpdate: function (socket) {
         var result = {};
         for (var i in lobby.games) {
+            var game = lobby.games[i];
             result[i] = {
-                numOfPlayers:lobby.games[i].getNumPlayers(),
-                state:this.games[i].state
+                numOfPlayers: game.getNumPlayers(),
+                state: game.state,
+                gameId: game.id,
+                tilemapName: game.tilemapName
             };
         }
         socket.emit("update games", result);
@@ -38,8 +41,10 @@ var lobby = {
     onHostGame: function (data) {
         this.gameId = data.gameId;
         this.screenId = data.screenId;
-        var game = new Game(data.gameId, data.screenId),
-            socket = this;
+        var socket = this,
+            game = new Game(data.gameId, data.screenId, function(){
+                lobby.removeGame(socket, data.gameId);
+            });
         game.asignNotifier(function(message, data){
             socket.broadcast.to(socket.gameId).emit(message, data);
             socket.emit(message, data);
@@ -77,8 +82,22 @@ var lobby = {
         game.addPlayer(data);
         this.emit("show current players", {players: game.players});
         this.broadcast.to(data.gameId).emit("player joined", {players: game.players});
-        if (game.getNumScreens() >= MapInfo[game.tilemapName].spawnLocations.length) {
+        if (game.getNumPlayers() >= MapInfo[game.tilemapName].spawnLocations.length) {
             game.state = "full";
+        }
+        lobby.broadcastGameStateUpdate(this);
+    },
+
+    onPlayerLeavePendingGame: function (data) {
+        var game = lobby.games[data.gameId];
+        if(!game){
+            return;
+        }
+        game.removePlayer(data.screenId, data.nick);
+        this.emit("show current players", {players: game.players});
+        this.broadcast.to(data.gameId).emit("players left", {numPlayersLeft: 1});
+        if (game.state === "full" && game.getNumPlayers() < MapInfo[game.tilemapName].spawnLocations.length) {
+            game.state = "joinable";
         }
         lobby.broadcastGameStateUpdate(this);
     },
@@ -94,12 +113,16 @@ var lobby = {
         lobby.broadcastGameStateUpdate(this);
     },
 
-    onLeavePendingGame: function (data) {
+    onLeaveGame: function (data) {
         if(!data){
             return;
         }
         var game = lobby.games[data.gameId];
-        if(data.gameId === data.screenId){
+        if(!game){
+            return;
+        }
+        var numPlayersLeft;
+        if(game.master === data.screenId){
             var screens = game.screens;
             if(Object.keys(screens).length < 2){
                 delete lobby.games[data.gameId]; 
@@ -110,27 +133,23 @@ var lobby = {
                         var screen = screens[screenId];
                         screen.master = true;
                         lobby.games[data.gameId].master = screenId;
-                        for(var nick in screen.players){
-                            delete game.players[nick];
-                            this.to(data.gameId).emit("remove player", {nick: nick});
-                        }
-                        delete screens[this.screenId];
                         break;
                     }
                 }
+                game.removeScreen(data.screenId);
             }
         }else{
-            var numPlayersLeft = game.screens[data.screenId].players.length;
+            numPlayersLeft = game.screens[data.screenId].players.length;
             game.removeScreen(data.screenId);
-            if (game.getNumPlayers() == 0) {
-                game.state = "empty";
+        }
+        if(game.getNumPlayers() < 2){
+            if (game.numPlayers == 1) {
+                this.to(data.gameId).emit("no opponents left", game.lastAlivePlayer());
             }
-            if (game.state == "full") {
-                game.state = "joinable";
-            }
+            delete lobby.games[data.gameId]; 
         }
         lobby.broadcastGameStateUpdate(this);
-        this.emit("players left", {players: game.players, numPlayersLeft: numPlayersLeft});
+        this.to(data.gameId).emit("players left", {players: game.players, numPlayersLeft: numPlayersLeft});
     }
 };
 

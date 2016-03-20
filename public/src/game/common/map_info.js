@@ -30,7 +30,7 @@ var MapInfo = {
 		destructibleTileId: 4
 	},
 	DesertGraveyard: {
-		name: "Desert2",
+		name: "Desert Graveyard",
 		thumbnailFile: "../resource/desert_graveyard_thumbnail.png",
 		tilemapName: "DesertGraveyard",
 		maxPlayers: 4,
@@ -43,7 +43,23 @@ var MapInfo = {
 		tilesetName: "desertTiles",
 		tilesetImage: "desertTiles",
 		destructibleTileId: 4
+	},
+	DesertCanyon: {
+		name: "Desert Canyon",
+		thumbnailFile: "../resource/desert_canyon_thumbnail.png",
+		tilemapName: "DesertCanyon",
+		maxPlayers: 4,
+		size: "Small",
+		background:"../resource/desert_canyon_background.png",
+		spawnLocations: [{x: 3, y: 4}, {x: 8, y: 10}, {x: 16, y: 4}, {x: 21, y: 10}],
+		collisionTiles: [3, 4],
+		groundLayer: "Ground",
+		blockLayer: "Blocks",
+		tilesetName: "desertTiles",
+		tilesetImage: "desertTiles",
+		destructibleTileId: 4
 	}
+	
 };
 
 module.exports = MapInfo;

@@ -5,6 +5,12 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     var colorElm = colorsElm.children[0];
     var newColorElm;
     var isReady = false;
+
+    var tmpNick;
+    
+    if(!storage.color){
+        storage.color = 'black';
+    }
     
     colorsElm.innerHTML = '';
     for (var i = 0; i < colors.length; i++) {
@@ -34,8 +40,9 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
       	}
     });
     document.getElementById('playerReady').addEventListener('click', playerReady);
-    //document.getElementById('playerNotReady').addEventListener('click', playerNotReady);
-    document.getElementById('player_name').value = storage.nick || '';
+   // document.getElementById('playerNotReady').addEventListener('click', playerNotReady);
+    document.getElementById('player_nick').value = storage.nick || '';
+
     
      vmTools.cbs['name-and-color'] = {
       from: function(){
@@ -47,7 +54,6 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     };
     
     function playerReady(){
-        console.log(storage.ready);
         getPlayerData();
         // if(storage.color && storage.nick){
         //   if(storage.controller === 'Gyro'){
@@ -56,7 +62,7 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
         //     vmTools.showWithCbs("d-pad");
         //   }
         // }
-        acTools.addListener('ready', function(from, data){
+        acTools.addListener('playerReady', function(from, data){
           if(from == AirConsole.SCREEN){
             clearInterval(storage.acInterval);
             sendPlayerDataToScreen();  
@@ -65,29 +71,34 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
             }
           }
         });
+
         if (isReady == 'false' || isReady == false){
             changeLockOnSettings('lock');
         }
         else{
             changeLockOnSettings('unlock');
         }
-        sendPlayerDataToScreen();
-    }
-    
-    function playerNotReady(){
+
+        storage.forcedDpad = document.getElementById('dpadSettings').checked;
+        
+        // start contacting screen
+        storage.acInterval = setInterval(function(){
+          airconsole.message(AirConsole.SCREEN, {listener: 'playerReady'});
+        }, 3000);
+
         sendPlayerDataToScreen();
     }
     
     function changeLockOnSettings(action){
         if (action == 'unlock'){
             isReady = false;
-            document.getElementById('player_name').disabled  = false;
+            document.getElementById('player_nick').disabled  = false;
             document.getElementById('color-lock').style.display = 'none';
             document.getElementById('dpadSettings').disabled    = false;
         }
         else if (action == 'lock' ){
             isReady = true;
-            document.getElementById('player_name').disabled  = true;
+            document.getElementById('player_nick').disabled  = true;
             document.getElementById('color-lock').style.display = 'block';
             document.getElementById('dpadSettings').disabled    = true;
             
@@ -95,32 +106,44 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     }
     
     function sendPlayerDataToScreen(){
+        storage.controller = JSON.parse(storage.forcedDpad) ? 'DPad' : storage.controllerAuto;
+        
        if(storage.color && storage.nick && storage.gameState === 'pending-game'){
           airconsole.message(AirConsole.SCREEN, {
             listener: 'playerReady',
             nick: storage.nick,
+            newNick: tmpNick !== storage.nick ? tmpNick : undefined,
             color: storage.color,
             controller: storage.controller,
             ready: isReady
+
           });
         }
     }
     
     function getPlayerData(){
         storage.color = getColor();
-        storage.nick = getName();
+        
+        if(storage.nick){
+            tmpNick = '' + getNick();
+        }else{
+            storage.nick = getNick();
+        }
     }
     
     function getColor(){
         var el = document.getElementsByClassName('selected');
         
-           color = el[0].style.backgroundColor;
+        if(!el[0]){
+            return;
+        }
+        color = el[0].style.backgroundColor;
            
         return color ? color : '';
     }
     
-    function getName(){
-        return document.getElementById('player_name').value;
+    function getNick(){
+        return document.getElementById('player_nick').value;
     }
       
     function unselectAll(clickedElement){

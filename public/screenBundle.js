@@ -253,18 +253,18 @@
 			
 			var names = Object.keys(games);
 	        for (var i = 0; i < names.length; i++) {
-	        	var game = games[names[i]];
-		        var settings = this.stateSettings[game.state];
+	        	var gme = games[names[i]];
+		        var settings = this.stateSettings[gme.state];
 		        var callback = (function (gameId, sett) {
 		            return function(){
 		            	if (sett.callback != null){
-		                	sett.callback(gameId);
+		                	sett.callback(gme);
 		            	}
 		            };
-		        })(names[i], settings);
+		        })(gme, settings);
 	        	
 	        	var newGameElm = htmlGameElm.cloneNode(true);
-	        	newGameElm.innerHTML = settings.text + (game.numOfPlayers ? "(" + game.numOfPlayers +")" : "");
+	        	newGameElm.innerHTML = settings.text + (gme.numOfPlayers ? "(" + gme.numOfPlayers +")" : "");
 	        	newGameElm.addEventListener("click", callback);
 	        	htmlGamesElm.appendChild(newGameElm);
 	        }
@@ -278,11 +278,11 @@
 	        game.state.start("StageSelect", true, false);
 		},
 
-		joinGameAction: function(gameId) {
-			bomberman.storage.gameId = gameId;
+		joinGameAction: function(gme) {
+			bomberman.storage.gameId = gme.gameId;
 			bomberman.storage.screenId = socket.id;
 			socket.removeAllListeners();
-	        game.state.start("PendingGame", true, false, null, gameId);
+	        game.state.start("PendingGame", true, false, gme.tilemapName, gme.gameId);
 		}
 	};
 
@@ -453,6 +453,7 @@
 	        this.load.tilemap("GreenField", "assets/levels/GreenField.json", null, Phaser.Tilemap.TILED_JSON);
 	        this.load.tilemap("GreenHell", "assets/levels/GreenHell.json", null, Phaser.Tilemap.TILED_JSON);
 	        this.load.tilemap("DesertGraveyard", "assets/levels/DesertGraveyard.json", null, Phaser.Tilemap.TILED_JSON);
+	        this.load.tilemap("DesertCanyon", "assets/levels/DesertCanyon.json", null, Phaser.Tilemap.TILED_JSON);
 	        this.load.image("tiles", "resource/tileset.png");
 	        this.load.image("desertTiles", "resource/desert-tileset.png");
 	        this.load.image("select_stase", "resource/select_stage.png");
@@ -635,7 +636,7 @@
 			destructibleTileId: 4
 		},
 		DesertGraveyard: {
-			name: "Desert2",
+			name: "Desert Graveyard",
 			thumbnailFile: "../resource/desert_graveyard_thumbnail.png",
 			tilemapName: "DesertGraveyard",
 			maxPlayers: 4,
@@ -648,7 +649,23 @@
 			tilesetName: "desertTiles",
 			tilesetImage: "desertTiles",
 			destructibleTileId: 4
+		},
+		DesertCanyon: {
+			name: "Desert Canyon",
+			thumbnailFile: "../resource/desert_canyon_thumbnail.png",
+			tilemapName: "DesertCanyon",
+			maxPlayers: 4,
+			size: "Small",
+			background:"../resource/desert_canyon_background.png",
+			spawnLocations: [{x: 3, y: 4}, {x: 8, y: 10}, {x: 16, y: 4}, {x: 21, y: 10}],
+			collisionTiles: [3, 4],
+			groundLayer: "Ground",
+			blockLayer: "Blocks",
+			tilesetName: "desertTiles",
+			tilesetImage: "desertTiles",
+			destructibleTileId: 4
 		}
+		
 	};
 
 	module.exports = MapInfo;
@@ -658,7 +675,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global bomberman */
-	var MapInfo = __webpack_require__(18)
+	var MapInfo = __webpack_require__(18);
 	var game = bomberman.game;
 	var socket = bomberman.socket;
 	var screen = bomberman.screen;
@@ -711,16 +728,14 @@
 			
 	        bomberman.vmTools.showWithCbs('pending-game');
 			this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
-	    	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
-			this.tilemapName = tilemapName;
+	    	document.getElementById('leavePendingGameBtn').addEventListener("click", this.bindedLeaveGameAction);
 			
 			//sets background for pending-game based on selected stage in stage-select
-			document.getElementById('pending-game').style.backgroundImage = "url(" + MapInfo[this.tilemapName].background + ")";
+			document.getElementById('pending-game').style.backgroundImage = "url(" + MapInfo[tilemapName].background + ")";
 			
 			storage.gameId = storage.gameId || gameId || socket.id;
 			storage.screenId = storage.screenId || socket.id;
 			bomberman.masterScreen = storage.gameId === storage.screenId;
-			console.log('QQQQQQQQQQQQQQQ', storage.gameId, storage.screenId, bomberman.masterScreen);
 			screen.isReady = false;
 			screen.players = {};
 			if(bomberman.masterScreen){
@@ -753,7 +768,7 @@
 				this.minPlayersMessage = document.getElementById('minPlayersMessage');
 			}
 			this.htmlPlayersElm.innerHTML = '';
-			socket.emit("enter pending game", {gameId: storage.gameId, screenId: storage.screenId, tilemapName: this.tilemapName});
+			socket.emit("enter pending game", {gameId: storage.gameId, screenId: storage.screenId});
 			socket.on("show current players", this.populateCharacterSquares.bind(this));
 			socket.on("player joined", this.playerJoined.bind(this));
 			socket.on("players left", this.playersLeft.bind(this));
@@ -780,16 +795,21 @@
 	        	newPlayerElm.children[3].innerHTML = 'Screen: ' + (player.screenName || storage.screenId);
 	        	newPlayerElm.children[4].innerHTML = 'Connected: ' + player.connection;
 	        	newPlayerElm.children[5].innerHTML = 'Ready: ' + player.ready;
+	        	if(bomberman.masterScreen){
+	        		newPlayerElm.children[6].addEventListener('click', this.kickPlayer.bind(player));
+	        		newPlayerElm.children[6].classList.remove('hidden');
+	        	}
 				// this.characterImages[playerId] = game.add.image(this.characterSquares[this.numPlayersInGame].position.x + characterOffsetX, 
 				// this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + player.color);
 				this.htmlPlayersElm.appendChild(newPlayerElm);
 				this.numPlayersInGame++;
-				if(player.connection === 'false'){
+				if(!player.connection){
 					this.allConnected = false;
 				}
-				if(player.ready === 'false'){
+				if(!player.ready){
 					this.allReady = false;
 				}
+				// console.log(player, this.allConnected, this.allReady);
 			}
 			if(bomberman.masterScreen){
 				if(this.checkStartConditions()){
@@ -807,6 +827,11 @@
 		playersLeft: function(data) {
 			this.numPlayersInGame -= data.numPlayersLeft;
 			this.populateCharacterSquares(data);
+		},
+		kickPlayer: function() {
+			delete bomberman.players[this.nick];
+			delete screen.players[this.nick];
+			socket.emit('player leave pending game', this);
 		},
 
 		checkStartConditions: function(showMessages) {
@@ -852,13 +877,13 @@
 
 		startGameAction: function() {
 			if(this.checkStartConditions('showMessages')){
-				socket.emit("start game on server", {gameId: storage.gameId, tilemapName: this.tilemapName});
+				socket.emit("start game on server", {gameId: storage.gameId});
 			}
 		},
 
 		leaveGameAction: function() {
 			this.leavingPendingGame();
-			socket.emit("leave pending game", {gameId: storage.gameId, screenId: storage.screenId});
+			socket.emit("leave game", {gameId: storage.gameId, screenId: storage.screenId});
 			socket.removeAllListeners();
 	        game.state.start("Lobby");
 		},
@@ -867,7 +892,7 @@
 			if(bomberman.masterScreen){
 				this.startGameBtn.removeEventListener('click', this.bindedStartGameAction);
 			}
-	    	document.getElementById('leaveGameBtn').removeEventListener("click", this.bindedLeaveGameAction);
+	    	document.getElementById('leavePendingGameBtn').removeEventListener("click", this.bindedLeaveGameAction);
 		},
 
 		startGame: function(data) {
@@ -901,26 +926,25 @@
 	var storage = bomberman.storage;
 
 	var Level = function () {};
-	var controllers = {}, // keeps state of connected controllers
-	    airconsole = bomberman.airconsole,
+	var airconsole = bomberman.airconsole,
 	    acTools = bomberman.acTools;
 
 	function movePlayer(device_id, data) {
-	  if (data.nick && controllers[data.nick]) {
+	  if (data.nick && bomberman.controllers[data.nick]) {
 	      if(data.x != undefined){
-	          controllers[data.nick].x = data.x;
+	          bomberman.controllers[data.nick].x = data.x;
 	      }
 	      if(data.y != undefined){
-	          controllers[data.nick].y = data.y;
+	          bomberman.controllers[data.nick].y = data.y;
 	      }
-	      controllers[data.nick].type = data.type;
+	      bomberman.controllers[data.nick].type = data.type;
 	  }
 	}
 	acTools.addListener('movePlayer', movePlayer);
 
 	function setBomb(device_id, data) {
 	  if (data.nick) {
-	    controllers[data.nick].bomb = data.setting;
+	    bomberman.controllers[data.nick].bomb = data.setting;
 	  }
 	}
 	acTools.addListener('setBomb', setBomb);
@@ -939,6 +963,7 @@
 	                socket.on('screen reconnected', this.onReconnected.bind(this));
 	                socket.emit('screen reconnect', {gameId: storage.gameId, screenId: storage.screenId});
 	            } else {
+	                this.destroy();
 	                game.state.start("Lobby");
 	                return;
 	            }
@@ -947,8 +972,15 @@
 	            bomberman.players = this.players = data.players;
 	        }
 	        bomberman.vmTools.showWithCbs('level');
+	        bomberman.controllers = {}; // keeps state of connected controllers
 	        this.bindedPauseGameAction = this.pauseGameAction.bind(this);
 	    	document.getElementById('pauseGameBtn').addEventListener("click", this.bindedPauseGameAction);
+	        this.bindedLeaveGameAction = this.leaveGameAction.bind(this);
+	    	document.getElementById('leaveGameBtn').addEventListener("click", this.bindedLeaveGameAction);
+	        this.bindedYesLeaveModalAction = this.leaveGame.bind(this);
+	    	document.getElementById('yesLeaveModalBtn').addEventListener("click", this.bindedYesLeaveModalAction);
+	        this.bindedNoLeaveModalAction = this.dontLeaveGame.bind(this);
+	    	document.getElementById('noLeaveModalBtn').addEventListener("click", this.bindedNoLeaveModalAction);
 	    	
 	        airconsole.onDisconnect = function(device_id){
 	            console.log('onDisconnect', device_id, bomberman.players);
@@ -1081,6 +1113,22 @@
 	        }
 	    },
 
+	    leaveGameAction: function () {
+	        socket.emit("pause game", {gameId: storage.gameId, screenId: storage.screenId});
+	        document.getElementById('leave-modal').classList.remove('hidden');
+	    },
+	    
+	    leaveGame: function () {
+	        socket.emit("leave game", {gameId: storage.gameId, screenId: storage.screenId});
+	        this.destroy();
+	        game.paused = false;
+	        game.state.start("Lobby");
+	    },
+	    dontLeaveGame: function () {
+	        document.getElementById('leave-modal').classList.add('hidden');
+	        socket.emit("resume game", {gameId: storage.gameId, screenId: storage.screenId});
+	    },
+
 	    onPauseGame: function (data) {
 	        if(game.paused){
 	            return;
@@ -1106,6 +1154,7 @@
 	    onReconnected: function (data) {
 	        if(!data){
 	            game.paused = false;
+	            this.destroy();
 	            game.state.start("Lobby");
 	            return;
 	        }
@@ -1122,16 +1171,18 @@
 	        this.createDimGraphic();
 	        this.gameFrozen = true;
 	        var animation = new RoundEndAnimation(game, data.completedRoundNumber, data.roundWinnerColors);
+	        var tilemapName = this.tilemapName;
+	        var level = this;
 	        animation.beginAnimation(function () {
-	            controllers = {};
-	            game.state.start("GameOver", true, false, data.gameWinnerColor, false);
+	            level.destroy();
+	            game.state.start("GameOver", true, false, data.gameWinner, false, tilemapName);
 	        });
 	        AudioPlayer.stopMusicSound();
 	    },
 
 	    onNoOpponentsLeft: function (data) {
-	        controllers = {};
-	        game.state.start("GameOver", true, false, null, true);
+	        this.destroy();
+	        game.state.start("GameOver", true, false, data, true, this.tilemapName);
 	    },
 
 	    beginRoundAnimation: function (image, callback) {
@@ -1157,7 +1208,7 @@
 	                if (this.gameFrozen) {
 	                    player.freeze();
 	                } else {
-	                    player.handleInput(controllers[player.nick]);
+	                    player.handleInput(bomberman.controllers[player.nick]);
 	                    for (var itemKey in this.items) {
 	                        var item = this.items[itemKey];
 	                        game.physics.arcade.overlap(player, item, function (p, i) {
@@ -1223,7 +1274,7 @@
 	        for (var i in this.players) {
 	            var player = this.players[i];
 	            if (player.nick in screen.players) {
-	                controllers[player.nick] = {};
+	                bomberman.controllers[player.nick] = {};
 	                screen.players[player.nick] = new Player(player.x, player.y, player.nick, player.color);
 	            } else {
 	                this.remotePlayers[player.nick] = new RemotePlayer(player.x, player.y, player.nick, player.color);
@@ -1358,6 +1409,11 @@
 	        this.items[row + "." + col] = item;
 
 	        game.world.addAt(item, 2);
+	    },
+	    
+	    destroy: function() {
+	        socket.removeAllListeners();
+	        game.paused = false;
 	    }
 	};
 
@@ -1846,7 +1902,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global Phaser, bomberman */
-	var TextConfigurer = __webpack_require__(15);
+	var MapInfo = __webpack_require__(18);
 	var game = bomberman.game,
 		airconsole = bomberman.airconsole;
 
@@ -1854,18 +1910,21 @@
 	}
 
 	GameOver.prototype = {
-		init: function(winnerColor, winByDefault) {
-			this.winnerColor = winnerColor;
+		init: function(winner, winByDefault, tilemapName) {
+			document.getElementById('game-over').style.backgroundImage = "url(" + MapInfo[tilemapName].background + ")";
+			document.getElementById('game-over').addEventListener('click', this.returnToLobby);
+			this.winner = winner;
 			this.winByDefault = winByDefault;
 			bomberman.level = undefined;
+	        bomberman.vmTools.showWithCbs('game-over');
 		},
 
 		create: function() {
-			var textToDisplay = this.winByDefault ? "     No other players remaining.\n              You win by default." : "Game Over. Winner: " + this.winnerColor;
-			textToDisplay += "\n\nPress Enter to return to main menu.";
-			var textObject = game.add.text(game.camera.width / 2, game.camera.height / 2, textToDisplay);
-			textObject.anchor.setTo(0.5, 0.5);
-			TextConfigurer.configureText(textObject, "white", 28);
+			var winner = "Winner: " + this.winner.nick;
+			var textToDisplay = "\n\nPress Enter or Click anywhere to return to main menu.";
+			document.getElementById('game-over-winner').innerHTML = winner;
+			document.getElementById('game-over-text').innerHTML = textToDisplay;
+			document.getElementById('winner-picture').setAttribute('src', './resource/icon_' + this.winner.color + '.png');
 			airconsole.broadcast({listener: 'gameState', gameState: 'game-over'});
 		},
 
@@ -1876,7 +1935,6 @@
 		},
 
 		returnToLobby: function() {
-			airconsole.broadcast({listener: 'gameState'});
 			game.state.start("Lobby");
 		}
 	};
