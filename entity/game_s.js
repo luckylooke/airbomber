@@ -206,7 +206,7 @@ Game.prototype = {
 
 	addPlayer: function addPlayer(player) {
 		if(!this.screens[player.screenId]){
-			return;
+			this.addScreen(player.screenId);
 		}
 		this.screens[player.screenId].players[player.nick] = player;
 		this.players[player.nick] = player;

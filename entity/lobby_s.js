@@ -138,7 +138,7 @@ var lobby = {
                 }
                 game.removeScreen(data.screenId);
             }
-        }else{
+        }else if(game.screens[data.screenId]){
             numPlayersLeft = game.screens[data.screenId].players.length;
             game.removeScreen(data.screenId);
         }
