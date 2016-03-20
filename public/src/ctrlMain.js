@@ -109,11 +109,6 @@ function init() {
       }
     });
     
-    // start contacting screen
-    storage.acInterval = setInterval(function(){
-      airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
-    }, 3000);
-    
     // debug info
     acTools.addListener(undefined, function(from, data){
       console.log('on ctrl: ', from, data);

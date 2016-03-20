@@ -167,7 +167,7 @@ module.exports = function(storage){
           }
       }else{
         if(storage.controller !== 'Gyro' && (data.gamma || data.beta)){
-          storage.controller = storage.autoCheckGyro ? 'Gyro' : storage.controller;
+          storage.controllerAuto = storage.autoCheckGyro ? 'Gyro' : storage.controller;
         }
         gyro.actual = data; // for calibration
       }

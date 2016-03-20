@@ -25,6 +25,9 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     changeCharacterColor();
     
     document.getElementById('name-and-color').addEventListener('click',function(e){
+        if(ready){
+            return;
+        }
       	var clickedElement = e.target;
       	if (clickedElement.classList.contains('player-color')){
       	  unselectAll(clickedElement);
@@ -48,6 +51,9 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
     };
     
     function playerReady(){
+        if(ready){
+            return;
+        }
         getPlayerData();
         // if(storage.color && storage.nick){
         //   if(storage.controller === 'Gyro'){
@@ -65,16 +71,26 @@ module.exports = function (vmTools, storage, acTools, airconsole) {
             }
           }
         });
+        document.getElementById('player_nick').disabled = true;
+        storage.forcedDpad = document.getElementById('dpadSettings').checked;
         ready = true;
+        
+        // start contacting screen
+        storage.acInterval = setInterval(function(){
+          airconsole.message(AirConsole.SCREEN, {listener: 'ready'});
+        }, 3000);
         sendPlayerDataToScreen();
     }
     
     function playerNotReady(){
+        document.getElementById('player_nick').disabled = false;
         ready = false;
         sendPlayerDataToScreen();
     }
     
     function sendPlayerDataToScreen(){
+        storage.controller = JSON.parse(storage.forcedDpad) ? 'DPad' : storage.controllerAuto;
+        
        if(storage.color && storage.nick && storage.gameState === 'pending-game'){
           airconsole.message(AirConsole.SCREEN, {
             listener: 'playerReady',
