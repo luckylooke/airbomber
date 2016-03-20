@@ -116,7 +116,7 @@ Game.prototype = {
 	    this.notifier('resume game');
 	},
 	
-	handlePlayersDeath: function(deadPlayerNicks) {
+	handlePlayersDeath: function(deadPlayerNicks, remove) {
 		var tiedWinnerNicks;
 	    if (deadPlayerNicks.length > 1 && this.numPlayersAlive - deadPlayerNicks.length == 0) {
 	        tiedWinnerNicks = deadPlayerNicks;
@@ -177,14 +177,8 @@ Game.prototype = {
 
 	removePlayer: function removePlayer(screenId, nick) {
         if(this.state === 'inprogress'){
-        	this.handlePlayersDeath([nick]);
+        	this.handlePlayersDeath([nick], 'remove');
         }else{
-			delete this.screens[screenId].players[nick];
-			if(!this.screens[screenId].players.length){
-				delete this.screens[screenId];
-			}
-			delete this.players[nick];
-			this.notifier('remove player', {screenId: screenId, nick: nick});
             if (this.getNumPlayers() == 0) {
                 this.state = "empty";
             }
@@ -192,6 +186,12 @@ Game.prototype = {
                 this.state = "joinable";
             }
         }
+		delete this.screens[screenId].players[nick];
+		if(!this.screens[screenId].players.length){
+			delete this.screens[screenId];
+		}
+		delete this.players[nick];
+		this.notifier('remove player', {screenId: screenId, nick: nick});
 	},
 
 	addScreen: function addScreen(screenId) {

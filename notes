@@ -1,5 +1,4 @@
 TODO:
-- BUG: exit game on secondary screens
 - handle all disconnect scenarios on both sides
 - forbid changes when ready
 - game pause reasons collection and resume on all resolved

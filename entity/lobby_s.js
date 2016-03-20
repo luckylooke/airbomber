@@ -114,13 +114,15 @@ var lobby = {
     },
 
     onLeaveGame: function (data) {
-        console.log(data, lobby.games);
         if(!data){
             return;
         }
         var game = lobby.games[data.gameId];
+        if(!game){
+            return;
+        }
         var numPlayersLeft;
-        if(data.gameId === data.screenId){
+        if(game.master === data.screenId){
             var screens = game.screens;
             if(Object.keys(screens).length < 2){
                 delete lobby.games[data.gameId]; 
@@ -141,6 +143,9 @@ var lobby = {
             game.removeScreen(data.screenId);
         }
         if(game.getNumPlayers() < 2){
+            if (game.numPlayers == 1) {
+                this.to(data.gameId).emit("no opponents left", game.lastAlivePlayer());
+            }
             delete lobby.games[data.gameId]; 
         }
         lobby.broadcastGameStateUpdate(this);

@@ -1396,6 +1396,7 @@
 	    
 	    destroy: function() {
 	        socket.removeAllListeners();
+	        game.paused = false;
 	    }
 	};
 
