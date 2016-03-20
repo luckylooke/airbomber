@@ -654,6 +654,7 @@
 	    var colorsElm = document.getElementById('colors');
 	    var colorElm = colorsElm.children[0];
 	    var newColorElm;
+	    var isReady = false;
 	    
 	    colorsElm.innerHTML = '';
 	    for (var i = 0; i < colors.length; i++) {
@@ -669,6 +670,10 @@
 	    changeCharacterColor();
 	    
 	    document.getElementById('name-and-color').addEventListener('click',function(e){
+	        //if player is READY he wont be able to change color
+	        if(isReady == 'true')
+	            return;
+	            
 	      	var clickedElement = e.target;
 	      	if (clickedElement.classList.contains('player-color')){
 	      	  unselectAll(clickedElement);
@@ -679,7 +684,7 @@
 	      	}
 	    });
 	    document.getElementById('playerReady').addEventListener('click', playerReady);
-	    document.getElementById('playerNotReady').addEventListener('click', playerNotReady);
+	    //document.getElementById('playerNotReady').addEventListener('click', playerNotReady);
 	    document.getElementById('player_name').value = storage.nick || '';
 	    
 	     vmTools.cbs['name-and-color'] = {
@@ -692,6 +697,7 @@
 	    };
 	    
 	    function playerReady(){
+	        console.log(storage.ready);
 	        getPlayerData();
 	        // if(storage.color && storage.nick){
 	        //   if(storage.controller === 'Gyro'){
@@ -709,13 +715,33 @@
 	            }
 	          }
 	        });
-	        storage.ready = true;
+	        if (isReady == 'false' || isReady == false){
+	            changeLockOnSettings('lock');
+	        }
+	        else{
+	            changeLockOnSettings('unlock');
+	        }
 	        sendPlayerDataToScreen();
 	    }
 	    
 	    function playerNotReady(){
-	        storage.ready = false;
 	        sendPlayerDataToScreen();
+	    }
+	    
+	    function changeLockOnSettings(action){
+	        if (action == 'unlock'){
+	            isReady = false;
+	            document.getElementById('player_name').disabled  = false;
+	            document.getElementById('color-lock').style.display = 'none';
+	            document.getElementById('dpadSettings').disabled    = false;
+	        }
+	        else if (action == 'lock' ){
+	            isReady = true;
+	            document.getElementById('player_name').disabled  = true;
+	            document.getElementById('color-lock').style.display = 'block';
+	            document.getElementById('dpadSettings').disabled    = true;
+	            
+	        }
 	    }
 	    
 	    function sendPlayerDataToScreen(){
@@ -725,7 +751,7 @@
 	            nick: storage.nick,
 	            color: storage.color,
 	            controller: storage.controller,
-	            ready: storage.ready
+	            ready: isReady
 	          });
 	        }
 	    }

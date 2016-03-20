@@ -14,17 +14,18 @@
   </div>
   
   <div id="name-and-color" class="view">
-    <form>
       <div id="characterScreen">
         <div id="playerCharacter"></div>
       </div>
       <div id="playerStats">
-         <div class="name-container">
+         <div id="name-container" class="name-container">
             Name: <input type="text" name="player_name" id="player_name">
          </div>
+         
          <div class="colorWrapper">
            <p>Pick a color:</p>
-           <div class="color-container" id="colors">
+           <div id="color-lock" class="color-container"></div>
+           <div id="colors" class="color-container">
               <div class="player-color"></div>
            </div>
            <div id="movementSettings">
@@ -32,11 +33,17 @@
              *defaut is gyroscope
            </div>
          </div>
-            <input id="playerReady" type="button" value="READY">
-            <input id="playerNotReady" type="button" value="NOTREADY">
+         
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch">
+          <label id="playerReady"  class="onoffswitch-label" for="myonoffswitch">
+            <span id="" class="onoffswitch-inner"></span>
+            <span id="" class="onoffswitch-switch"></span>
+          </label>
+        
+        </div>
       </div>
-     
-    </form>
+  
   </div>
 
   <div id="d-pad" class="view">
