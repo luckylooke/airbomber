@@ -65,18 +65,20 @@
                 <img src="./resource/green_field_thumbnail.png"></img>
                 <div>Loading..</div>
                 <div>Loading..</div>
+                <div id='connection-status' class="connection-status status"></div>
                 <div>Loading..</div>
+                <div id='ready-status' class="ready-status status"></div>
                 <div>Loading..</div>
-                <div class="hidden">KICK PLAYER!</div>
+                <div id='kick-player-button' class="hidden">Kick Player</div>
             </div>
         </div>
         
         <div class="pending-game-buttons">
             <button type="button" class="lobby-button start-button hidden" id="startGameBtn">Start Game</button>
             <button type="button" class="lobby-button leave-button" id="leavePendingGameBtn">Leave</button>
-            <div id="minPlayersMessage" class="hidden">Cannot start game without at least two players!</div>
-            <div id="playerDisconnectedMessage" class="hidden">Cannot start game with disconnected player!</div>
-            <div id="playerNotReadyMessage" class="hidden">Cannot start game with not ready player!</div>
+            <div id="minPlayersMessage" class="hidden text">Cannot start game without at least two players!</div>
+            <div id="playerDisconnectedMessage" class="hidden text">Cannot start game with disconnected player!</div>
+            <div id="playerNotReadyMessage" class="hidden text">All players have to be ready to start a game!</div>
         </div>
     </div>
     
