@@ -200,7 +200,7 @@ body {
 
 #pending-game .player .player-name {
     margin-top: 10%;
-    margin-bottom: 10%;
+    margin-bottom: 5%;
     font-size: 38px;
 }
 
@@ -208,6 +208,23 @@ body {
     width: 50%;
 }
 
+#pending-game .status {
+    width: 8px;
+    height: 8px;
+    background-color: red;
+}
+
+#pending-game .connection-status{
+    position: absolute;
+    margin-left: 85px;
+    margin-top: 6px;
+}
+
+#pending-game .ready-status{
+    position: absolute;
+    margin-left: 97px;
+    margin-top: 6px;
+}
 #pending-game .pending-game-buttons {
     margin-left: 36%;
     margin-top: 5%;
@@ -226,18 +243,47 @@ body {
     cursor: pointer;
 }
 
-#pending-game .leave-button {
-    margin-left: 2%;
-}
-
 #pending-game .start-button {
     background-color: #0082C1;
     border: 1px solid #0082C1;
 }
 
+#pending-game .start-button:hover {
+    background-color: #225378;
+    border: 1px solid #225378;
+}
+
 #pending-game .leave-button {
-    background-color: #FFC44E;
-    border: 1px solid #FFC44E;
+    margin-left: 2%;
+    background-color: #E74C3C;
+    border: 1px solid #E74C3C;
+}
+#pending-game .leave-button:hover {
+    background-color: #B9121B;
+    border: 1px solid #B9121B;
+}
+
+#pending-game #minPlayersMessage,
+#pending-game #playerDisconnectedMessage,
+#pending-game #playerNotReadyMessage{
+    font-size: 20px;
+}
+
+#pending-game #kick-player-button{
+    width: 70%;
+    margin-top: 5%;
+    margin-left: 15%;
+    height: 10%;
+    background-color: #851B1B;
+    border: 1px solid #851B1B;
+    border-radius: 15px;
+    font-size: 27px;
+    cursor: pointer;
+}
+
+#pending-game #kick-player-button:hover{
+    background-color: #B9121B;
+    border: 1px solid #B9121B;
 }
 
 #level {

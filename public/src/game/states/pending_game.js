@@ -117,23 +117,26 @@ PendingGame.prototype = {
         	newPlayerElm.children[1].setAttribute('src', './resource/icon_' + player.color + '.png');
         	newPlayerElm.children[2].innerHTML = 'Type: ' + player.controller; // Controller, Keyboard, Remote, AI..
         	newPlayerElm.children[3].innerHTML = 'Screen: ' + (player.screenName || storage.screenId);
-        	newPlayerElm.children[4].innerHTML = 'Connected: ' + player.connection;
-        	newPlayerElm.children[5].innerHTML = 'Ready: ' + player.ready;
+        	newPlayerElm.children[4].style.backgroundColor = !player.connection ? 'red' : 'green'
+        	newPlayerElm.children[5].innerHTML = 'Connected ';
+        	newPlayerElm.children[6].style.backgroundColor = !player.ready ? 'red' : 'green'
+        	newPlayerElm.children[7].innerHTML = 'Ready ';
         	if(bomberman.masterScreen){
-        		newPlayerElm.children[6].addEventListener('click', this.kickPlayer.bind(player));
-        		newPlayerElm.children[6].classList.remove('hidden');
+        		newPlayerElm.children[8].addEventListener('click', this.kickPlayer.bind(player));
+        		newPlayerElm.children[8].classList.remove('hidden');
         	}
 			// this.characterImages[playerId] = game.add.image(this.characterSquares[this.numPlayersInGame].position.x + characterOffsetX, 
 			// this.characterSquares[this.numPlayersInGame].position.y + characterOffsetY, "bomberman_head_" + player.color);
 			this.htmlPlayersElm.appendChild(newPlayerElm);
 			this.numPlayersInGame++;
-			if(!player.connection){
+			if(!player.ready){
 				this.allConnected = false;
 			}
-			if(!player.ready){
+			if(!player.connection){
 				this.allReady = false;
 			}
 			// console.log(player, this.allConnected, this.allReady);
+			
 		}
 		if(bomberman.masterScreen){
 			if(this.checkStartConditions()){

@@ -653,7 +653,15 @@
 
 	/* global AirConsole */
 	module.exports = function (vmTools, storage, acTools, airconsole) {
-	    var colors = ['black','white','blue','green','red','lightblue','yellow','purple'];
+	    var colors = [
+	        {name:'black',      rgb:'rgb(100, 100, 100)'},
+	        {name:'white',      rgb:'rgb(249, 248, 239)'},
+	        {name:'blue',       rgb:'rgb(0, 123, 186)'},
+	        {name:'green',      rgb:'rgb(11, 153, 0)'},
+	        {name:'red',        rgb:'rgb(163, 46, 46)'},
+	        {name:'lightblue',  rgb:'rgb(107, 169, 192)'},
+	        {name:'yellow',     rgb:'rgb(213, 187, 0)'},
+	        {name:'purple',     rgb:'rgb(95, 71, 98)'}];
 	    var colorsElm = document.getElementById('colors');
 	    var colorElm = colorsElm.children[0];
 	    var newColorElm;
@@ -669,8 +677,8 @@
 	    for (var i = 0; i < colors.length; i++) {
 	    	var color = colors[i];
 	    	newColorElm = colorElm.cloneNode(true);
-	    	newColorElm.style.backgroundColor = color;
-	    	if(storage.color === color){
+	    	newColorElm.style.backgroundColor = color.rgb;
+	    	if(storage.color === color.name){
 	    	  newColorElm.classList.add('selected');
 	    	}
 	    	colorsElm.appendChild(newColorElm);
@@ -785,13 +793,22 @@
 	    }
 	    
 	    function getColor(){
+	        var colorRGB;
 	        var el = document.getElementsByClassName('selected');
 	        
 	        if(!el[0]){
 	            return;
 	        }
+	        
 	        color = el[0].style.backgroundColor;
-	           
+	        
+	        for (var i = 0; i < colors.length; i++) {
+	            
+	    	    colorRGB = colors[i].rgb;
+	    	    if(color == colorRGB)
+	    	        color = colors[i].name
+	        }
+	        
 	        return color ? color : '';
 	    }
 	    
