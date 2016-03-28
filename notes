@@ -14,6 +14,7 @@ TODO:
 - https://github.com/socketio/socket.io/issues/1715
 - merge player, controller, screen.player, bomberman.player, Level.player
 - move game related code from server.js to game class
+- merge player and remoteplayer into player with flag remote
 
 Html partials in controller:
 http://www.slant.co/topics/51/compare/

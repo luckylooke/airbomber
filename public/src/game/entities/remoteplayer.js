@@ -20,6 +20,14 @@ var RemotePlayer = function (x, y, nick, color) {
     this.animations.add('left', [24, 25, 26, 27, 28, 29, 30, 31], 15, true);
 
     game.add.existing(this);
+    
+    var style = { font: "20px Arial", fill: "#ffffff", align: "center"};
+
+    this.nickDisplay = game.add.text(15, -30, nick, style);
+    this.nickDisplay.anchor.set(0.5);
+    this.nickDisplay.stroke = 'rgba(0, 0, 0, 0.5)';
+    this.nickDisplay.strokeThickness = 3;
+    this.addChild(this.nickDisplay);
 };
 
 RemotePlayer.prototype = Object.create(Phaser.Sprite.prototype);
