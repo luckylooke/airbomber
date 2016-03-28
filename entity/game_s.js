@@ -11,6 +11,7 @@ var Game = function (id, master, cbDestroy) {
 	this.numPlayersAlive = 0;
     this.readyRound = [];
     this.paused = false;
+    this.pauseReasons = {};
 	this.numRounds = DEFAULT_NUM_ROUNDS;
 	this.currentRound = 1;
 	this.onDestroy = cbDestroy;
@@ -100,7 +101,13 @@ Game.prototype = {
 		return Object.keys(this.players).length;
 	},
 
-	pause: function() {
+	pause: function(data) {
+		if(data && data.reason){
+			this.pauseReasons[data.reason] = true;
+		}
+		if(this.paused){
+			return; // already paused by other reason
+		}
 		this.paused = true;
 	    for(var bombId in this.bombs){
 	        this.bombs[bombId].pause();
@@ -108,12 +115,17 @@ Game.prototype = {
 	    this.notifier('pause game');
 	},
 
-	resume: function() {
+	resume: function(data) {
+		if(data && data.reason){
+			delete this.pauseReasons[data.reason];
+		}
 		this.paused = false;
-	    for(var bombId in this.bombs){
-	        this.bombs[bombId].resume();
+	    if(!Object.keys(this.pauseReasons).length){
+		    for(var bombId in this.bombs){
+		        this.bombs[bombId].resume();
+		    }
+		    this.notifier('resume game');
 	    }
-	    this.notifier('resume game');
 	},
 	
 	handlePlayersDeath: function(deadPlayerNicks, remove) {

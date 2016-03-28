@@ -1,7 +1,6 @@
 TODO:
 - find out why storage.controller is set to 'undefined'
 - handle all disconnect scenarios on both sides
-- game pause reasons collection and resume on all resolved
 - status bar on controller (including nick color score(killed vs deaths) etc..)
 - distinguish game state and screen view, track both
 - local player (keyboard)

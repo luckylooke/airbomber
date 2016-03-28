@@ -984,6 +984,7 @@
 	    	document.getElementById('yesLeaveModalBtn').addEventListener("click", this.bindedYesLeaveModalAction);
 	        this.bindedNoLeaveModalAction = this.dontLeaveGame.bind(this);
 	    	document.getElementById('noLeaveModalBtn').addEventListener("click", this.bindedNoLeaveModalAction);
+	    	document.getElementById('leave-modal').classList.add('hidden');
 	    	
 	        airconsole.onDisconnect = function(device_id){
 	            console.log('onDisconnect', device_id, bomberman.players);
@@ -991,7 +992,7 @@
 	                var player = bomberman.players[nick];
 	                if(player.device_id === device_id && player.screenId === storage.screenId){
 	                    player.connection = false;
-	                    socket.emit("pause game", {gameId: storage.gameId, screenId: storage.screenId});
+	                    socket.emit("pause game", {gameId: storage.gameId, screenId: storage.screenId, reason:'connection' + storage.screenId + device_id});
 	                }
 	            }
 	        };
@@ -1002,13 +1003,12 @@
 	        acTools.addListener('reconnect', function(device_id, data){
 	            console.log('reconnection: ', data, bomberman);
 	            for (var nick in bomberman.players) {
-	                console.log('nick: ', nick);
 	                if(nick === data.nick){
-	                    console.log('found so resume');
-	                    var player = bomberman.players[nick];
+	                    var player = bomberman.players[nick],
+	                        oldDevId = player.device_id;
 	                    player.device_id = device_id;
 	                    player.connection = true;
-	                    socket.emit("resume game", {gameId: storage.gameId, screenId: storage.screenId});
+	                    socket.emit("resume game", {gameId: storage.gameId, screenId: storage.screenId, reason:'connection' + storage.screenId + oldDevId});
 	                }
 	            }
 	            console.log('storage.screenCurrentView', storage.screenCurrentView);
@@ -1110,14 +1110,14 @@
 
 	    pauseGameAction: function () {
 	        if(game.paused){
-	            socket.emit("resume game", {gameId: storage.gameId, screenId: storage.screenId});
+	            socket.emit("resume game", {gameId: storage.gameId, screenId: storage.screenId, reason:'pause button ' + storage.screenId});
 	        }else{
-	            socket.emit("pause game", {gameId: storage.gameId, screenId: storage.screenId});
+	            socket.emit("pause game", {gameId: storage.gameId, screenId: storage.screenId, reason:'pause button ' + storage.screenId});
 	        }
 	    },
 
 	    leaveGameAction: function () {
-	        socket.emit("pause game", {gameId: storage.gameId, screenId: storage.screenId});
+	        socket.emit("pause game", {gameId: storage.gameId, screenId: storage.screenId, reason:'leave button ' + storage.screenId});
 	        document.getElementById('leave-modal').classList.remove('hidden');
 	    },
 	    
@@ -1129,7 +1129,7 @@
 	    },
 	    dontLeaveGame: function () {
 	        document.getElementById('leave-modal').classList.add('hidden');
-	        socket.emit("resume game", {gameId: storage.gameId, screenId: storage.screenId});
+	        socket.emit("resume game", {gameId: storage.gameId, screenId: storage.screenId, reason:'leave button ' + storage.screenId});
 	    },
 
 	    onPauseGame: function (data) {

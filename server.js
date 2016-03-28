@@ -76,7 +76,7 @@ function onSocketDisconnect() {
     } else if (game.state == "settingup") {
         lobby.removeGame(this, this.screenId);
     } else if (game.state == "inprogress") {
-       onPauseGame.bind(this)();
+       onPauseGame.call(this, {reason: 'connection' + this.screenId});
        io.in(this.gameId).emit("screen disconnected", {screenId: this.screenId});
     }
 }
@@ -220,13 +220,13 @@ function onReadyForRound() {
 
 function onPauseGame(data) {
     if(games[this.gameId]){
-        games[this.gameId].pause();
+        games[this.gameId].pause(data);
     }
 }
 
 function onResumeGame(data) {
     if(games[this.gameId]){
-        games[this.gameId].resume();
+        games[this.gameId].resume(data);
     }
 }
 
@@ -247,6 +247,7 @@ function onReconnect(data) {
         mapData: game.map.mapData,
         placedBombs: game.map.placedBombs
     });
+    onResumeGame.call(this, {reason: 'connection' + this.screenId});
 }
 
 function broadcastingLoop() {
