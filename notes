@@ -9,7 +9,6 @@ TODO:
 - burnable powerups?
 - fire detonates bombs
 - bigger level (generated?)
-- Nickname over players
 - screen spectator role
 - url detection socket setup (cloud9 url parameter removal, replaced by optional parameter "socketserver")
 - take player photo to use as player icon
